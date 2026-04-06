@@ -55,6 +55,15 @@ export function EvaluatorDashboardClient({
     return { ...rc, candidate: c, session: s, flags, isMyReview, hoursSince: timeSince };
   }).filter((q) => q.candidate);
 
+  // Deduplicate queue by candidate id
+  const seenQueueIds = new Set<string>();
+  const dedupedQueue = queueItems.filter((q) => {
+    const id = q.candidate!.id;
+    if (seenQueueIds.has(id)) return false;
+    seenQueueIds.add(id);
+    return true;
+  });
+
   const filteredAll = allCandidates.filter((c) => {
     if (search && !`${c.first_name} ${c.last_name}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (gradeFilter && c.grade_band !== gradeFilter) return false;
@@ -74,17 +83,17 @@ export function EvaluatorDashboardClient({
               tab === t ? "border-b-2 border-primary text-primary" : "text-muted hover:text-lift-text"
             }`}
           >
-            {t === "queue" ? `My Queue (${queueItems.length})` : "All Candidates"}
+            {t === "queue" ? `My Queue (${dedupedQueue.length})` : "All Candidates"}
           </button>
         ))}
       </div>
 
       {tab === "queue" && (
         <div className="space-y-3">
-          {queueItems.length === 0 && (
+          {dedupedQueue.length === 0 && (
             <p className="py-8 text-center text-muted">No candidates in your review queue.</p>
           )}
-          {queueItems.map((q) => (
+          {dedupedQueue.map((q) => (
             <div key={q.candidate!.id} className="flex items-center justify-between rounded-lg border border-lift-border bg-surface p-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">

@@ -24,13 +24,6 @@ export async function POST(req: NextRequest) {
     .eq("tenant_id", tenant_id)
     .eq("is_final", true);
 
-  // Filter to candidates in this cycle
-  const { data: cycleCandiates } = await supabaseAdmin
-    .from("candidates")
-    .select("id, grade_band")
-    .eq("cycle_id", cycle_id)
-    .eq("tenant_id", tenant_id);
-
   const profilesInCycle = (profiles ?? []).filter((p) => {
     const cand = p.candidates as unknown as { grade_band: string };
     return cand != null;

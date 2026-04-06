@@ -71,7 +71,35 @@ function LoginForm() {
       return;
     }
 
-    router.push(redirect);
+    // If no explicit redirect, detect role and send to correct dashboard
+    if (searchParams.get("redirect")) {
+      router.push(redirect);
+      router.refresh();
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: roles } = await supabase
+        .from("user_tenant_roles")
+        .select("role")
+        .eq("user_id", user.id);
+
+      const userRoles = roles?.map((r) => r.role) ?? [];
+      if (userRoles.includes("platform_admin")) {
+        router.push("/admin/tenants");
+      } else if (userRoles.includes("school_admin")) {
+        router.push("/school");
+      } else if (userRoles.includes("evaluator")) {
+        router.push("/evaluator");
+      } else if (userRoles.includes("interviewer")) {
+        router.push("/interviewer");
+      } else {
+        router.push("/school");
+      }
+    } else {
+      router.push("/school");
+    }
     router.refresh();
   }
 
