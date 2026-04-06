@@ -1,10 +1,48 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+
+const SLIDES = [
+  "/slide-1.jpg",
+  "/slide-2.jpg",
+  "/slide-3.jpg",
+  "/slide-4.jpg",
+  "/slide-5.jpg",
+];
+
+function BackgroundSlideshow() {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % SLIDES.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-0">
+      {SLIDES.map((src, i) => (
+        <Image
+          key={src}
+          src={src}
+          alt=""
+          fill
+          priority={i === 0}
+          className={`object-cover transition-opacity duration-[2000ms] ${
+            i === current ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/60" />
+    </div>
+  );
+}
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -38,7 +76,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="relative z-10 w-full max-w-sm">
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center">
         <Image
@@ -48,19 +86,17 @@ function LoginForm() {
           height={192}
           className="h-48 w-48 rounded-2xl object-contain"
         />
-        <p className="mt-3 text-[11px] text-[#7878a0]">
+        <p className="mt-3 text-[11px] text-white/60">
           Learning Insight for Transitions
         </p>
       </div>
 
-      {/* Card */}
-      <div className="rounded-xl border border-[#2a2a3a] bg-[#16161f]/80 p-7 shadow-2xl backdrop-blur-sm">
-        <p className="mb-5 text-sm text-[#7878a0]">
-          Sign in to continue
-        </p>
+      {/* Card — translucent */}
+      <div className="rounded-xl border border-white/10 bg-black/40 p-7 shadow-2xl backdrop-blur-xl">
+        <p className="mb-5 text-sm text-white/60">Sign in to continue</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#7878a0]">
+            <label className="mb-1.5 block text-xs font-medium text-white/60">
               Email
             </label>
             <input
@@ -68,11 +104,12 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-[#2a2a3a] bg-[#0f0f13] px-3.5 py-2.5 text-sm text-[#e8e8f0] outline-none transition-colors focus:border-[#6366f1]"
+              autoComplete="email"
+              className="w-full rounded-lg border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-white placeholder-white/30 outline-none backdrop-blur-sm transition-colors focus:border-[#6366f1]"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#7878a0]">
+            <label className="mb-1.5 block text-xs font-medium text-white/60">
               Password
             </label>
             <div className="relative">
@@ -81,20 +118,23 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#2a2a3a] bg-[#0f0f13] px-3.5 py-2.5 pr-10 text-sm text-[#e8e8f0] outline-none transition-colors focus:border-[#6366f1]"
+                autoComplete="current-password"
+                className="w-full rounded-lg border border-white/10 bg-black/30 px-3.5 py-2.5 pr-10 text-sm text-white placeholder-white/30 outline-none backdrop-blur-sm transition-colors focus:border-[#6366f1]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7878a0] hover:text-[#e8e8f0]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
               >
-                {showPassword ? <EyeOff size={16} key="off" /> : <Eye size={16} key="on" />}
+                {showPassword ? (
+                  <EyeOff size={16} key="off" />
+                ) : (
+                  <Eye size={16} key="on" />
+                )}
               </button>
             </div>
           </div>
-          {error && (
-            <p className="text-xs text-[#f43f5e]">{error}</p>
-          )}
+          {error && <p className="text-xs text-[#f43f5e]">{error}</p>}
           <button
             type="submit"
             disabled={loading}
@@ -105,7 +145,7 @@ function LoginForm() {
         </form>
       </div>
 
-      <p className="mt-6 text-center text-[10px] text-[#7878a0]/60">
+      <p className="mt-6 text-center text-[10px] text-white/30">
         Powered by Inteliflow AI
       </p>
     </div>
@@ -114,7 +154,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0f0f13]">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
+      <BackgroundSlideshow />
       <Suspense>
         <LoginForm />
       </Suspense>
