@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   Building2,
   Calendar,
@@ -15,6 +16,7 @@ import {
   FileText,
   Briefcase,
   ScrollText,
+  LogOut,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -64,7 +66,7 @@ export function Sidebar({
           alt="LIFT"
           width={56}
           height={56}
-          className="h-14 w-14 rounded-lg"
+          className="h-14 w-14 rounded-lg object-contain"
         />
       </div>
 
@@ -95,12 +97,28 @@ export function Sidebar({
 
       {/* Footer */}
       <div className="border-t border-[#2a2a3a] px-4 py-3">
-        <p className="truncate text-xs font-medium text-[#e8e8f0]">
-          {userName || "User"}
-        </p>
-        <p className="mt-0.5 truncate text-[11px] text-[#7878a0] capitalize">
-          {role.replace("_", " ")}
-        </p>
+        <div className="flex items-center justify-between">
+          <div className="min-w-0">
+            <p className="truncate text-xs font-medium text-[#e8e8f0]">
+              {userName || "User"}
+            </p>
+            <p className="mt-0.5 truncate text-[11px] text-[#7878a0] capitalize">
+              {role.replace("_", " ")}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              const supabase = createClient();
+              supabase.auth.signOut().then(() => {
+                window.location.href = "/login";
+              });
+            }}
+            className="rounded-md p-1.5 text-[#7878a0] transition-colors hover:bg-[#2a2740] hover:text-[#f43f5e]"
+            title="Sign out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
     </aside>
   );
