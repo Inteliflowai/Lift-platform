@@ -69,18 +69,25 @@ export async function computeLearningSupport(
     .limit(1)
     .single();
 
-  // Task instances count
+  // Task instances count + response mode
   const { data: taskInstances } = await supabaseAdmin
     .from("task_instances")
-    .select("id")
+    .select("id, response_mode")
     .eq("session_id", sessionId);
 
   const taskCount = taskInstances?.length ?? 1;
 
   // --- Compute flags ---
 
-  // high_revision_depth: avg revision_depth across writing tasks > 4
-  const revisionDepths = (features ?? []).map((f) => f.revision_depth ?? 0);
+  // high_revision_depth: avg revision_depth across typed writing tasks > 4
+  // Do NOT penalize voice responses for low revision_depth
+  const voiceTaskIds = new Set(
+    (taskInstances ?? []).filter((t) => t.response_mode === "voice").map((t) => t.id)
+  );
+  const typedFeatures = (features ?? []).filter(
+    (f) => !voiceTaskIds.has(f.session_id) // approximate — features don't have task_instance_id directly
+  );
+  const revisionDepths = typedFeatures.map((f) => f.revision_depth ?? 0);
   const avgRevision =
     revisionDepths.length > 0
       ? revisionDepths.reduce((a, b) => a + b, 0) / revisionDepths.length

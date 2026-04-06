@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { VoiceResponseInput } from "@/components/session/VoiceResponseInput";
 
 type TaskTemplate = {
   id: string;
@@ -77,6 +78,7 @@ export function SessionClient({
   gradeBand,
   tenantId,
   pauseAllowed,
+  voiceEnabled,
   existingSession,
 }: {
   token: string;
@@ -84,6 +86,7 @@ export function SessionClient({
   gradeBand: "6-7" | "8" | "9-11";
   tenantId: string;
   pauseAllowed: boolean;
+  voiceEnabled: boolean;
   existingSession: Session | null;
 }) {
   const ux = UX_CONFIG[gradeBand];
@@ -388,6 +391,10 @@ export function SessionClient({
             })
           }
           submitting={submitting}
+          voiceEnabled={voiceEnabled}
+          gradeBand={gradeBand}
+          sessionToken={token}
+          taskInstanceId={currentTask.id}
         />
       )}
     </div>
@@ -404,6 +411,10 @@ function TaskRenderer({
   onHint,
   onReadingDwell,
   submitting,
+  voiceEnabled,
+  gradeBand,
+  sessionToken,
+  taskInstanceId,
 }: {
   template: TaskTemplate;
   ux: (typeof UX_CONFIG)[keyof typeof UX_CONFIG];
@@ -414,6 +425,10 @@ function TaskRenderer({
   onHint: () => void;
   onReadingDwell: (ms: number) => void;
   submitting: boolean;
+  voiceEnabled: boolean;
+  gradeBand: "6-7" | "8" | "9-11";
+  sessionToken: string;
+  taskInstanceId: string;
 }) {
   const [response, setResponse] = useState("");
   const [responses, setResponses] = useState<Record<string, string>>({});
@@ -497,12 +512,11 @@ function TaskRenderer({
           {template.content.prompt && (
             <p className="text-muted">{template.content.prompt}</p>
           )}
-          <textarea
-            value={response}
-            onChange={(e) => setResponse(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your response..."
-            className="w-full min-h-[80px] rounded-lg border border-lift-border bg-surface p-4 text-lift-text outline-none focus:border-primary resize-y"
+          <VoiceResponseInput
+            taskType="short_response" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
+            sessionToken={sessionToken} taskInstanceId={taskInstanceId}
+            value={response} onChange={setResponse} onKeyDown={handleKeyDown}
+            placeholder="Type your response..." minHeight="80px"
           />
           <p className="text-xs text-muted">
             {wordCount} words{" "}
@@ -528,12 +542,11 @@ function TaskRenderer({
           {template.content.prompt && (
             <p className="text-muted">{template.content.prompt}</p>
           )}
-          <textarea
-            value={response}
-            onChange={(e) => setResponse(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Write your response here. Take your time..."
-            className="w-full min-h-[200px] rounded-lg border border-lift-border bg-surface p-4 text-lift-text outline-none focus:border-primary resize-y"
+          <VoiceResponseInput
+            taskType="extended_writing" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
+            sessionToken={sessionToken} taskInstanceId={taskInstanceId}
+            value={response} onChange={setResponse} onKeyDown={handleKeyDown}
+            placeholder="Write your response here. Take your time..." minHeight="200px"
           />
           <p className="text-xs text-muted">{wordCount} words</p>
           <WordCountAndSubmit
@@ -561,12 +574,11 @@ function TaskRenderer({
               There are no right or wrong answers. Share your honest thoughts.
             </p>
           </div>
-          <textarea
-            value={response}
-            onChange={(e) => setResponse(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Reflect and share your thoughts..."
-            className="w-full min-h-[120px] rounded-lg border border-lift-border bg-surface p-4 text-lift-text outline-none focus:border-primary resize-y"
+          <VoiceResponseInput
+            taskType="reflection" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
+            sessionToken={sessionToken} taskInstanceId={taskInstanceId}
+            value={response} onChange={setResponse} onKeyDown={handleKeyDown}
+            placeholder="Reflect and share your thoughts..." minHeight="120px"
           />
           <WordCountAndSubmit
             hints={hints}
@@ -596,12 +608,11 @@ function TaskRenderer({
                 <div key={i} className="space-y-2">
                   <p className="font-medium">{p}</p>
                   {i === 0 && (
-                    <textarea
-                      value={response}
-                      onChange={(e) => setResponse(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Your response..."
-                      className="w-full min-h-[80px] rounded-lg border border-lift-border bg-surface p-4 text-lift-text outline-none focus:border-primary resize-y"
+                    <VoiceResponseInput
+                      taskType="scenario" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
+                      sessionToken={sessionToken} taskInstanceId={taskInstanceId}
+                      value={response} onChange={setResponse} onKeyDown={handleKeyDown}
+                      placeholder="Your response..." minHeight="80px"
                     />
                   )}
                 </div>

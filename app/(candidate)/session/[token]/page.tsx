@@ -50,10 +50,10 @@ export default async function SessionPage({
     redirect(`/session/done/${params.token}`);
   }
 
-  // Get tenant settings for pause config
+  // Get tenant settings for pause and voice config
   const { data: settings } = await supabaseAdmin
     .from("tenant_settings")
-    .select("session_pause_allowed, session_pause_limit_hours")
+    .select("session_pause_allowed, session_pause_limit_hours, voice_mode_enabled")
     .eq("tenant_id", candidate.tenant_id)
     .single();
 
@@ -64,6 +64,7 @@ export default async function SessionPage({
       gradeBand={candidate.grade_band as "6-7" | "8" | "9-11"}
       tenantId={candidate.tenant_id}
       pauseAllowed={settings?.session_pause_allowed ?? true}
+      voiceEnabled={settings?.voice_mode_enabled ?? true}
       existingSession={existingSession}
     />
   );

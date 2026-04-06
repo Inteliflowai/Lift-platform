@@ -11,6 +11,7 @@ type Settings = {
   session_pause_limit_hours: number;
   data_retention_days: number;
   require_human_review_always: boolean;
+  voice_mode_enabled: boolean;
 };
 
 export function SettingsClient({
@@ -46,6 +47,7 @@ export function SettingsClient({
         session_pause_limit_hours: settings.session_pause_limit_hours,
         data_retention_days: settings.data_retention_days,
         require_human_review_always: settings.require_human_review_always,
+        voice_mode_enabled: settings.voice_mode_enabled,
       }),
     });
 
@@ -171,6 +173,28 @@ export function SettingsClient({
             checked={settings.require_human_review_always}
             onChange={(v) =>
               setSettings({ ...settings, require_human_review_always: v })
+            }
+          />
+        </div>
+
+        {/* Voice Response Mode */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">Voice Response Mode</p>
+            <p className="text-xs text-muted">
+              Allow candidates to speak their responses instead of typing.
+              Available on writing, reflection, and scenario tasks. Reading
+              tasks always require typed responses.
+            </p>
+            <p className="mt-1 text-[10px] text-muted/70">
+              Voice recordings are transcribed and immediately deleted. No
+              audio is stored after transcription.
+            </p>
+          </div>
+          <Toggle
+            checked={settings.voice_mode_enabled}
+            onChange={(v) =>
+              setSettings({ ...settings, voice_mode_enabled: v })
             }
           />
         </div>

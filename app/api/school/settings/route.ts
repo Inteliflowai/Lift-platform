@@ -27,6 +27,7 @@ export async function PATCH(req: NextRequest) {
     "session_pause_limit_hours",
     "data_retention_days",
     "require_human_review_always",
+    "voice_mode_enabled",
   ];
 
   const updates: Record<string, unknown> = {};
