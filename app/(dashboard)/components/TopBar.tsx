@@ -1,0 +1,186 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { LogOut, ChevronDown, Camera } from "lucide-react";
+
+export function TopBar({
+  email,
+  fullName,
+  avatarUrl,
+}: {
+  email: string;
+  fullName?: string | null;
+  avatarUrl?: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatar, setAvatar] = useState(avatarUrl ?? null);
+  const router = useRouter();
+  const supabase = createClient();
+  const ref = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const initials = (fullName ?? email)
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setUploading(false);
+      return;
+    }
+
+    const ext = file.name.split(".").pop();
+    const path = `avatars/${user.id}.${ext}`;
+
+    // Upload to Supabase Storage
+    const { error: uploadErr } = await supabase.storage
+      .from("lift-reports")
+      .upload(path, file, { upsert: true });
+
+    if (uploadErr) {
+      console.error("Upload failed:", uploadErr.message);
+      setUploading(false);
+      return;
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("lift-reports").getPublicUrl(path);
+
+    // Update user profile
+    await supabase
+      .from("users")
+      .update({ avatar_url: publicUrl })
+      .eq("id", user.id);
+
+    setAvatar(publicUrl);
+    setUploading(false);
+    router.refresh();
+  }
+
+  return (
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#e5e5e5] bg-white px-6">
+      <div />
+
+      <div className="relative" ref={ref}>
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#f5f5f5]"
+        >
+          {avatar ? (
+            <Image
+              src={avatar}
+              alt="Avatar"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#818cf8] text-xs font-bold text-white">
+              {initials}
+            </div>
+          )}
+          <ChevronDown
+            size={14}
+            className={`text-[#999] transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {open && (
+          <div className="absolute right-0 mt-1.5 w-60 rounded-xl border border-[#e5e5e5] bg-white py-2 shadow-lg">
+            {/* Profile header */}
+            <div className="border-b border-[#e5e5e5] px-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="relative group">
+                  {avatar ? (
+                    <Image
+                      src={avatar}
+                      alt="Avatar"
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#818cf8] text-sm font-bold text-white">
+                      {initials}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <Camera size={14} className="text-white" />
+                  </button>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[#1a1a2e]">
+                    {fullName || "User"}
+                  </p>
+                  <p className="truncate text-xs text-[#999]">{email}</p>
+                </div>
+              </div>
+              {uploading && (
+                <p className="mt-2 text-xs text-[#6366f1]">Uploading...</p>
+              )}
+            </div>
+
+            {/* Change photo */}
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5]"
+            >
+              <Camera size={14} />
+              Change photo
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5] hover:text-[#f43f5e]"
+            >
+              <LogOut size={14} />
+              Log out
+            </button>
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

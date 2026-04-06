@@ -3,25 +3,58 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0f0f13;
+  --foreground: #e8e8f0;
+  --sidebar: #1e1b2e;
+  --surface: #16161f;
+  --border: #2a2a3a;
+  --primary: #6366f1;
+  --muted: #7878a0;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a3a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a4a;
+}
+
+/* Sidebar mesh animation */
+@keyframes mesh-shift {
+  0% {
+    background-position: 0% 50%;
   }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.sidebar-mesh {
+  background: linear-gradient(
+    135deg,
+    #1e1b2e 0%,
+    #252040 25%,
+    #1e1b2e 50%,
+    #1a1835 75%,
+    #1e1b2e 100%
+  );
+  background-size: 400% 400%;
+  animation: mesh-shift 20s ease infinite;
 }
