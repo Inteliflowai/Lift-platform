@@ -168,6 +168,15 @@ export function CandidateListClient({
                   <td className="px-4 py-3 text-muted">{c.grade_band}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
+                    {(c.status === "invited" || c.status === "consent_pending") && c.invites?.[0]?.token && (
+                      <a
+                        href={`/invite/${c.invites[0].token}`}
+                        target="_blank"
+                        className="ml-2 text-[10px] text-[#6366f1] hover:underline"
+                      >
+                        Open invite
+                      </a>
+                    )}
                   </td>
                   <td className="px-4 py-3">{completion}</td>
                   <td className="px-4 py-3 text-muted">{lastActivity}</td>
@@ -179,13 +188,27 @@ export function CandidateListClient({
                       View
                     </Link>
                     {hasPendingInvite && (
-                      <button
-                        onClick={() => handleResend(c.id)}
-                        disabled={resending === c.id}
-                        className="text-xs text-warning hover:text-warning/80 disabled:opacity-50"
-                      >
-                        {resending === c.id ? "Sending..." : "Resend"}
-                      </button>
+                      <>
+                        <button
+                          onClick={() => {
+                            const inviteToken = c.invites?.find((i) => i.status === "pending")?.token;
+                            if (inviteToken) {
+                              const url = `${window.location.origin}/invite/${inviteToken}`;
+                              navigator.clipboard.writeText(url);
+                            }
+                          }}
+                          className="text-xs text-[#6366f1] hover:underline"
+                        >
+                          Copy Link
+                        </button>
+                        <button
+                          onClick={() => handleResend(c.id)}
+                          disabled={resending === c.id}
+                          className="text-xs text-warning hover:text-warning/80 disabled:opacity-50"
+                        >
+                          {resending === c.id ? "Sending..." : "Resend"}
+                        </button>
+                      </>
                     )}
                   </td>
                 </tr>

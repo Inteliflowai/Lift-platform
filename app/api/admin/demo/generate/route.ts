@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
         token,
         sent_to_email: `${name.first.toLowerCase()}.${name.last.toLowerCase()}@demo.lift`,
         sent_at: new Date(sessionDate.getTime() - 86400000 * 2).toISOString(),
-        expires_at: new Date(sessionDate.getTime() + 86400000 * 7).toISOString(),
+        expires_at: new Date(Date.now() + 86400000 * 90).toISOString(), // 90 days from now for demo
         status: inviteStatus,
       });
 
