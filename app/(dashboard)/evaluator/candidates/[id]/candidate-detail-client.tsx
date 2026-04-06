@@ -96,6 +96,9 @@ function OverviewTab({ candidate, profile, inviteSentAt, sessions }: {
         <div><span className="text-muted">DOB:</span> {candidate.date_of_birth as string ?? "—"}</div>
         <div><span className="text-muted">Invite Sent:</span> {inviteSentAt ? new Date(inviteSentAt).toLocaleDateString() : "—"}</div>
         <div><span className="text-muted">Completed:</span> {sessions[0]?.completed_at ? new Date(sessions[0].completed_at).toLocaleDateString() : "—"}</div>
+        <div><span className="text-muted">CORE Sync:</span>{" "}
+          <CoreSyncBadge status={candidate.core_sync_status as string} syncAt={candidate.core_sync_at as string | null} coreStudentId={candidate.core_student_id as string | null} candidateId={candidate.id as string} />
+        </div>
       </div>
 
       {/* TRI Hero Panel */}
@@ -465,4 +468,49 @@ function InterviewTab({ candidateId, tenantId, notes, router }: {
       </div>
     </div>
   );
+}
+
+function CoreSyncBadge({ status, syncAt, coreStudentId, candidateId }: {
+  status: string; syncAt: string | null; coreStudentId: string | null; candidateId: string;
+}) {
+  const [retrying, setRetrying] = useState(false);
+
+  async function handleRetry() {
+    setRetrying(true);
+    await fetch("/api/integrations/core-handoff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-internal-secret": "__retry__" },
+      body: JSON.stringify({ candidate_id: candidateId }),
+    });
+    setRetrying(false);
+    window.location.reload();
+  }
+
+  switch (status) {
+    case "synced":
+      return (
+        <span className="inline-flex items-center gap-1">
+          <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs text-success">Synced to CORE</span>
+          {syncAt && <span className="text-[10px] text-muted">{new Date(syncAt).toLocaleDateString()}</span>}
+          {coreStudentId && (
+            <a href={`${process.env.NEXT_PUBLIC_CORE_URL ?? "https://app.inteliflowai.com"}/students/${coreStudentId}`}
+              target="_blank" className="text-[10px] text-primary hover:underline">View in CORE</a>
+          )}
+        </span>
+      );
+    case "failed":
+      return (
+        <span className="inline-flex items-center gap-1">
+          <span className="rounded-full bg-review/10 px-2 py-0.5 text-xs text-review">Sync failed</span>
+          <button onClick={handleRetry} disabled={retrying}
+            className="text-[10px] text-primary hover:underline disabled:opacity-50">
+            {retrying ? "Retrying..." : "Retry Sync"}
+          </button>
+        </span>
+      );
+    case "skipped":
+      return <span className="text-xs text-muted">Sync skipped</span>;
+    default:
+      return <span className="text-xs text-muted">Not yet admitted</span>;
+  }
 }

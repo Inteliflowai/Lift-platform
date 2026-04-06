@@ -13,6 +13,7 @@ export default function CandidateLayout({
           alt="LIFT"
           width={56}
           height={56}
+          priority
           className="h-14 w-14 rounded-lg"
         />
       </header>

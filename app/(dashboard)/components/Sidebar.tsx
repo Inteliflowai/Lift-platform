@@ -66,6 +66,7 @@ export function Sidebar({
           alt="LIFT"
           width={144}
           height={144}
+          priority
           className="h-[120px] w-[120px] rounded-xl object-contain"
         />
       </div>

@@ -108,6 +108,14 @@ export default async function SchoolDashboard() {
       }) ?? []),
   ];
 
+  // Deduplicate by candidate id
+  const seenIds = new Set<string>();
+  const dedupedQueue = reviewQueue.filter((c) => {
+    if (seenIds.has(c.id)) return false;
+    seenIds.add(c.id);
+    return true;
+  });
+
   // Recent completions
   const { data: recentCompleted } = await supabaseAdmin
     .from("sessions")
@@ -221,13 +229,13 @@ export default async function SchoolDashboard() {
         {/* Review Queue */}
         <div className="rounded-lg border border-lift-border bg-surface p-5">
           <h2 className="text-lg font-semibold">Review Queue</h2>
-          {reviewQueue.length === 0 ? (
+          {dedupedQueue.length === 0 ? (
             <p className="mt-3 text-sm text-muted">
               No candidates require review right now.
             </p>
           ) : (
             <div className="mt-3 space-y-2">
-              {reviewQueue.map((c) => (
+              {dedupedQueue.map((c) => (
                 <Link
                   key={c.id}
                   href={`/school/candidates/${c.id}`}

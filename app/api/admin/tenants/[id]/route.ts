@@ -57,15 +57,24 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { status } = body;
 
-  if (!status || !["active", "suspended", "archived"].includes(status)) {
+  const allowed = ["status", "core_integration_enabled", "core_tenant_id"];
+  const updates: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (body[key] !== undefined) updates[key] = body[key];
+  }
+
+  if (updates.status && !["active", "suspended", "archived"].includes(updates.status as string)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: "No valid fields" }, { status: 400 });
   }
 
   const { data: tenant, error } = await supabaseAdmin
     .from("tenants")
-    .update({ status })
+    .update(updates)
     .eq("id", params.id)
     .select()
     .single();
@@ -75,8 +84,8 @@ export async function PATCH(
   await writeAuditLog(supabaseAdmin, {
     tenant_id: params.id,
     actor_id: user.id,
-    action: "tenant_status_changed",
-    payload: { new_status: status },
+    action: "tenant_updated",
+    payload: updates,
   });
 
   return NextResponse.json(tenant);

@@ -84,6 +84,7 @@ function LoginForm() {
           alt="LIFT"
           width={192}
           height={192}
+          priority
           className="h-48 w-48 rounded-2xl object-contain"
         />
         <p className="mt-3 text-[11px] text-white/60">

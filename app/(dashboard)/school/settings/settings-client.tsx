@@ -16,11 +16,20 @@ type Settings = {
 
 export function SettingsClient({
   settings: initial,
+  coreIntegration,
+  isPlatformAdmin,
+  tenantId,
 }: {
   settings: Settings | null;
+  coreIntegration: { enabled: boolean; coreTenantId: string } | null;
+  isPlatformAdmin: boolean;
+  tenantId: string;
 }) {
   const [settings, setSettings] = useState<Settings | null>(initial);
   const [saving, setSaving] = useState(false);
+  const [coreEnabled, setCoreEnabled] = useState(coreIntegration?.enabled ?? false);
+  const [coreTenantId, setCoreTenantId] = useState(coreIntegration?.coreTenantId ?? "");
+  const [coreSaving, setCoreSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   if (!settings) {
@@ -209,6 +218,76 @@ export function SettingsClient({
           {saving ? "Saving..." : "Save Settings"}
         </button>
         {saved && <span className="text-xs text-success">Settings saved</span>}
+      </div>
+
+      {/* CORE Integration */}
+      <div className="mt-8 space-y-4 rounded-lg border border-lift-border bg-surface p-5">
+        <h2 className="text-lg font-semibold">CORE Integration</h2>
+
+        {isPlatformAdmin ? (
+          <>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Enable CORE Integration</p>
+                <p className="text-xs text-muted">
+                  Automatically send admitted candidates to CORE for student
+                  profile creation.
+                </p>
+              </div>
+              <Toggle
+                checked={coreEnabled}
+                onChange={(v) => setCoreEnabled(v)}
+              />
+            </div>
+
+            {coreEnabled && (
+              <div>
+                <label className="mb-1 block text-xs text-muted">
+                  CORE School ID (UUID from CORE platform)
+                </label>
+                <input
+                  type="text"
+                  value={coreTenantId}
+                  onChange={(e) => setCoreTenantId(e.target.value)}
+                  placeholder="e.g. a1b2c3d4-e5f6-..."
+                  className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
+                />
+              </div>
+            )}
+
+            <button
+              onClick={async () => {
+                setCoreSaving(true);
+                await fetch(`/api/admin/tenants/${tenantId}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    core_integration_enabled: coreEnabled,
+                    core_tenant_id: coreTenantId || null,
+                  }),
+                });
+                setCoreSaving(false);
+              }}
+              disabled={coreSaving}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {coreSaving ? "Saving..." : "Save CORE Settings"}
+            </button>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            {coreEnabled ? (
+              <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
+                Connected to CORE
+              </span>
+            ) : (
+              <span className="text-sm text-muted">
+                CORE integration is not configured. Contact your platform
+                administrator.
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
