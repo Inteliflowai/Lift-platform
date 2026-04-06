@@ -81,3 +81,9 @@ export const PROFILES: Record<ProfileType, {
 export const BAND_DISTRIBUTION: ProfileType[] = [
   "thriving", "thriving", "ready", "developing", "developing", "emerging_support",
 ];
+
+// Stage per position: 3 completed, 1 in-progress, 1 invited, 1 consent_pending
+export type DemoStage = "completed" | "in_progress" | "invited" | "consent_pending";
+export const STAGE_DISTRIBUTION: DemoStage[] = [
+  "completed", "completed", "completed", "in_progress", "invited", "consent_pending",
+];

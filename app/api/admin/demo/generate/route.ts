@@ -4,8 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
 import { DEMO_NAMES } from "@/lib/demo/names";
 import { RESPONSES } from "@/lib/demo/responses";
-import { PROFILES, BAND_DISTRIBUTION } from "@/lib/demo/profiles";
-import type { ProfileType } from "@/lib/demo/profiles";
+import { PROFILES, BAND_DISTRIBUTION, STAGE_DISTRIBUTION } from "@/lib/demo/profiles";
+import type { ProfileType, DemoStage } from "@/lib/demo/profiles";
 import crypto from "crypto";
 
 const GRADE_BANDS = ["6-7", "8", "9-11"] as const;
@@ -53,13 +53,75 @@ export async function POST(req: NextRequest) {
     cycleId = newCycle!.id;
   }
 
+  // Ensure task templates exist for each band/type combo
+  const TASK_TITLES: Record<string, string> = {
+    reading_passage: "Reading Comprehension",
+    short_response: "Short Response",
+    extended_writing: "Extended Writing",
+    reflection: "Self-Reflection",
+    scenario: "Scenario Analysis",
+  };
+
+  const templateCache: Record<string, string> = {}; // "band:type" → template_id
+  for (const band of GRADE_BANDS) {
+    for (const taskType of TASK_TYPES) {
+      const key = `${band}:${taskType}`;
+      const { data: existing } = await supabaseAdmin
+        .from("task_templates")
+        .select("id")
+        .eq("tenant_id", tenant_id)
+        .eq("grade_band", band)
+        .eq("task_type", taskType)
+        .eq("is_active", true)
+        .limit(1)
+        .single();
+
+      if (existing) {
+        templateCache[key] = existing.id;
+      } else {
+        // Also check global templates
+        const { data: global } = await supabaseAdmin
+          .from("task_templates")
+          .select("id")
+          .is("tenant_id", null)
+          .eq("grade_band", band)
+          .eq("task_type", taskType)
+          .eq("is_active", true)
+          .limit(1)
+          .single();
+
+        if (global) {
+          templateCache[key] = global.id;
+        } else {
+          // Create a demo template
+          const { data: newTpl } = await supabaseAdmin
+            .from("task_templates")
+            .insert({
+              tenant_id,
+              grade_band: band,
+              task_type: taskType,
+              title: `${TASK_TITLES[taskType] ?? taskType} (${band})`,
+              language: "en",
+              content: { prompt: "Demo task" },
+              is_active: true,
+            })
+            .select()
+            .single();
+          if (newTpl) templateCache[key] = newTpl.id;
+        }
+      }
+    }
+  }
+
   let nameIdx = 0;
   let created = 0;
 
   for (const band of GRADE_BANDS) {
     const gradeNum = band === "6-7" ? "7" : band === "8" ? "8" : "10";
 
-    for (const profileType of BAND_DISTRIBUTION) {
+    for (let distIdx = 0; distIdx < BAND_DISTRIBUTION.length; distIdx++) {
+      const profileType = BAND_DISTRIBUTION[distIdx];
+      const stage: DemoStage = STAGE_DISTRIBUTION[distIdx];
       const name = DEMO_NAMES[nameIdx % DEMO_NAMES.length];
       nameIdx++;
 
@@ -70,6 +132,9 @@ export async function POST(req: NextRequest) {
       const daysAgo = Math.floor(Math.random() * 28) + 1;
       const sessionDate = new Date();
       sessionDate.setDate(sessionDate.getDate() - daysAgo);
+
+      // Candidate status based on stage
+      const candidateStatus = stage === "completed" ? "completed" : stage === "in_progress" ? "active" : stage;
 
       // 1. Create candidate
       const { data: candidate } = await supabaseAdmin
@@ -82,7 +147,7 @@ export async function POST(req: NextRequest) {
           grade_applying_to: gradeNum,
           grade_band: band,
           preferred_language: "en",
-          status: "completed",
+          status: candidateStatus,
         })
         .select()
         .single();
@@ -91,6 +156,7 @@ export async function POST(req: NextRequest) {
 
       // 2. Invite
       const token = crypto.randomUUID();
+      const inviteStatus = stage === "invited" ? "pending" : stage === "consent_pending" ? "opened" : "accepted";
       await supabaseAdmin.from("invites").insert({
         candidate_id: candidate.id,
         tenant_id,
@@ -98,18 +164,28 @@ export async function POST(req: NextRequest) {
         sent_to_email: `${name.first.toLowerCase()}.${name.last.toLowerCase()}@demo.lift`,
         sent_at: new Date(sessionDate.getTime() - 86400000 * 2).toISOString(),
         expires_at: new Date(sessionDate.getTime() + 86400000 * 7).toISOString(),
-        status: "accepted",
+        status: inviteStatus,
       });
 
-      // 3. Consent
-      await supabaseAdmin.from("consent_events").insert({
-        candidate_id: candidate.id,
-        tenant_id,
-        consented_by: "candidate",
-        consent_type: "candidate_self",
-      });
+      // 3. Consent (skip for invited/consent_pending)
+      if (stage !== "invited" && stage !== "consent_pending") {
+        await supabaseAdmin.from("consent_events").insert({
+          candidate_id: candidate.id,
+          tenant_id,
+          consented_by: "candidate",
+          consent_type: "candidate_self",
+        });
+      }
+
+      // Skip session/response/profile for candidates who haven't started
+      if (stage === "invited" || stage === "consent_pending") {
+        created++;
+        continue;
+      }
 
       // 4. Session
+      const sessionStatus = stage === "completed" ? "completed" : "in_progress";
+      const completionPct = stage === "completed" ? 100 : Math.floor(Math.random() * 40) + 20;
       const { data: session } = await supabaseAdmin
         .from("sessions")
         .insert({
@@ -117,11 +193,11 @@ export async function POST(req: NextRequest) {
           tenant_id,
           cycle_id: cycleId,
           grade_band: band,
-          status: "completed",
+          status: sessionStatus,
           started_at: sessionDate.toISOString(),
-          completed_at: new Date(sessionDate.getTime() + 2400000).toISOString(),
+          completed_at: stage === "completed" ? new Date(sessionDate.getTime() + 2400000).toISOString() : null,
           last_activity_at: new Date(sessionDate.getTime() + 2400000).toISOString(),
-          completion_pct: 100,
+          completion_pct: completionPct,
         })
         .select()
         .single();
@@ -133,11 +209,13 @@ export async function POST(req: NextRequest) {
         const taskType = TASK_TYPES[t];
         const responseBody = responseSet?.[taskType] ?? "Response not available.";
 
+        const templateId = templateCache[`${band}:${taskType}`];
         const { data: ti } = await supabaseAdmin
           .from("task_instances")
           .insert({
             session_id: session.id,
             tenant_id,
+            task_template_id: templateId ?? null,
             sequence_order: t + 1,
             status: "completed",
             started_at: new Date(sessionDate.getTime() + t * 480000).toISOString(),
@@ -187,7 +265,13 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 9. Insight profile
+      // Skip profiles/briefings/reviews for in-progress candidates
+      if (stage === "in_progress") {
+        created++;
+        continue;
+      }
+
+      // 9. Insight profile (completed only)
       const tri_summary = {
         emerging: "This student shows early readiness signals and would benefit from a structured transition support plan.",
         developing: "This student demonstrates growing readiness and would likely thrive with targeted onboarding support.",
