@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${coreApiUrl}/api/integrations/lift/inbound`, {
+    const res = await fetch(`${coreApiUrl}/api/import/lift-inbound`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
