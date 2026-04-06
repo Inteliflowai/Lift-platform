@@ -32,8 +32,12 @@ export function TeamClient({ members }: { members: Member[] }) {
     });
 
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Failed to invite");
+      try {
+        const data = await res.json();
+        setError(data.error || "Failed to invite");
+      } catch {
+        setError(`Failed to invite (${res.status})`);
+      }
       setLoading(false);
       return;
     }

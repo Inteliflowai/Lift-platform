@@ -75,15 +75,19 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Send invite email
+  // Send invite email (non-blocking — don't fail if Resend is not configured)
   const schoolName = tenant?.name ?? "Your School";
   if (linkData?.properties?.action_link) {
-    await sendTeamInviteEmail({
-      to: email,
-      schoolName,
-      role,
-      link: linkData.properties.action_link,
-    });
+    try {
+      await sendTeamInviteEmail({
+        to: email,
+        schoolName,
+        role,
+        link: linkData.properties.action_link,
+      });
+    } catch (emailErr) {
+      console.error("Team invite email failed:", emailErr);
+    }
   }
 
   await writeAuditLog(supabaseAdmin, {
