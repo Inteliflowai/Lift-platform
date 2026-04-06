@@ -142,3 +142,38 @@ body { color: var(--foreground); background: var(--background); }
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
+
+/* PWA Mobile optimizations */
+@media (max-width: 768px) {
+  /* Prevent iOS auto-zoom on focus */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Prevent double-tap zoom */
+  button, a, input, textarea, select, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Minimum touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent pull-to-refresh on session pages */
+.session-container {
+  overscroll-behavior-y: contain;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .task-exit, .task-enter, .star-burst, .check-draw, .line-sweep,
+  .login-card-enter, .score-bar-animate {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
