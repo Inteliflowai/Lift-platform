@@ -38,22 +38,17 @@ function LoginForm() {
   return (
     <div className="w-full max-w-sm">
       {/* Logo */}
-      <div className="mb-8 flex items-center justify-center gap-2.5">
+      <div className="mb-8 flex flex-col items-center">
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
-          width={44}
-          height={44}
-          className="rounded-lg"
+          width={80}
+          height={80}
+          className="rounded-xl"
         />
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">
-            LIFT
-          </h1>
-          <p className="text-[11px] text-[#7878a0]">
-            Learning Insight for Transitions
-          </p>
-        </div>
+        <p className="mt-3 text-[11px] text-[#7878a0]">
+          Learning Insight for Transitions
+        </p>
       </div>
 
       {/* Card */}
