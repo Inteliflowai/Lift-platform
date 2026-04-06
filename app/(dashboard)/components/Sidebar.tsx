@@ -64,7 +64,7 @@ export function Sidebar({
           alt="LIFT"
           width={56}
           height={56}
-          className="rounded-lg"
+          className="h-14 w-14 rounded-lg"
         />
       </div>
 

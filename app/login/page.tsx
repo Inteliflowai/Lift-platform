@@ -44,7 +44,7 @@ function LoginForm() {
           alt="LIFT"
           width={80}
           height={80}
-          className="rounded-xl"
+          className="h-20 w-20 rounded-xl"
         />
         <p className="mt-3 text-[11px] text-[#7878a0]">
           Learning Insight for Transitions

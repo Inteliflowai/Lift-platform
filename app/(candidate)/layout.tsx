@@ -7,13 +7,13 @@ export default function CandidateLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center bg-[#fafaf9] text-[#1a1a2e]">
-      <header className="flex h-16 w-full items-center justify-center border-b border-[#e8e8e8]">
+      <header className="flex h-20 w-full items-center justify-center border-b border-[#e8e8e8]">
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
           width={56}
           height={56}
-          className="rounded-lg"
+          className="h-14 w-14 rounded-lg"
         />
       </header>
       <main className="w-full max-w-[680px] flex-1 px-6 py-10">
