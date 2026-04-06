@@ -47,15 +47,37 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
   ],
 };
 
+const ROLE_LABELS: Record<string, string> = {
+  platform_admin: "Platform",
+  school_admin: "School",
+  evaluator: "Evaluator",
+  interviewer: "Interviewer",
+};
+
 export function Sidebar({
   role,
+  allRoles,
   userName,
 }: {
   role: string;
+  allRoles?: string[];
   userName?: string | null;
 }) {
   const pathname = usePathname();
-  const items = NAV_BY_ROLE[role] ?? [];
+
+  // Build combined nav sections for users with multiple roles
+  const rolesToShow = allRoles && allRoles.length > 1
+    ? ["platform_admin", "school_admin", "evaluator", "interviewer"].filter((r) => allRoles.includes(r))
+    : [role];
+
+  const sections = rolesToShow.map((r) => ({
+    label: ROLE_LABELS[r] ?? r,
+    items: NAV_BY_ROLE[r] ?? [],
+    role: r,
+  })).filter((s) => s.items.length > 0);
+
+  // Flatten for single-role users
+  const isMultiRole = sections.length > 1;
 
   return (
     <aside className="sidebar-mesh fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-[#2a2a3a]">
@@ -72,28 +94,39 @@ export function Sidebar({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-3 py-3">
-        {items.map((item) => {
-          const active =
-            item.href === "/school"
-              ? pathname === "/school"
-              : pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
-                active
-                  ? "bg-[#6366f1]/15 text-[#6366f1]"
-                  : "text-[#7878a0] hover:bg-[#2a2740] hover:text-white"
-              }`}
-            >
-              <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto px-3 py-3">
+        {sections.map((section, sIdx) => (
+          <div key={section.role} className={sIdx > 0 ? "mt-4" : ""}>
+            {isMultiRole && (
+              <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#7878a0]/60">
+                {section.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const active =
+                  item.href === "/school"
+                    ? pathname === "/school"
+                    : pathname.startsWith(item.href);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
+                      active
+                        ? "bg-[#6366f1]/15 text-[#6366f1]"
+                        : "text-[#7878a0] hover:bg-[#2a2740] hover:text-white"
+                    }`}
+                  >
+                    <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}

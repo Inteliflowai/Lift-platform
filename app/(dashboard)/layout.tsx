@@ -52,7 +52,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a2e]">
-      <Sidebar role={primaryRole} userName={profile?.full_name} />
+      <Sidebar role={primaryRole} allRoles={userRoles} userName={profile?.full_name} />
       <div className="ml-60 flex min-h-screen flex-col">
         {isDemo && (
           <div className="flex h-10 items-center justify-center bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
