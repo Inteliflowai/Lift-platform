@@ -88,7 +88,7 @@ function LoginForm() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7878a0] hover:text-[#e8e8f0]"
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeOff size={16} key="off" /> : <Eye size={16} key="on" />}
               </button>
             </div>
           </div>
