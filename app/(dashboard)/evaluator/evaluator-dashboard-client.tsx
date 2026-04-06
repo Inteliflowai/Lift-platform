@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { TRIPill } from "@/components/TRI/TRIGauge";
 
 type ReviewCandidate = {
   candidate_id: string;
@@ -22,7 +23,7 @@ type AllCandidate = {
   status: string;
   created_at: string;
   sessions: { completion_pct: number; last_activity_at: string | null; completed_at: string | null }[];
-  insight_profiles: { requires_human_review: boolean; overall_confidence: number | null }[];
+  insight_profiles: { requires_human_review: boolean; overall_confidence: number | null; tri_score: number | null; tri_label: string | null; tri_confidence: string | null }[];
   evaluator_reviews: { recommendation_tier: string | null; status: string }[];
 };
 
@@ -146,6 +147,7 @@ export function EvaluatorDashboardClient({
                   <th className="px-4 py-3 font-medium">Grade</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Completion</th>
+                  <th className="px-4 py-3 font-medium">TRI</th>
                   <th className="px-4 py-3 font-medium">Review</th>
                   <th className="px-4 py-3 font-medium">Recommendation</th>
                 </tr>
@@ -161,7 +163,8 @@ export function EvaluatorDashboardClient({
                       <td className="px-4 py-3 text-muted">{c.grade_band}</td>
                       <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                       <td className="px-4 py-3">{sess?.completion_pct ?? 0}%</td>
-                      <td className="px-4 py-3">{profile?.requires_human_review && <span className="rounded-full bg-review/10 px-2 py-0.5 text-xs text-review">Required</span>}</td>
+                      <td className="px-4 py-3"><TRIPill score={profile?.tri_score ?? null} label={profile?.tri_label ?? null} confidence={profile?.tri_confidence ?? null} /></td>
+                      <td className="px-4 py-3">{profile?.requires_human_review ? <span className="rounded-full bg-review/10 px-2 py-0.5 text-xs text-review">Required</span> : null}</td>
                       <td className="px-4 py-3 text-xs text-muted">{review?.recommendation_tier?.replace(/_/g, " ") ?? "—"}</td>
                     </tr>
                   );

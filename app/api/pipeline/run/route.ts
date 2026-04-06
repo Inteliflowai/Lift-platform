@@ -92,6 +92,21 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Step 2b: Compute TRI
+    if (scoreData.profile_id) {
+      try {
+        const { computeTRI } = await import("@/lib/signals/tri");
+        await computeTRI(scoreData.profile_id);
+      } catch (triErr) {
+        await writeAuditLog(supabaseAdmin, {
+          tenant_id: session.tenant_id,
+          session_id,
+          action: "tri_computation_error",
+          payload: { error: triErr instanceof Error ? triErr.message : String(triErr) },
+        });
+      }
+    }
+
     // Step 3: Generate narratives
     await writeAuditLog(supabaseAdmin, {
       tenant_id: session.tenant_id,

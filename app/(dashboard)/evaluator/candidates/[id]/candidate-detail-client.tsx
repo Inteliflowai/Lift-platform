@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SupportPanel } from "@/components/LearningSupport/SupportPanel";
+import { TRIGauge } from "@/components/TRI/TRIGauge";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
@@ -96,6 +97,16 @@ function OverviewTab({ candidate, profile, inviteSentAt, sessions }: {
         <div><span className="text-muted">Invite Sent:</span> {inviteSentAt ? new Date(inviteSentAt).toLocaleDateString() : "—"}</div>
         <div><span className="text-muted">Completed:</span> {sessions[0]?.completed_at ? new Date(sessions[0].completed_at).toLocaleDateString() : "—"}</div>
       </div>
+
+      {/* TRI Hero Panel */}
+      {p && (
+        <TRIGauge
+          score={p.tri_score != null ? Number(p.tri_score) : null}
+          label={p.tri_label as string | null}
+          confidence={p.tri_confidence as string | null}
+          summary={p.tri_summary as string | null}
+        />
+      )}
 
       {p && (
         <>

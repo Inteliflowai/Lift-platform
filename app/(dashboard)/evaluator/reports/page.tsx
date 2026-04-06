@@ -29,7 +29,7 @@ export default async function CohortReportsPage() {
   const { data: candidates } = await supabaseAdmin
     .from("candidates")
     .select(
-      "id, grade_band, status, sessions(completion_pct), insight_profiles(overall_confidence, requires_human_review, reading_score, writing_score, reasoning_score, reflection_score, persistence_score, support_seeking_score), evaluator_reviews(recommendation_tier, status)"
+      "id, grade_band, status, sessions(completion_pct), insight_profiles(overall_confidence, requires_human_review, reading_score, writing_score, reasoning_score, reflection_score, persistence_score, support_seeking_score, tri_score, tri_label), evaluator_reviews(recommendation_tier, status)"
     )
     .eq("tenant_id", tenantId)
     .eq("cycle_id", cycle.id);

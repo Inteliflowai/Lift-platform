@@ -33,7 +33,7 @@ export default async function EvaluatorDashboard() {
   const { data: allCandidates } = await supabaseAdmin
     .from("candidates")
     .select(
-      "id, first_name, last_name, grade_band, status, created_at, sessions(completion_pct, last_activity_at, completed_at), insight_profiles(requires_human_review, overall_confidence), evaluator_reviews(recommendation_tier, status)"
+      "id, first_name, last_name, grade_band, status, created_at, sessions(completion_pct, last_activity_at, completed_at), insight_profiles(requires_human_review, overall_confidence, tri_score, tri_label, tri_confidence), evaluator_reviews(recommendation_tier, status)"
     )
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });

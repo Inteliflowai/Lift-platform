@@ -5,7 +5,7 @@ type Candidate = {
   grade_band: string;
   status: string;
   sessions: { completion_pct: number }[];
-  insight_profiles: { overall_confidence: number | null; requires_human_review: boolean }[];
+  insight_profiles: { overall_confidence: number | null; requires_human_review: boolean; tri_score: number | null; tri_label: string | null }[];
   evaluator_reviews: { recommendation_tier: string | null; status: string }[];
 };
 
@@ -21,6 +21,8 @@ export function CohortReportsClient({
   const byBand: Record<string, { total: number; completed: number }> = {};
   const byTier: Record<string, number> = {};
   const confidences: number[] = [];
+  const triByLabel: Record<string, number> = { emerging: 0, developing: 0, ready: 0, thriving: 0 };
+  const triByBand: Record<string, { total: number; sum: number }> = {};
   let flagged = 0;
 
   for (const c of candidates) {
@@ -32,6 +34,15 @@ export function CohortReportsClient({
     const profile = c.insight_profiles?.[0];
     if (profile?.requires_human_review) flagged++;
     if (profile?.overall_confidence != null) confidences.push(Number(profile.overall_confidence));
+
+    if (profile?.tri_label) {
+      triByLabel[profile.tri_label] = (triByLabel[profile.tri_label] ?? 0) + 1;
+    }
+    if (profile?.tri_score != null) {
+      if (!triByBand[c.grade_band]) triByBand[c.grade_band] = { total: 0, sum: 0 };
+      triByBand[c.grade_band].total++;
+      triByBand[c.grade_band].sum += Number(profile.tri_score);
+    }
 
     const review = c.evaluator_reviews?.find((r) => r.status === "finalized");
     if (review?.recommendation_tier) {
@@ -114,6 +125,40 @@ export function CohortReportsClient({
           </div>
         </div>
       )}
+
+      {/* TRI Distribution */}
+      <div className="rounded-lg border border-lift-border bg-surface p-5">
+        <h2 className="mb-3 text-sm font-semibold">Transition Readiness Index</h2>
+        <div className="space-y-2">
+          {(["emerging", "developing", "ready", "thriving"] as const).map((label) => {
+            const count = triByLabel[label] ?? 0;
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            const colors: Record<string, string> = { emerging: "#f43f5e", developing: "#f59e0b", ready: "#6366f1", thriving: "#10b981" };
+            return (
+              <div key={label} className="flex items-center gap-3">
+                <span className="w-24 text-sm capitalize">{label}</span>
+                <div className="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: colors[label] }} />
+                </div>
+                <span className="w-16 text-right text-sm">{count} ({pct}%)</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Avg TRI per grade band */}
+        {Object.keys(triByBand).length > 0 && (
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {Object.entries(triByBand).sort().map(([band, data]) => (
+              <div key={band} className="rounded-md border border-lift-border p-3 text-center">
+                <p className="text-xs text-muted">Grade {band}</p>
+                <p className="mt-1 text-lg font-bold">{(data.sum / data.total).toFixed(1)}</p>
+                <p className="text-[10px] text-muted">avg TRI</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
