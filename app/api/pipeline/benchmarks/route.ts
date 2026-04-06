@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
     .eq("cycle_id", cycle_id)
     .eq("tenant_id", tenant_id);
 
-  const cycleIds = new Set(cycleCandiates?.map((c) => c.id) ?? []);
   const profilesInCycle = (profiles ?? []).filter((p) => {
     const cand = p.candidates as unknown as { grade_band: string };
     return cand != null;
