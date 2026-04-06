@@ -5,7 +5,7 @@ import { writeAuditLog } from "@/lib/audit";
 import { DEMO_NAMES } from "@/lib/demo/names";
 import { RESPONSES } from "@/lib/demo/responses";
 import { PROFILES, BAND_DISTRIBUTION, STAGE_DISTRIBUTION } from "@/lib/demo/profiles";
-import type { ProfileType, DemoStage } from "@/lib/demo/profiles";
+import type { DemoStage } from "@/lib/demo/profiles";
 import crypto from "crypto";
 
 const GRADE_BANDS = ["6-7", "8", "9-11"] as const;
