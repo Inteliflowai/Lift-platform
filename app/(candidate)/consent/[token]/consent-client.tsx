@@ -112,29 +112,34 @@ export function ConsentClient({
 
   // Self-consent flow
   return (
-    <div className="mx-auto max-w-lg space-y-6 py-8">
-      <h1 className="text-2xl font-bold">Before We Begin</h1>
+    <div className="mx-auto max-w-lg space-y-8 py-8">
+      <div className="text-center">
+        <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[#1c1917]">Before We Begin</h1>
+        <p className="mt-2 text-sm text-[#78716c]">{schoolName}</p>
+      </div>
 
-      <div className="space-y-4 rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="font-semibold">What is LIFT?</h2>
-        <p className="text-sm text-muted">
-          LIFT is a set of short activities that explore how you approach
-          reading, writing, and reasoning tasks. {schoolName} uses these
-          insights as part of their admissions process.
-        </p>
+      <div className="space-y-6 rounded-2xl border border-[#e8e4df] bg-white p-8 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+        <div>
+          <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#1c1917]">What is LIFT?</h2>
+          <p className="mt-2 text-[15px] leading-[1.75] text-[#57534e]">
+            LIFT is a set of short activities that explore how you approach
+            reading, writing, and reasoning tasks. {schoolName} uses these
+            insights as part of their admissions process.
+          </p>
+        </div>
 
-        <h2 className="font-semibold">This is not a test</h2>
-        <p className="text-sm text-muted">
-          There are no right or wrong answers. We&apos;re interested in how you
-          think — not what you know. Take your time, do your best, and be
-          yourself.
-        </p>
+        <div>
+          <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[#1c1917]">This is not a test</h2>
+          <p className="mt-2 text-[15px] leading-[1.75] text-[#57534e]">
+            There are no right or wrong answers. We&apos;re interested in how you
+            think — not what you know. Take your time, do your best, and be
+            yourself.
+          </p>
+        </div>
 
-        <div className="rounded-md border border-warning/30 bg-warning/5 p-4">
-          <h3 className="text-sm font-semibold text-warning">
-            Non-Diagnostic Disclaimer
-          </h3>
-          <p className="mt-1 text-xs text-muted">
+        <div className="flex gap-3 rounded-xl border border-[#6366f1]/20 bg-[#6366f1]/5 p-4">
+          <span className="mt-0.5 text-[#6366f1]">&#8505;</span>
+          <p className="text-[13px] leading-relaxed text-[#57534e]">
             LIFT is a non-diagnostic platform. It does not diagnose, screen for,
             or identify any clinical, medical, or learning condition. The
             insights generated are used solely to help schools understand how
@@ -149,9 +154,9 @@ export function ConsentClient({
           type="checkbox"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-lift-border"
+          className="custom-checkbox mt-0.5"
         />
-        <span className="text-sm">
+        <span className="text-[15px] leading-relaxed text-[#1c1917]">
           I understand that LIFT is not a test or diagnosis, and I agree to
           participate.
         </span>
@@ -160,9 +165,9 @@ export function ConsentClient({
       <button
         onClick={handleSelfConsent}
         disabled={!agreed || loading}
-        className="w-full rounded-lg bg-primary py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-xl bg-[#6366f1] py-3.5 font-[family-name:var(--font-display)] text-base font-semibold text-white transition-colors hover:bg-[#4f46e5] disabled:opacity-50"
       >
-        {loading ? "Starting..." : "I Agree — Let's Begin"}
+        {loading ? "Starting..." : "I'm Ready to Begin"}
       </button>
     </div>
   );

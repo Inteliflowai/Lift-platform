@@ -10,51 +10,121 @@
   --border: #2a2a3a;
   --primary: #6366f1;
   --muted: #7878a0;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-}
+/* Typography */
+h1, h2, h3 { font-family: var(--font-display); }
+body, p, label, button, input, textarea, select { font-family: var(--font-body); }
+.font-mono, code, .score-number, .tri-score { font-family: var(--font-geist-mono); }
+
+body { color: var(--foreground); background: var(--background); }
 
 /* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #2a2a3a;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3a3a4a;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
 
-/* Sidebar mesh animation */
+/* Sidebar mesh */
 @keyframes mesh-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
-
 .sidebar-mesh {
-  background: linear-gradient(
-    135deg,
-    #1e1b2e 0%,
-    #252040 25%,
-    #1e1b2e 50%,
-    #1a1835 75%,
-    #1e1b2e 100%
-  );
+  background: linear-gradient(135deg, #1e1b2e 0%, #252040 25%, #1e1b2e 50%, #1a1835 75%, #1e1b2e 100%);
   background-size: 400% 400%;
   animation: mesh-shift 20s ease infinite;
+}
+
+/* Task card transitions */
+@keyframes slide-out-left {
+  to { transform: translateX(-40px); opacity: 0; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.task-exit { animation: slide-out-left 300ms ease forwards; }
+.task-enter { animation: slide-in-right 300ms ease 50ms forwards; opacity: 0; }
+
+/* Micro-celebrations */
+@keyframes star-burst {
+  0% { transform: scale(0) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+@keyframes check-draw {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes line-sweep {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.star-burst { animation: star-burst 1.2s ease forwards; }
+.check-draw { stroke-dasharray: 24; animation: check-draw 600ms ease 200ms forwards; stroke-dashoffset: 24; }
+.line-sweep { animation: line-sweep 800ms ease forwards; }
+
+/* Login card entry */
+@keyframes card-entry {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.login-card-enter { animation: card-entry 600ms ease-out forwards; }
+
+/* Login card glow border */
+@keyframes glow-rotate {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(360deg); }
+}
+.glow-border {
+  position: relative;
+}
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 21px;
+  background: conic-gradient(from 0deg, #6366f1, #818cf8, #6366f1);
+  opacity: 0.15;
+  animation: glow-rotate 8s linear infinite;
+  z-index: -1;
+}
+
+/* Login shake on error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+.shake { animation: shake 400ms ease; }
+
+/* Candidate custom checkbox */
+.custom-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d6cfc8;
+  border-radius: 5px;
+  cursor: pointer;
+  position: relative;
+  transition: all 150ms ease;
+}
+.custom-checkbox:checked {
+  background: #6366f1;
+  border-color: #6366f1;
+}
+.custom-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }

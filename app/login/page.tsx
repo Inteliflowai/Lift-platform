@@ -6,40 +6,22 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
-const SLIDES = [
-  "/slide-1.jpg",
-  "/slide-2.jpg",
-  "/slide-3.jpg",
-  "/slide-4.jpg",
-  "/slide-5.jpg",
-];
+const SLIDES = ["/slide-1.jpg", "/slide-2.jpg", "/slide-3.jpg", "/slide-4.jpg", "/slide-5.jpg"];
 
 function BackgroundSlideshow() {
   const [current, setCurrent] = useState(0);
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % SLIDES.length);
-    }, 6000);
+    const interval = setInterval(() => setCurrent((p) => (p + 1) % SLIDES.length), 6000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="fixed inset-0 z-0">
       {SLIDES.map((src, i) => (
-        <Image
-          key={src}
-          src={src}
-          alt=""
-          fill
-          priority={i === 0}
-          className={`object-cover transition-opacity duration-[2000ms] ${
-            i === current ? "opacity-100" : "opacity-0"
-          }`}
-        />
+        <Image key={src} src={src} alt="" fill priority={i === 0}
+          className={`object-cover transition-opacity duration-[1200ms] ${i === current ? "opacity-100" : "opacity-0"}`} />
       ))}
-      {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
     </div>
   );
 }
@@ -50,6 +32,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [shaking, setShaking] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/school";
@@ -60,18 +43,16 @@ function LoginForm() {
     setError(null);
 
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       setError(authError.message);
+      setShaking(true);
+      setTimeout(() => setShaking(false), 500);
       setLoading(false);
       return;
     }
 
-    // If no explicit redirect, detect role and send to correct dashboard
     if (searchParams.get("redirect")) {
       router.push(redirect);
       router.refresh();
@@ -80,23 +61,13 @@ function LoginForm() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: roles } = await supabase
-        .from("user_tenant_roles")
-        .select("role")
-        .eq("user_id", user.id);
-
-      const userRoles = roles?.map((r) => r.role) ?? [];
-      if (userRoles.includes("platform_admin")) {
-        router.push("/admin/tenants");
-      } else if (userRoles.includes("school_admin")) {
-        router.push("/school");
-      } else if (userRoles.includes("evaluator")) {
-        router.push("/evaluator");
-      } else if (userRoles.includes("interviewer")) {
-        router.push("/interviewer");
-      } else {
-        router.push("/school");
-      }
+      const { data: roles } = await supabase.from("user_tenant_roles").select("role").eq("user_id", user.id);
+      const r = roles?.map((x) => x.role) ?? [];
+      if (r.includes("platform_admin")) router.push("/admin/tenants");
+      else if (r.includes("school_admin")) router.push("/school");
+      else if (r.includes("evaluator")) router.push("/evaluator");
+      else if (r.includes("interviewer")) router.push("/interviewer");
+      else router.push("/school");
     } else {
       router.push("/school");
     }
@@ -104,79 +75,48 @@ function LoginForm() {
   }
 
   return (
-    <div className="relative z-10 w-full max-w-sm">
+    <div className="relative z-10 w-full max-w-[400px] login-card-enter">
       {/* Logo */}
-      <div className="mb-8 flex flex-col items-center">
-        <Image
-          src="/LIFT LOGO.jpeg"
-          alt="LIFT"
-          width={192}
-          height={192}
-          priority
-          className="h-48 w-48 rounded-2xl object-contain"
-        />
-        <p className="mt-3 text-[11px] text-white/60">
-          Learning Insight for Transitions
-        </p>
+      <div className="mb-10 flex flex-col items-center">
+        <Image src="/LIFT LOGO.jpeg" alt="LIFT" width={120} height={120} priority
+          className="h-28 w-28 rounded-2xl object-contain" />
       </div>
 
-      {/* Card — translucent */}
-      <div className="rounded-xl border border-white/10 bg-black/40 p-7 shadow-2xl backdrop-blur-xl">
-        <p className="mb-5 text-sm text-white/60">Sign in to continue</p>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Card */}
+      <div className={`glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-12 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px] backdrop-saturate-[1.4] ${shaking ? "shake" : ""}`}>
+        <h1 className="text-center font-[family-name:var(--font-display)] text-3xl font-bold text-white">
+          LIFT
+        </h1>
+        <p className="mt-1 text-center font-[family-name:var(--font-body)] text-sm text-white/50">
+          Learning Insight for Transitions
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/60">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              className="w-full rounded-lg border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-white placeholder-white/30 outline-none backdrop-blur-sm transition-colors focus:border-[#6366f1]"
-            />
+            <label className="mb-1.5 block text-xs font-medium text-white/50">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
+              className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]" />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/60">
-              Password
-            </label>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">Password</label>
             <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="w-full rounded-lg border border-white/10 bg-black/30 px-3.5 py-2.5 pr-10 text-sm text-white placeholder-white/30 outline-none backdrop-blur-sm transition-colors focus:border-[#6366f1]"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
-              >
-                {showPassword ? (
-                  <EyeOff size={16} key="off" />
-                ) : (
-                  <Eye size={16} key="on" />
-                )}
+              <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors">
+                {showPassword ? <EyeOff size={16} key="off" /> : <Eye size={16} key="on" />}
               </button>
             </div>
           </div>
           {error && <p className="text-xs text-[#f43f5e]">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-gradient-to-r from-[#6366f1] to-[#818cf8] py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full rounded-xl bg-[#6366f1] py-3 font-[family-name:var(--font-display)] text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5] disabled:opacity-50">
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
       </div>
 
-      <p className="mt-6 text-center text-[10px] text-white/30">
-        Powered by Inteliflow AI
-      </p>
+      <p className="mt-8 text-center text-[10px] text-white/25">Powered by Inteliflow AI</p>
     </div>
   );
 }
@@ -185,9 +125,7 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
       <BackgroundSlideshow />
-      <Suspense>
-        <LoginForm />
-      </Suspense>
+      <Suspense><LoginForm /></Suspense>
     </div>
   );
 }
