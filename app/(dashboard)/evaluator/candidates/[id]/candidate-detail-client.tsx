@@ -7,6 +7,7 @@ import { TRIGauge } from "@/components/TRI/TRIGauge";
 import { BriefingCard } from "@/components/evaluator/BriefingCard";
 import { SynthesisPanel } from "@/components/evaluator/SynthesisPanel";
 import { RubricForm } from "@/components/interviewer/RubricForm";
+import { RadarChart } from "@/components/RadarChart";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
@@ -123,10 +124,25 @@ function OverviewTab({ candidate, profile, inviteSentAt, sessions, benchmarks }:
         />
       )}
 
+      {/* Radar Chart */}
+      {p && (
+        <RadarChart
+          scores={{
+            reading: Number(p.reading_score ?? 0),
+            writing: Number(p.writing_score ?? 0),
+            reasoning: Number(p.reasoning_score ?? 0),
+            reflection: Number(p.reflection_score ?? 0),
+            persistence: Number(p.persistence_score ?? 0),
+            support_seeking: Number(p.support_seeking_score ?? 0),
+          }}
+          benchmarks={benchmarks as Record<string, number> | null}
+        />
+      )}
+
       {p && (
         <>
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">Dimension Scores</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold">Dimension Scores</h2>
             {DIMENSIONS.map((dim) => {
               const score = p[`${dim}_score`] as number | null;
               const val = score != null ? Math.round(Number(score)) : null;

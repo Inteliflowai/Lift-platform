@@ -27,6 +27,20 @@ body { color: var(--foreground); background: var(--background); }
 ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
 
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Score bar animation */
+@keyframes bar-fill {
+  from { width: 0; }
+}
+.score-bar-animate {
+  animation: bar-fill 800ms ease-out forwards;
+}
+
 /* Sidebar mesh */
 @keyframes mesh-shift {
   0% { background-position: 0% 50%; }
