@@ -42,9 +42,9 @@ function LoginForm() {
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
-          width={80}
-          height={80}
-          className="h-20 w-20 rounded-xl"
+          width={100}
+          height={100}
+          className="h-24 w-24 rounded-xl object-contain"
         />
         <p className="mt-3 text-[11px] text-[#7878a0]">
           Learning Insight for Transitions

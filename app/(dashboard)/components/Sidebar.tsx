@@ -60,13 +60,13 @@ export function Sidebar({
   return (
     <aside className="sidebar-mesh fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-[#2a2a3a]">
       {/* Logo — centered, no text */}
-      <div className="flex h-20 items-center justify-center">
+      <div className="flex h-24 items-center justify-center">
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
-          width={56}
-          height={56}
-          className="h-14 w-14 rounded-lg object-contain"
+          width={72}
+          height={72}
+          className="h-[72px] w-[72px] rounded-lg object-contain"
         />
       </div>
 
