@@ -4,12 +4,14 @@ import { Suspense, useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/school";
@@ -42,9 +44,9 @@ function LoginForm() {
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
-          width={100}
-          height={100}
-          className="h-24 w-24 rounded-xl object-contain"
+          width={192}
+          height={192}
+          className="h-48 w-48 rounded-2xl object-contain"
         />
         <p className="mt-3 text-[11px] text-[#7878a0]">
           Learning Insight for Transitions
@@ -73,13 +75,22 @@ function LoginForm() {
             <label className="mb-1.5 block text-xs font-medium text-[#7878a0]">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-lg border border-[#2a2a3a] bg-[#0f0f13] px-3.5 py-2.5 text-sm text-[#e8e8f0] outline-none transition-colors focus:border-[#6366f1]"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full rounded-lg border border-[#2a2a3a] bg-[#0f0f13] px-3.5 py-2.5 pr-10 text-sm text-[#e8e8f0] outline-none transition-colors focus:border-[#6366f1]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7878a0] hover:text-[#e8e8f0]"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
           {error && (
             <p className="text-xs text-[#f43f5e]">{error}</p>

@@ -60,13 +60,13 @@ export function Sidebar({
   return (
     <aside className="sidebar-mesh fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-[#2a2a3a]">
       {/* Logo — centered, no text */}
-      <div className="flex h-24 items-center justify-center">
+      <div className="flex h-32 items-center justify-center">
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
-          width={72}
-          height={72}
-          className="h-[72px] w-[72px] rounded-lg object-contain"
+          width={144}
+          height={144}
+          className="h-[120px] w-[120px] rounded-xl object-contain"
         />
       </div>
 
@@ -106,19 +106,19 @@ export function Sidebar({
               {role.replace("_", " ")}
             </p>
           </div>
-          <button
-            onClick={() => {
-              const supabase = createClient();
-              supabase.auth.signOut().then(() => {
-                window.location.href = "/login";
-              });
-            }}
-            className="rounded-md p-1.5 text-[#7878a0] transition-colors hover:bg-[#2a2740] hover:text-[#f43f5e]"
-            title="Sign out"
-          >
-            <LogOut size={16} />
-          </button>
         </div>
+        <button
+          onClick={() => {
+            const supabase = createClient();
+            supabase.auth.signOut().then(() => {
+              window.location.href = "/login";
+            });
+          }}
+          className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-[#7878a0] transition-colors hover:bg-[#2a2740] hover:text-[#f43f5e]"
+        >
+          <LogOut size={16} />
+          Sign Out
+        </button>
       </div>
     </aside>
   );
