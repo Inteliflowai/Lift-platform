@@ -141,7 +141,10 @@ export function CandidateListClient({
           </thead>
           <tbody className="divide-y divide-lift-border">
             {filtered.map((c) => {
-              const latestSession = c.sessions?.[0];
+              const sortedSessions = [...(c.sessions ?? [])].sort(
+                (a, b) => Number(b.completion_pct) - Number(a.completion_pct)
+              );
+              const latestSession = sortedSessions[0];
               const completion = latestSession
                 ? `${latestSession.completion_pct}%`
                 : "—";
