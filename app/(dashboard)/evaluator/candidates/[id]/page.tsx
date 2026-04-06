@@ -38,7 +38,10 @@ export default async function EvaluatorCandidateDetail({
     .eq("candidate_id", params.id)
     .order("created_at", { ascending: false });
 
-  const sessionId = sessions?.[0]?.id;
+  // Pick the completed session first, then most recent
+  const sessionId =
+    sessions?.find((s) => s.status === "completed")?.id ??
+    sessions?.[0]?.id;
 
   // Responses
   let responses: unknown[] = [];
