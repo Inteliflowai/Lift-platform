@@ -211,8 +211,13 @@ async function notifyEvaluators(tenantId: string, candidateId: string) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   try {
-    const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const nodemailer = await import("nodemailer");
+    const transporter = nodemailer.default.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT) || 465,
+      secure: true,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
 
     const emails = roles
       .map((r) => {
@@ -223,9 +228,9 @@ async function notifyEvaluators(tenantId: string, candidateId: string) {
 
     if (emails.length === 0) return;
 
-    await resend.emails.send({
-      from: "LIFT <noreply@lift.inteliflowai.com>",
-      to: emails,
+    await transporter.sendMail({
+      from: `LIFT <${process.env.EMAIL_USER || "lift@inteliflowai.com"}>`,
+      to: emails.join(", "),
       subject: `${tenant?.name ?? "LIFT"} — Review Required: ${candidateName}`,
       html: `
         <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">

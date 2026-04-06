@@ -1,7 +1,22 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-function getResend() {
-  return new Resend(process.env.RESEND_API_KEY);
+function getTransporter() {
+  return nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT) || 465,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+}
+
+const FROM = `LIFT <${process.env.EMAIL_USER || "lift@inteliflowai.com"}>`;
+
+async function sendMail(to: string, subject: string, html: string) {
+  const transporter = getTransporter();
+  await transporter.sendMail({ from: FROM, to, subject, html });
 }
 
 export async function sendInviteEmail(params: {
@@ -53,12 +68,7 @@ export async function sendInviteEmail(params: {
       </div>
     `;
 
-  return getResend().emails.send({
-    from: "LIFT <noreply@lift.inteliflowai.com>",
-    to: params.to,
-    subject,
-    html,
-  });
+  return sendMail(params.to, subject, html);
 }
 
 export async function sendTeamInviteEmail(params: {
@@ -79,10 +89,9 @@ export async function sendTeamInviteEmail(params: {
     </div>
   `;
 
-  return getResend().emails.send({
-    from: "LIFT <noreply@lift.inteliflowai.com>",
-    to: params.to,
-    subject: `${params.schoolName} — You're Invited to LIFT`,
-    html,
-  });
+  return sendMail(
+    params.to,
+    `${params.schoolName} — You're Invited to LIFT`,
+    html
+  );
 }

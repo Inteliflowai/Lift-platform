@@ -55,11 +55,16 @@ export async function POST(req: NextRequest) {
       expiryNote = `<p style="color: #666; font-size: 14px;">This link expires on ${expiry.toLocaleString()}.</p>`;
     }
 
-    const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const nodemailer = await import("nodemailer");
+    const transporter = nodemailer.default.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT) || 465,
+      secure: true,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
 
-    await resend.emails.send({
-      from: "LIFT <noreply@lift.inteliflowai.com>",
+    await transporter.sendMail({
+      from: `LIFT <${process.env.EMAIL_USER || "lift@inteliflowai.com"}>`,
       to: candidate_email,
       subject: "Continue Your LIFT Session",
       html: `
