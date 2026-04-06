@@ -72,6 +72,7 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/evaluator") &&
     !userRoles.includes("evaluator") &&
+    !userRoles.includes("school_admin") &&
     !userRoles.includes("platform_admin")
   ) {
     return NextResponse.redirect(new URL("/unauthorized", request.url));
