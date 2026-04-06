@@ -115,6 +115,44 @@ export default async function EvaluatorCandidateDetail({
     learningSupport = data;
   }
 
+  // Evaluator briefing
+  const { data: briefing } = await supabaseAdmin
+    .from("evaluator_briefings")
+    .select("key_observations, interview_questions, areas_to_explore, strengths_to_confirm, confidence_explanation")
+    .eq("candidate_id", params.id)
+    .order("generated_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  // Interview rubric submissions
+  const { data: rubricSubmissions } = await supabaseAdmin
+    .from("interview_rubric_submissions")
+    .select("*, users(full_name)")
+    .eq("candidate_id", params.id)
+    .eq("tenant_id", tenantId)
+    .order("submitted_at", { ascending: false });
+
+  // Interview synthesis
+  const { data: synthesis } = await supabaseAdmin
+    .from("interview_syntheses")
+    .select("*")
+    .eq("candidate_id", params.id)
+    .order("generated_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  // Cohort benchmarks
+  let benchmarks = null;
+  if (candidate.cycle_id) {
+    const { data } = await supabaseAdmin
+      .from("cohort_benchmarks")
+      .select("*")
+      .eq("cycle_id", candidate.cycle_id)
+      .eq("grade_band", candidate.grade_band)
+      .single();
+    benchmarks = data;
+  }
+
   return (
     <CandidateDetailClient
       candidate={candidate}
@@ -130,6 +168,10 @@ export default async function EvaluatorCandidateDetail({
       inviteSentAt={invite?.sent_at}
       tenantId={tenantId}
       learningSupport={learningSupport}
+      briefing={briefing}
+      rubricSubmissions={rubricSubmissions ?? []}
+      synthesis={synthesis}
+      benchmarks={benchmarks}
     />
   );
 }

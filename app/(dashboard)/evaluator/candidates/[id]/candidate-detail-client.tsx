@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SupportPanel } from "@/components/LearningSupport/SupportPanel";
 import { TRIGauge } from "@/components/TRI/TRIGauge";
+import { BriefingCard } from "@/components/evaluator/BriefingCard";
+import { SynthesisPanel } from "@/components/evaluator/SynthesisPanel";
+import { RubricForm } from "@/components/interviewer/RubricForm";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
@@ -19,7 +22,7 @@ function scoreColor(score: number | null): string {
 export function CandidateDetailClient({
   candidate, profile, sessions, responses, timingSignals, helpEvents,
   interactionSignals, sessionEvents, reviews, interviewNotes, inviteSentAt,
-  tenantId, learningSupport,
+  tenantId, learningSupport, briefing, rubricSubmissions, synthesis, benchmarks,
 }: {
   candidate: Record<string, unknown>;
   profile: Record<string, unknown> | null;
@@ -34,6 +37,10 @@ export function CandidateDetailClient({
   inviteSentAt: string | null | undefined;
   tenantId: string;
   learningSupport: Record<string, unknown> | null;
+  briefing: Record<string, unknown> | null;
+  rubricSubmissions: Record<string, unknown>[];
+  synthesis: Record<string, unknown> | null;
+  benchmarks: Record<string, unknown> | null;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
@@ -59,34 +66,39 @@ export function CandidateDetailClient({
       </div>
 
       {tab === "overview" && (
-        <>
-          <OverviewTab candidate={candidate} profile={profile} inviteSentAt={inviteSentAt} sessions={sessions} />
+        <div className="space-y-6">
+          <OverviewTab candidate={candidate} profile={profile} inviteSentAt={inviteSentAt} sessions={sessions} benchmarks={benchmarks} />
+          <BriefingCard briefing={briefing as Parameters<typeof BriefingCard>[0]["briefing"]} />
+          {rubricSubmissions.length > 0 && (
+            <SynthesisPanel
+              synthesis={synthesis as Parameters<typeof SynthesisPanel>[0]["synthesis"]}
+              originalPlacement={profile?.placement_guidance as string | null}
+            />
+          )}
           <SupportPanel
             signal={learningSupport as Parameters<typeof SupportPanel>[0]["signal"]}
             onView={() => {
               fetch("/api/audit-log", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  candidate_id: candidate.id,
-                  action: "learning_support_viewed",
-                }),
+                body: JSON.stringify({ candidate_id: candidate.id, action: "learning_support_viewed" }),
               }).catch(() => {});
             }}
           />
-        </>
+        </div>
       )}
       {tab === "responses" && <ResponsesTab responses={responses} />}
       {tab === "signals" && <SignalsTab timing={timingSignals} help={helpEvents} interactions={interactionSignals} events={sessionEvents} />}
-      {tab === "review" && <ReviewTab candidateId={candidate.id as string} tenantId={tenantId} reviews={reviews} router={router} />}
-      {tab === "interview" && <InterviewTab candidateId={candidate.id as string} tenantId={tenantId} notes={interviewNotes} router={router} />}
+      {tab === "review" && <ReviewTab candidateId={candidate.id as string} tenantId={tenantId} reviews={reviews} router={router} rubricSubmissions={rubricSubmissions} profile={profile} />}
+      {tab === "interview" && <InterviewTabV2 candidateId={candidate.id as string} tenantId={tenantId} candidateName={`${candidate.first_name} ${candidate.last_name}`} rubricSubmissions={rubricSubmissions} notes={interviewNotes} router={router} />}
     </div>
   );
 }
 
-function OverviewTab({ candidate, profile, inviteSentAt, sessions }: {
+function OverviewTab({ candidate, profile, inviteSentAt, sessions, benchmarks }: {
   candidate: Record<string, unknown>; profile: Record<string, unknown> | null;
   inviteSentAt: string | null | undefined; sessions: { completed_at: string | null }[];
+  benchmarks: Record<string, unknown> | null;
 }) {
   const p = profile;
   return (
@@ -118,16 +130,30 @@ function OverviewTab({ candidate, profile, inviteSentAt, sessions }: {
             {DIMENSIONS.map((dim) => {
               const score = p[`${dim}_score`] as number | null;
               const val = score != null ? Math.round(Number(score)) : null;
+              const bmKey = `avg_${dim}`;
+              const bmVal = benchmarks?.[bmKey] != null ? Math.round(Number(benchmarks[bmKey])) : null;
+              const diff = val != null && bmVal != null ? val - bmVal : null;
+              const diffColor = diff != null ? (diff > 0 ? "text-[#10b981]" : diff < -15 ? "text-[#f43f5e]" : "text-[#f59e0b]") : "";
               return (
                 <div key={dim} className="flex items-center gap-3">
                   <span className="w-32 text-sm capitalize">{dim.replace("_", " ")}</span>
-                  <div className="flex-1 h-4 rounded-full bg-lift-border overflow-hidden">
+                  <div className="relative flex-1 h-4 rounded-full bg-lift-border overflow-hidden">
                     <div className={`h-full rounded-full ${scoreColor(val)}`} style={{ width: `${val ?? 0}%` }} />
+                    {bmVal != null && (
+                      <div className="absolute top-0 h-full w-0.5 bg-[#1a1a2e]/40" style={{ left: `${bmVal}%` }}
+                        title={`Cycle avg: ${bmVal}`} />
+                    )}
                   </div>
-                  <span className="w-10 text-right text-sm font-bold">{val ?? "—"}</span>
+                  <span className={`w-10 text-right text-sm font-bold ${diffColor}`}>{val ?? "—"}</span>
+                  {bmVal != null && <span className="w-16 text-[10px] text-muted">avg {bmVal}</span>}
                 </div>
               );
             })}
+            {benchmarks && (
+              <p className="text-[10px] text-muted mt-1">
+                Compared to {String(benchmarks.candidate_count ?? 0)} candidates in this cycle · Grade {candidate.grade_band as string}
+              </p>
+            )}
           </div>
 
           <div className="flex gap-3 text-sm">
@@ -249,10 +275,12 @@ function SignalsTab({ timing, help, interactions, events }: {
   );
 }
 
-function ReviewTab({ candidateId, tenantId, reviews, router }: {
+function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, profile }: {
   candidateId: string; tenantId: string;
   reviews: Record<string, unknown>[];
   router: ReturnType<typeof useRouter>;
+  rubricSubmissions: Record<string, unknown>[];
+  profile: Record<string, unknown> | null;
 }) {
   const [notes, setNotes] = useState((reviews[0]?.notes as string) ?? "");
   const [tier, setTier] = useState((reviews[0]?.recommendation_tier as string) ?? "");
@@ -322,8 +350,33 @@ function ReviewTab({ candidateId, tenantId, reviews, router }: {
     );
   }
 
+  // Decision context
+  const latestRubric = rubricSubmissions[0] as Record<string, unknown> | undefined;
+  const interviewRec = latestRubric?.recommendation as string | undefined;
+  const sessionPositive = profile && Number(profile.tri_score ?? 0) >= 60;
+  const interviewPositive = interviewRec === "strong_yes" || interviewRec === "yes";
+  const aligned = latestRubric ? (sessionPositive === interviewPositive) : null;
+
   return (
     <div className="space-y-6">
+      {/* Decision Context */}
+      <div className="rounded-lg border border-lift-border bg-surface p-4 space-y-2">
+        <h4 className="text-xs font-semibold text-muted uppercase tracking-wide">Decision Context</h4>
+        <div className="flex flex-wrap gap-3 text-sm">
+          {profile && (
+            <span>TRI: <span className="font-semibold capitalize">{profile.tri_label as string}</span> ({Number(profile.tri_score ?? 0).toFixed(1)})</span>
+          )}
+          {interviewRec && (
+            <span>Interview: <span className="font-semibold capitalize">{interviewRec.replace("_", " ")}</span></span>
+          )}
+        </div>
+        {aligned !== null && (
+          <p className={`text-xs ${aligned ? "text-[#10b981]" : "text-[#f59e0b]"}`}>
+            {aligned ? "Session and interview are aligned" : "Session and interview diverge — review both carefully"}
+          </p>
+        )}
+      </div>
+
       <div className="space-y-4">
         <div>
           <label className="mb-1 block text-xs text-muted">Evaluator Notes</label>
@@ -513,4 +566,65 @@ function CoreSyncBadge({ status, syncAt, coreStudentId, candidateId }: {
     default:
       return <span className="text-xs text-muted">Not yet admitted</span>;
   }
+}
+
+function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmissions, notes, router }: {
+  candidateId: string; tenantId: string; candidateName: string;
+  rubricSubmissions: Record<string, unknown>[];
+  notes: Record<string, unknown>[];
+  router: ReturnType<typeof useRouter>;
+}) {
+  return (
+    <div className="space-y-6">
+      {/* Existing rubric submissions */}
+      {rubricSubmissions.map((sub, i) => {
+        const interviewer = sub.users as { full_name: string } | null;
+        return (
+          <div key={i} className="rounded-lg border border-lift-border bg-surface p-4 space-y-3">
+            <div className="flex justify-between text-xs text-muted">
+              <span>{interviewer?.full_name ?? "Interviewer"}</span>
+              <span>{sub.interview_date as string}</span>
+            </div>
+            <div className="grid grid-cols-5 gap-2 text-center text-xs">
+              {["verbal_reasoning", "communication", "self_awareness", "curiosity", "resilience"].map((d) => (
+                <div key={d}>
+                  <p className="text-muted capitalize">{d.replace("_", " ")}</p>
+                  <p className="text-lg font-bold">{String(sub[`${d}_score`] ?? "—")}/5</p>
+                </div>
+              ))}
+            </div>
+            {sub.overall_impression ? <p className="text-sm">{String(sub.overall_impression)}</p> : null}
+            {sub.standout_moments ? <p className="text-xs text-muted">Standout: {String(sub.standout_moments)}</p> : null}
+            {sub.concerns ? <p className="text-xs text-[#f43f5e]">Concerns: {String(sub.concerns)}</p> : null}
+            <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+              sub.recommendation === "strong_yes" ? "bg-[#10b981]/10 text-[#10b981]" :
+              sub.recommendation === "yes" ? "bg-[#6366f1]/10 text-[#6366f1]" :
+              sub.recommendation === "unsure" ? "bg-[#f59e0b]/10 text-[#f59e0b]" :
+              "bg-[#f43f5e]/10 text-[#f43f5e]"
+            }`}>{(sub.recommendation as string)?.replace("_", " ")}</span>
+          </div>
+        );
+      })}
+
+      {/* Legacy free-text notes (read-only) */}
+      {notes.length > 0 && (
+        <div>
+          <h4 className="text-xs font-semibold text-muted mb-2">Previous Interview Notes</h4>
+          {notes.map((n, i) => (
+            <div key={i} className="rounded-md border border-lift-border p-3 text-sm text-muted mb-2">
+              {n.notes as string}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* New rubric form */}
+      <RubricForm
+        candidateId={candidateId}
+        tenantId={tenantId}
+        candidateName={candidateName}
+        onSubmitted={() => router.refresh()}
+      />
+    </div>
+  );
 }

@@ -169,6 +169,35 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Step 5: Generate evaluator briefing (non-blocking)
+    try {
+      await fetch(`${baseUrl}/api/pipeline/briefing`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ candidate_id: session.candidate_id, session_id }),
+      });
+    } catch (bErr) {
+      console.error("Briefing generation failed:", bErr);
+    }
+
+    // Step 6: Compute cohort benchmarks (non-blocking)
+    try {
+      const { data: cand } = await supabaseAdmin
+        .from("candidates")
+        .select("cycle_id")
+        .eq("id", session.candidate_id)
+        .single();
+      if (cand?.cycle_id) {
+        await fetch(`${baseUrl}/api/pipeline/benchmarks`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ cycle_id: cand.cycle_id, tenant_id: session.tenant_id }),
+        });
+      }
+    } catch (bmErr) {
+      console.error("Benchmark computation failed:", bmErr);
+    }
+
     // Check if human review needed → notify evaluators
     if (scoreData.requires_human_review) {
       await notifyEvaluators(session.tenant_id, session.candidate_id);
