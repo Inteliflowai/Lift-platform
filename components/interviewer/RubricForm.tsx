@@ -35,6 +35,7 @@ export function RubricForm({
   const [concerns, setConcerns] = useState("");
   const [rec, setRec] = useState("");
   const [saving, setSaving] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
   const allScored = DIMENSIONS.every((d) => scores[d.key] >= 1);
@@ -44,7 +45,7 @@ export function RubricForm({
     if (!canSubmit) return;
     setSaving(true);
 
-    await fetch("/api/interview-rubric", {
+    const res = await fetch("/api/interview-rubric", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -64,7 +65,31 @@ export function RubricForm({
     });
 
     setSaving(false);
-    onSubmitted();
+
+    if (res.ok) {
+      setSubmitted(true);
+      setTimeout(() => onSubmitted(), 2000);
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="rounded-xl border border-[#10b981]/30 bg-[#10b981]/5 p-8 text-center space-y-3">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#10b981]/10">
+          <svg className="h-7 w-7 text-[#10b981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" className="check-draw" />
+          </svg>
+        </div>
+        <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[#10b981]">
+          Rubric Submitted
+        </h3>
+        <p className="text-sm text-muted">
+          Your interview assessment for {candidateName} has been recorded.
+          The AI is now synthesizing your observations with session data.
+        </p>
+        <p className="text-xs text-muted">Refreshing in a moment...</p>
+      </div>
+    );
   }
 
   return (
