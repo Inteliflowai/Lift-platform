@@ -130,6 +130,30 @@ export async function POST(req: NextRequest) {
       .eq("id", session.candidate_id)
       .neq("status", "completed");
 
+    // Step 4: Compute learning support signals (non-blocking)
+    try {
+      const { computeLearningSupport } = await import(
+        "@/lib/signals/learningSupport"
+      );
+      await computeLearningSupport(session_id);
+      await writeAuditLog(supabaseAdmin, {
+        tenant_id: session.tenant_id,
+        candidate_id: session.candidate_id,
+        session_id,
+        action: "learning_support_computed",
+      });
+    } catch (lsErr) {
+      await writeAuditLog(supabaseAdmin, {
+        tenant_id: session.tenant_id,
+        candidate_id: session.candidate_id,
+        session_id,
+        action: "learning_support_error",
+        payload: {
+          error: lsErr instanceof Error ? lsErr.message : String(lsErr),
+        },
+      });
+    }
+
     // Check if human review needed → notify evaluators
     if (scoreData.requires_human_review) {
       await notifyEvaluators(session.tenant_id, session.candidate_id);

@@ -94,6 +94,27 @@ export default async function EvaluatorCandidateDetail({
     .limit(1)
     .single();
 
+  // Learning support signals
+  let learningSupport = null;
+  if (profile?.learning_support_signal_id) {
+    const { data } = await supabaseAdmin
+      .from("learning_support_signals")
+      .select("*")
+      .eq("id", profile.learning_support_signal_id)
+      .single();
+    learningSupport = data;
+  } else if (sessionId) {
+    // Fallback: look up by session
+    const { data } = await supabaseAdmin
+      .from("learning_support_signals")
+      .select("*")
+      .eq("session_id", sessionId)
+      .order("computed_at", { ascending: false })
+      .limit(1)
+      .single();
+    learningSupport = data;
+  }
+
   return (
     <CandidateDetailClient
       candidate={candidate}
@@ -108,6 +129,7 @@ export default async function EvaluatorCandidateDetail({
       interviewNotes={interviewNotes ?? []}
       inviteSentAt={invite?.sent_at}
       tenantId={tenantId}
+      learningSupport={learningSupport}
     />
   );
 }

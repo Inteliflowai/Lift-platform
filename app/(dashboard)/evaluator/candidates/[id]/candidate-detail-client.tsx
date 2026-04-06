@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SupportPanel } from "@/components/LearningSupport/SupportPanel";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
@@ -17,7 +18,7 @@ function scoreColor(score: number | null): string {
 export function CandidateDetailClient({
   candidate, profile, sessions, responses, timingSignals, helpEvents,
   interactionSignals, sessionEvents, reviews, interviewNotes, inviteSentAt,
-  tenantId,
+  tenantId, learningSupport,
 }: {
   candidate: Record<string, unknown>;
   profile: Record<string, unknown> | null;
@@ -31,6 +32,7 @@ export function CandidateDetailClient({
   interviewNotes: Record<string, unknown>[];
   inviteSentAt: string | null | undefined;
   tenantId: string;
+  learningSupport: Record<string, unknown> | null;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
@@ -55,7 +57,24 @@ export function CandidateDetailClient({
         ))}
       </div>
 
-      {tab === "overview" && <OverviewTab candidate={candidate} profile={profile} inviteSentAt={inviteSentAt} sessions={sessions} />}
+      {tab === "overview" && (
+        <>
+          <OverviewTab candidate={candidate} profile={profile} inviteSentAt={inviteSentAt} sessions={sessions} />
+          <SupportPanel
+            signal={learningSupport as Parameters<typeof SupportPanel>[0]["signal"]}
+            onView={() => {
+              fetch("/api/audit-log", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  candidate_id: candidate.id,
+                  action: "learning_support_viewed",
+                }),
+              }).catch(() => {});
+            }}
+          />
+        </>
+      )}
       {tab === "responses" && <ResponsesTab responses={responses} />}
       {tab === "signals" && <SignalsTab timing={timingSignals} help={helpEvents} interactions={interactionSignals} events={sessionEvents} />}
       {tab === "review" && <ReviewTab candidateId={candidate.id as string} tenantId={tenantId} reviews={reviews} router={router} />}
