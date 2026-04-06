@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 
@@ -17,7 +18,7 @@ export default async function DashboardLayout({
 
   const { data: roles } = await supabase
     .from("user_tenant_roles")
-    .select("role")
+    .select("role, tenant_id")
     .eq("user_id", user.id);
 
   const roleOrder = [
@@ -37,10 +38,27 @@ export default async function DashboardLayout({
     .eq("id", user.id)
     .single();
 
+  // Check if tenant is in demo mode
+  const tenantId = roles?.[0]?.tenant_id;
+  let isDemo = false;
+  if (tenantId) {
+    const { data: tenant } = await supabaseAdmin
+      .from("tenants")
+      .select("is_demo")
+      .eq("id", tenantId)
+      .single();
+    isDemo = tenant?.is_demo ?? false;
+  }
+
   return (
     <div className="min-h-screen bg-white text-[#1a1a2e]">
       <Sidebar role={primaryRole} userName={profile?.full_name} />
       <div className="ml-60 flex min-h-screen flex-col">
+        {isDemo && (
+          <div className="flex h-10 items-center justify-center bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
+            Demo Mode — All candidates and data on this account are synthetic. No real student information is present.
+          </div>
+        )}
         <TopBar
           email={user.email!}
           fullName={profile?.full_name}

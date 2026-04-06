@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { ImpersonateButton } from "./impersonate-button";
+import { DemoControls } from "./demo-controls";
 
 export default async function TenantDetailPage({
   params,
@@ -153,6 +154,14 @@ export default async function TenantDetailPage({
           </div>
         )}
       </div>
+
+      {/* Demo Mode */}
+      <DemoControls
+        tenantId={params.id}
+        isDemo={tenant.is_demo ?? false}
+        demoActivatedAt={tenant.demo_activated_at}
+        tenantName={tenant.name}
+      />
     </div>
   );
 }

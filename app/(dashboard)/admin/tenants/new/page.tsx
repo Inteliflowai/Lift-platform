@@ -10,6 +10,7 @@ export default function NewTenantPage() {
   const [adminEmail, setAdminEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   function handleNameChange(value: string) {
     setName(value);
@@ -40,6 +41,16 @@ export default function NewTenantPage() {
     }
 
     const tenant = await res.json();
+
+    // If demo, generate synthetic data
+    if (isDemo) {
+      await fetch("/api/admin/demo/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenant_id: tenant.id }),
+      });
+    }
+
     router.push(`/admin/tenants/${tenant.id}`);
   }
 
@@ -79,6 +90,11 @@ export default function NewTenantPage() {
             className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
           />
         </div>
+
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={isDemo} onChange={(e) => setIsDemo(e.target.checked)} className="rounded" />
+          <span className="text-sm">Create as Demo Tenant (populate with 18 synthetic candidates)</span>
+        </label>
 
         {error && <p className="text-xs text-review">{error}</p>}
 
