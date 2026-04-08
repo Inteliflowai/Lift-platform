@@ -49,9 +49,10 @@ function getBannerStyle(daysRemaining: number) {
 export function TrialBanner() {
   const license = useLicense();
   const [minimized, setMinimized] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Load minimized preference from localStorage
   useEffect(() => {
+    setMounted(true);
     const stored = localStorage.getItem("lift-trial-banner-minimized");
     if (stored === "true") setMinimized(true);
   }, []);
@@ -62,7 +63,7 @@ export function TrialBanner() {
     localStorage.setItem("lift-trial-banner-minimized", String(next));
   }
 
-  if (license.status !== "trialing") return null;
+  if (!mounted || license.status !== "trialing") return null;
 
   const days = license.trialDaysRemaining ?? 0;
   const style = getBannerStyle(days);

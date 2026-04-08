@@ -28,14 +28,11 @@ export default function CandidateLayout({
           <Image
             src="/LIFT LOGO.jpeg"
             alt="LIFT"
-            width={48}
-            height={48}
+            width={72}
+            height={72}
             priority
-            className="h-12 w-12 rounded-lg object-contain"
+            className="h-[72px] w-[72px] rounded-lg object-contain"
           />
-          <span className="ml-3 font-[family-name:var(--font-display)] text-2xl font-bold text-[#6366f1]">
-            LIFT
-          </span>
         </header>
         <main className="w-full max-w-[720px] flex-1 px-4 py-8 md:px-0 md:py-12">
           {children}
