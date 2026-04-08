@@ -98,8 +98,8 @@ function LoginForm() {
               <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
                 className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]" />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors">
-                {showPassword ? <EyeOff size={16} key="off" /> : <Eye size={16} key="on" />}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors">
+                {showPassword ? <EyeOff size={18} key="off" /> : <Eye size={18} key="on" />}
               </button>
             </div>
           </div>
