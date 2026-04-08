@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
+import { LicenseProvider } from "@/lib/licensing/context";
+import { getLicense, isLicenseActive, getTrialDaysRemaining } from "@/lib/licensing/resolver";
+import { checkSessionLimit } from "@/lib/licensing/gate";
+import { TrialBanner } from "@/components/licensing/TrialBanner";
 
 export default async function DashboardLayout({
   children,
@@ -50,22 +54,56 @@ export default async function DashboardLayout({
     isDemo = tenant?.is_demo ?? false;
   }
 
+  // Fetch license data for client-side context
+  let licenseData = {
+    tier: "trial",
+    status: "trialing",
+    trialDaysRemaining: 30 as number | null,
+    isActive: true,
+    featureOverrides: [] as string[],
+    featureBlocks: [] as string[],
+    sessionsUsed: 0,
+    sessionsLimit: 25 as number | null,
+  };
+
+  if (tenantId) {
+    try {
+      const license = await getLicense(tenantId);
+      const sessionInfo = await checkSessionLimit(tenantId);
+      licenseData = {
+        tier: license.tier,
+        status: license.status,
+        trialDaysRemaining: getTrialDaysRemaining(license),
+        isActive: isLicenseActive(license),
+        featureOverrides: license.feature_overrides,
+        featureBlocks: license.feature_blocks,
+        sessionsUsed: sessionInfo.used,
+        sessionsLimit: sessionInfo.limit,
+      };
+    } catch {
+      // License not found — use defaults (trial)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-white text-[#1a1a2e]">
-      <Sidebar role={primaryRole} allRoles={userRoles} userName={profile?.full_name} />
-      <div className="ml-60 flex min-h-screen flex-col">
-        {isDemo && (
-          <div className="flex h-10 items-center justify-center bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
-            Demo Mode — All candidates and data on this account are synthetic. No real student information is present.
-          </div>
-        )}
-        <TopBar
-          email={user.email!}
-          fullName={profile?.full_name}
-          avatarUrl={profile?.avatar_url}
-        />
-        <main className="flex-1 bg-[#f8f8fa] p-6">{children}</main>
+    <LicenseProvider license={licenseData}>
+      <TrialBanner />
+      <div className="min-h-screen bg-white text-[#1a1a2e]">
+        <Sidebar role={primaryRole} allRoles={userRoles} userName={profile?.full_name} />
+        <div className="ml-60 flex min-h-screen flex-col">
+          {isDemo && (
+            <div className="flex h-10 items-center justify-center bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
+              Demo Mode — All candidates and data on this account are synthetic. No real student information is present.
+            </div>
+          )}
+          <TopBar
+            email={user.email!}
+            fullName={profile?.full_name}
+            avatarUrl={profile?.avatar_url}
+          />
+          <main className="flex-1 bg-[#f8f8fa] p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </LicenseProvider>
   );
 }

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 import { createHash } from "crypto";
+import { requireFeature } from "@/lib/licensing/gate";
+import { handleLicenseError } from "@/lib/licensing/apiHandler";
+import { FEATURES } from "@/lib/licensing/features";
 
 const MAX_CHUNK = 4000;
 
@@ -48,6 +51,15 @@ export async function POST(req: NextRequest) {
 
   if (!invite) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  }
+
+  // License gate: voice response (TTS is part of voice feature)
+  try {
+    await requireFeature(invite.tenant_id, FEATURES.VOICE_RESPONSE);
+  } catch (err) {
+    const licenseResponse = handleLicenseError(err);
+    if (licenseResponse) return licenseResponse;
+    throw err;
   }
 
   // Check tenant setting

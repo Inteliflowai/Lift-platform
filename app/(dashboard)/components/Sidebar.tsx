@@ -17,6 +17,7 @@ import {
   Briefcase,
   ScrollText,
   LogOut,
+  CreditCard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -25,6 +26,7 @@ type NavItem = { label: string; href: string; icon: LucideIcon };
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
   platform_admin: [
     { label: "Tenants", href: "/admin/tenants", icon: Building2 },
+    { label: "Licenses", href: "/admin/licenses", icon: CreditCard },
     { label: "All Cycles", href: "/admin/cycles", icon: Calendar },
     { label: "System Reports", href: "/admin/reports", icon: BarChart2 },
     { label: "Settings", href: "/admin/settings", icon: Settings },

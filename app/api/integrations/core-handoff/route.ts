@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
+import { requireFeature } from "@/lib/licensing/gate";
+import { handleLicenseError } from "@/lib/licensing/apiHandler";
+import { FEATURES } from "@/lib/licensing/features";
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-internal-secret");
@@ -22,6 +25,15 @@ export async function POST(req: NextRequest) {
 
   if (!candidate) {
     return NextResponse.json({ error: "Candidate not found" }, { status: 404 });
+  }
+
+  // License gate: core integration
+  try {
+    await requireFeature(candidate.tenant_id, FEATURES.CORE_INTEGRATION);
+  } catch (err) {
+    const licenseResponse = handleLicenseError(err);
+    if (licenseResponse) return licenseResponse;
+    throw err;
   }
 
   // Check tenant integration enabled

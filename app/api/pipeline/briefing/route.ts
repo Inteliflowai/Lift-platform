@@ -3,6 +3,9 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAnthropicClient, AI_MODEL } from "@/lib/ai/client";
 import { getLatestVersion } from "@/lib/ai/versions";
 import { createAiRun, completeAiRun } from "@/lib/ai/logger";
+import { requireFeature } from "@/lib/licensing/gate";
+import { handleLicenseError } from "@/lib/licensing/apiHandler";
+import { FEATURES } from "@/lib/licensing/features";
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-internal-secret");
@@ -30,6 +33,15 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (!candidate) return NextResponse.json({ error: "Candidate not found" }, { status: 404 });
+
+  // License gate: evaluator intelligence
+  try {
+    await requireFeature(candidate.tenant_id, FEATURES.EVALUATOR_INTELLIGENCE);
+  } catch (err) {
+    const licenseResponse = handleLicenseError(err);
+    if (licenseResponse) return licenseResponse;
+    throw err;
+  }
 
   // Get response samples
   const { data: responses } = await supabaseAdmin

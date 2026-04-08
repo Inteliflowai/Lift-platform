@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PROTECTED_PREFIXES = ["/admin", "/school", "/evaluator", "/interviewer"];
-const PUBLIC_PREFIXES = ["/session", "/invite", "/consent"];
+const PUBLIC_PREFIXES = ["/session", "/invite", "/consent", "/register"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -83,6 +84,35 @@ export async function middleware(request: NextRequest) {
     !userRoles.includes("platform_admin")
   ) {
     return NextResponse.redirect(new URL("/unauthorized", request.url));
+  }
+
+  // License suspension check — redirect to /suspended if license is suspended
+  // Skip for platform admins and the suspended page itself
+  if (
+    !pathname.startsWith("/suspended") &&
+    !userRoles.includes("platform_admin")
+  ) {
+    const tenantId = roles?.[0]?.tenant_id;
+    if (tenantId) {
+      const adminClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { data: license } = await adminClient
+        .from("tenant_licenses")
+        .select("status")
+        .eq("tenant_id", tenantId)
+        .single();
+
+      if (
+        license?.status === "suspended" ||
+        license?.status === "cancelled"
+      ) {
+        return NextResponse.redirect(
+          new URL("/suspended", request.url)
+        );
+      }
+    }
   }
 
   return response;

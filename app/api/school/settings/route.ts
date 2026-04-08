@@ -29,6 +29,7 @@ export async function PATCH(req: NextRequest) {
     "require_human_review_always",
     "voice_mode_enabled",
     "passage_reader_enabled",
+    "welcome_completed",
   ];
 
   const updates: Record<string, unknown> = {};

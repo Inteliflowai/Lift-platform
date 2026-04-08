@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { resolveInviteToken } from "@/lib/token";
+import { checkSessionLimit, incrementSessionUsage } from "@/lib/licensing/gate";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -31,6 +32,15 @@ export async function POST(req: NextRequest) {
       .order("sequence_order");
 
     return NextResponse.json({ session: existing, taskInstances: taskInstances ?? [] });
+  }
+
+  // License gate: check session limit before creating new session
+  const { allowed, used, limit } = await checkSessionLimit(candidate.tenant_id);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "session_limit_reached", used, limit },
+      { status: 402 }
+    );
   }
 
   // Get grade band template
@@ -94,6 +104,9 @@ export async function POST(req: NextRequest) {
       .select("*, task_templates(*)");
     taskInstances = data ?? [];
   }
+
+  // Increment session usage for licensing
+  await incrementSessionUsage(candidate.tenant_id);
 
   // Record session event
   await supabaseAdmin.from("session_events").insert({
