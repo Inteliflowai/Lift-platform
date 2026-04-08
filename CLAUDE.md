@@ -108,9 +108,22 @@ Three signal tables, all fire-and-forget from client via `POST /api/signals`:
 - **timing_signals** — `response_latency`, `task_dwell_time`, `time_on_text`, `tts_listen_duration_ms`
 - **help_events** — `hint_open`, `voice_response_used`, `passage_read_aloud`
 
+### Licensing & Feature Gating
+
+`lib/licensing/` implements a 3-tier subscription system (Essentials, Professional, Enterprise) + trial:
+- **`features.ts`** — Tier definitions with session limits, seat limits, and feature flags
+- **`gate.ts`** — `checkFeature()`, `requireFeature()`, `checkSessionLimit()` for API route guards
+- **`resolver.ts`** — License cache (5-min TTL) via `getLicense()` / `isLicenseActive()`
+- **`context.tsx`** — `useLicense()` React hook for frontend feature checks
+- **`apiHandler.ts`** — Standard 402/403 error responses for gated API routes
+
+Database tables: `tenant_licenses`, `license_usage`, `license_events`, `upgrade_requests` (migrations 011-013). Trial licenses auto-created on tenant signup. `increment_session_usage()` RPC tracks consumption.
+
+Admin license management at `/admin/licenses/*` (dashboard, per-tenant detail, health monitoring, revenue tracking).
+
 ### Database Migrations
 
-SQL files in `supabase/migrations/` numbered sequentially (001-010). Applied in order. Key tables: tenants, candidates, sessions, task_instances, response_text, response_features, insight_profiles, learning_support_signals, evaluator_reviews, final_recommendations.
+SQL files in `supabase/migrations/` numbered sequentially (001-013). Applied in order. Key tables: tenants, candidates, sessions, task_instances, response_text, response_features, insight_profiles, learning_support_signals, evaluator_reviews, final_recommendations, tenant_licenses, license_usage, upgrade_requests.
 
 ### Offline Support
 
@@ -123,6 +136,17 @@ Tenants with `is_demo = true` get synthetic candidates generated via `/api/admin
 ## Environment
 
 Required: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`. For voice/TTS: `OPENAI_API_KEY`. For email: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`. For pipeline security: `CRON_SECRET`, `INTERNAL_API_SECRET`.
+
+### Marketing Site
+
+`marketing/` is a separate CRA React app (not part of the Next.js platform). Deployed via ReactPress on the Inteliflow WordPress site on SiteGround.
+
+- **Build**: `cd marketing && npm run build` — outputs to `marketing/build/`
+- **Deploy**: Upload `marketing/build/` to `/wp-content/reactpress/apps/lift-admissions/build/` on SiteGround
+- **Structure**: Single `src/App.js` component (~1400 lines) with inline styles (no Tailwind). Includes hero, features, pricing, FAQ, and lead capture forms
+- **Forms**: Submit to HighLevel webhook (`HL_WEBHOOK_URL` constant) with mailto fallback
+- **Images**: All in `marketing/public/`, served via `process.env.PUBLIC_URL`
+- **WordPress integration**: `usePageStyles()` injects CSS and walks the DOM to force all WP ancestor containers to full width
 
 ## Design Tokens
 

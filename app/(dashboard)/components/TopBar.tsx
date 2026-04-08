@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { LogOut, ChevronDown, Camera } from "lucide-react";
+import { LogOut, ChevronDown, Camera, User } from "lucide-react";
 
 export function TopBar({
   email,
@@ -152,6 +152,15 @@ export function TopBar({
                 <p className="mt-2 text-xs text-[#6366f1]">Uploading...</p>
               )}
             </div>
+
+            {/* Edit Profile */}
+            <a
+              href="/school/settings/profile"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5]"
+            >
+              <User size={14} />
+              Edit Profile
+            </a>
 
             {/* Change photo */}
             <button
