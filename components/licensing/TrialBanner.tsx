@@ -36,13 +36,13 @@ function getBannerStyle(daysRemaining: number) {
       pillText: "text-[#b45309]",
     };
   return {
-    bg: "bg-[rgba(99,102,241,0.15)]",
-    text: "text-[#4338ca]",
-    bar: "bg-[#6366f1]/20",
+    bg: "bg-[#1e1b2e]",
+    text: "text-white",
+    bar: "bg-white/20",
     barFill: "bg-[#6366f1]",
     btn: "bg-[#6366f1] text-white",
-    pillBg: "bg-[#6366f1]/15",
-    pillText: "text-[#4338ca]",
+    pillBg: "bg-[#1e1b2e]",
+    pillText: "text-white",
   };
 }
 
