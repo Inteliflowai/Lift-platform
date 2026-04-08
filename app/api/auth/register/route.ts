@@ -106,12 +106,11 @@ export async function POST(req: NextRequest) {
 
     if (tenantErr || !tenant) throw new Error(tenantErr?.message || "Failed to create school.");
 
-    // Create user profile
-    const { error: userErr } = await supabaseAdmin.from("users").insert({
-      id: userId,
-      full_name: fullName.trim(),
-      email,
-    });
+    // Update user profile (trigger auto-created the row from auth.users)
+    const { error: userErr } = await supabaseAdmin
+      .from("users")
+      .update({ full_name: fullName.trim(), email })
+      .eq("id", userId);
 
     if (userErr) throw new Error(userErr.message);
 
