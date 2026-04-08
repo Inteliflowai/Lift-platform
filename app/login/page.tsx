@@ -76,17 +76,12 @@ function LoginForm() {
 
   return (
     <div className="relative z-10 w-full max-w-[400px] login-card-enter">
-      {/* Logo */}
-      <div className="mb-10 flex flex-col items-center">
-        <Image src="/LIFT LOGO.jpeg" alt="LIFT" width={180} height={180} priority
-          className="h-[168px] w-[168px] rounded-2xl object-contain" />
-      </div>
-
       {/* Card */}
       <div className={`glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-12 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px] backdrop-saturate-[1.4] ${shaking ? "shake" : ""}`}>
-        <h1 className="text-center font-[family-name:var(--font-display)] text-3xl font-bold text-white">
-          LIFT
-        </h1>
+        <div className="flex justify-center mb-2">
+          <Image src="/LIFT LOGO.jpeg" alt="LIFT" width={120} height={120} priority
+            className="h-28 w-28 rounded-2xl object-contain" />
+        </div>
         <p className="mt-1 text-center font-[family-name:var(--font-body)] text-sm text-white/50">
           Learning Insight for Transitions
         </p>
