@@ -78,8 +78,8 @@ function LoginForm() {
     <div className="relative z-10 w-full max-w-[400px] login-card-enter">
       {/* Logo */}
       <div className="mb-10 flex flex-col items-center">
-        <Image src="/LIFT LOGO.jpeg" alt="LIFT" width={120} height={120} priority
-          className="h-28 w-28 rounded-2xl object-contain" />
+        <Image src="/LIFT LOGO.jpeg" alt="LIFT" width={180} height={180} priority
+          className="h-[168px] w-[168px] rounded-2xl object-contain" />
       </div>
 
       {/* Card */}
