@@ -63,17 +63,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Check if email already exists
-  const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-  const emailExists = existingUsers?.users?.some(
-    (u) => u.email?.toLowerCase() === email.toLowerCase()
-  );
-  if (emailExists) {
-    return NextResponse.json(
-      { error: "An account with this email already exists. Please sign in instead." },
-      { status: 409 }
-    );
-  }
+  // Check if email already exists — try creating and handle duplicate error
+  // (Supabase will return an error if the email is taken)
 
   // Create auth user
   const { data: authData, error: authError } =
@@ -84,8 +75,15 @@ export async function POST(req: NextRequest) {
     });
 
   if (authError || !authData.user) {
+    const msg = authError?.message ?? "";
+    if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("duplicate")) {
+      return NextResponse.json(
+        { error: "An account with this email already exists. Please sign in instead." },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
-      { error: authError?.message || "Failed to create account." },
+      { error: msg || "Failed to create account." },
       { status: 500 }
     );
   }
