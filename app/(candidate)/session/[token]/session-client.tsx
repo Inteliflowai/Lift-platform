@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { VoiceResponseInput } from "@/components/session/VoiceResponseInput";
+import { PassageReader } from "@/components/session/PassageReader";
 
 type TaskTemplate = {
   id: string;
@@ -79,6 +80,7 @@ export function SessionClient({
   tenantId,
   pauseAllowed,
   voiceEnabled,
+  passageReaderEnabled,
   existingSession,
 }: {
   token: string;
@@ -87,6 +89,7 @@ export function SessionClient({
   tenantId: string;
   pauseAllowed: boolean;
   voiceEnabled: boolean;
+  passageReaderEnabled: boolean;
   existingSession: Session | null;
 }) {
   const ux = UX_CONFIG[gradeBand];
@@ -390,8 +393,15 @@ export function SessionClient({
               value_ms: ms,
             })
           }
+          onTtsListenDuration={(ms) =>
+            fireSignal("timing", {
+              signal_type: "tts_listen_duration_ms",
+              value_ms: ms,
+            })
+          }
           submitting={submitting}
           voiceEnabled={voiceEnabled}
+          passageReaderEnabled={passageReaderEnabled}
           gradeBand={gradeBand}
           sessionToken={token}
           taskInstanceId={currentTask.id}
@@ -410,8 +420,10 @@ function TaskRenderer({
   onTaskStart,
   onHint,
   onReadingDwell,
+  onTtsListenDuration,
   submitting,
   voiceEnabled,
+  passageReaderEnabled,
   gradeBand,
   sessionToken,
   taskInstanceId,
@@ -424,8 +436,10 @@ function TaskRenderer({
   onTaskStart: () => void;
   onHint: () => void;
   onReadingDwell: (ms: number) => void;
+  onTtsListenDuration: (ms: number) => void;
   submitting: boolean;
   voiceEnabled: boolean;
+  passageReaderEnabled: boolean;
   gradeBand: "6-7" | "8" | "9-11";
   sessionToken: string;
   taskInstanceId: string;
@@ -475,13 +489,23 @@ function TaskRenderer({
       return (
         <div className={`space-y-4 ${ux.textClass}`}>
           <h2 className="text-xl font-bold">{template.title}</h2>
-          <div
-            className={`max-h-80 overflow-y-auto rounded-lg border border-lift-border bg-surface ${ux.padding}`}
-          >
-            <p className="whitespace-pre-wrap leading-relaxed">
-              {template.content.passage}
-            </p>
-          </div>
+          {passageReaderEnabled && template.content.passage ? (
+            <PassageReader
+              passageText={template.content.passage}
+              sessionToken={sessionToken}
+              gradeBand={gradeBand}
+              padding={ux.padding}
+              onListenDuration={onTtsListenDuration}
+            />
+          ) : (
+            <div
+              className={`max-h-80 overflow-y-auto rounded-lg border border-lift-border bg-surface ${ux.padding}`}
+            >
+              <p className="whitespace-pre-wrap leading-relaxed">
+                {template.content.passage}
+              </p>
+            </div>
+          )}
           {template.content.prompt && (
             <p className="font-medium">{template.content.prompt}</p>
           )}

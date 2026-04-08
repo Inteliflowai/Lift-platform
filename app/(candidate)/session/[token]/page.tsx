@@ -53,7 +53,7 @@ export default async function SessionPage({
   // Get tenant settings for pause and voice config
   const { data: settings } = await supabaseAdmin
     .from("tenant_settings")
-    .select("session_pause_allowed, session_pause_limit_hours, voice_mode_enabled")
+    .select("session_pause_allowed, session_pause_limit_hours, voice_mode_enabled, passage_reader_enabled")
     .eq("tenant_id", candidate.tenant_id)
     .single();
 
@@ -65,6 +65,7 @@ export default async function SessionPage({
       tenantId={candidate.tenant_id}
       pauseAllowed={settings?.session_pause_allowed ?? true}
       voiceEnabled={settings?.voice_mode_enabled ?? true}
+      passageReaderEnabled={settings?.passage_reader_enabled ?? true}
       existingSession={existingSession}
     />
   );

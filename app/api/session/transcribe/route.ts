@@ -6,10 +6,6 @@ const VOICE_ALLOWED_TYPES = [
   "short_response",
   "extended_writing",
   "reflection",
-  "scenario",
-  "planning",
-  "quantitative_reasoning",
-  "pattern_logic",
 ];
 
 export async function POST(req: NextRequest) {

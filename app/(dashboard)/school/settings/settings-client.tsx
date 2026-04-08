@@ -12,6 +12,8 @@ type Settings = {
   data_retention_days: number;
   require_human_review_always: boolean;
   voice_mode_enabled: boolean;
+  passage_reader_enabled: boolean;
+  delete_audio_after_transcription: boolean;
 };
 
 export function SettingsClient({
@@ -57,6 +59,7 @@ export function SettingsClient({
         data_retention_days: settings.data_retention_days,
         require_human_review_always: settings.require_human_review_always,
         voice_mode_enabled: settings.voice_mode_enabled,
+        passage_reader_enabled: settings.passage_reader_enabled,
       }),
     });
 
@@ -186,26 +189,54 @@ export function SettingsClient({
           />
         </div>
 
-        {/* Voice Response Mode */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">Voice Response Mode</p>
-            <p className="text-xs text-muted">
-              Allow candidates to speak their responses instead of typing.
-              Available on writing, reflection, and scenario tasks. Reading
-              tasks always require typed responses.
-            </p>
-            <p className="mt-1 text-[10px] text-muted/70">
-              Voice recordings are transcribed and immediately deleted. No
-              audio is stored after transcription.
-            </p>
+        {/* Voice & Accessibility */}
+        <div className="border-t border-lift-border pt-4 mt-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
+            Voice &amp; Accessibility
+          </p>
+
+          {/* Voice Response */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Voice Response</p>
+              <p className="text-xs text-muted">
+                Allow candidates to speak their responses instead of typing.
+                Recommended for Grade 6-7 applicants and candidates who find
+                typing difficult.
+              </p>
+            </div>
+            <Toggle
+              checked={settings.voice_mode_enabled}
+              onChange={(v) =>
+                setSettings({ ...settings, voice_mode_enabled: v })
+              }
+            />
           </div>
-          <Toggle
-            checked={settings.voice_mode_enabled}
-            onChange={(v) =>
-              setSettings({ ...settings, voice_mode_enabled: v })
-            }
-          />
+
+          {/* Passage Reader */}
+          <div className="flex items-center justify-between mt-4">
+            <div>
+              <p className="text-sm font-medium">Passage Reader</p>
+              <p className="text-xs text-muted">
+                Read passages aloud to candidates. A text-to-speech player will
+                appear above each reading passage. Helps candidates with reading
+                difficulties access the content without affecting scoring.
+              </p>
+            </div>
+            <Toggle
+              checked={settings.passage_reader_enabled}
+              onChange={(v) =>
+                setSettings({ ...settings, passage_reader_enabled: v })
+              }
+            />
+          </div>
+
+          {/* Audio privacy note */}
+          <p className="mt-3 text-[10px] text-muted/70">
+            {settings.delete_audio_after_transcription
+              ? "Voice recordings are transcribed and immediately deleted. No audio is stored after transcription."
+              : "Voice recordings are stored securely and used only for transcription purposes."}
+          </p>
         </div>
       </div>
 
