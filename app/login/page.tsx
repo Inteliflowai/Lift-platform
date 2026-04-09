@@ -104,11 +104,40 @@ function LoginForm() {
             </div>
           </div>
           {error && <p className="text-xs text-[#f43f5e]">{error}</p>}
+
+          {/* URL param banners */}
+          {searchParams.get("reset") === "true" && (
+            <div className="rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 p-2 text-center">
+              <p className="text-xs text-[#10b981]">Password reset successfully — please sign in.</p>
+            </div>
+          )}
+          {searchParams.get("confirmed") === "true" && (
+            <div className="rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 p-2 text-center">
+              <p className="text-xs text-[#10b981]">Email confirmed — you can now sign in.</p>
+            </div>
+          )}
+          {searchParams.get("expired") === "true" && (
+            <div className="rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/20 p-2 text-center">
+              <p className="text-xs text-[#f59e0b]">Your session expired — please sign in again.</p>
+            </div>
+          )}
+
           <button type="submit" disabled={loading}
             className="w-full rounded-xl bg-[#6366f1] py-3 font-[family-name:var(--font-display)] text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5] disabled:opacity-50">
             {loading ? "Signing in..." : "Sign In"}
           </button>
+
+          <div className="text-center">
+            <a href="/forgot-password" className="text-xs text-white/40 hover:text-[#6366f1] transition-colors">
+              Forgot your password?
+            </a>
+          </div>
         </form>
+
+        <p className="mt-4 text-center text-xs text-white/30">
+          Don&apos;t have an account?{" "}
+          <a href="/register" className="text-[#6366f1] hover:underline">Start free trial</a>
+        </p>
       </div>
 
       <p className="mt-8 text-center text-[10px] text-white/25">Powered by Inteliflow AI</p>

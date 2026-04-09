@@ -162,6 +162,15 @@ export function TopBar({
               Edit Profile
             </a>
 
+            {/* Account Settings */}
+            <a
+              href="/settings/account"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5]"
+            >
+              <User size={14} />
+              Account Settings
+            </a>
+
             {/* Change photo */}
             <button
               onClick={() => fileRef.current?.click()}
