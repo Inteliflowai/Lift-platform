@@ -18,6 +18,7 @@ import {
   ScrollText,
   LogOut,
   CreditCard,
+  HelpCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -130,6 +131,22 @@ export function Sidebar({
             </div>
           </div>
         ))}
+
+        {/* Help link */}
+        <div className="mt-4 px-0">
+          <Link
+            href={`/help/${role === "platform_admin" ? "admin" : role}`}
+            title="User guide and help documentation"
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
+              pathname.startsWith("/help")
+                ? "bg-[#6366f1]/15 text-[#6366f1]"
+                : "text-[#7878a0] hover:bg-[#2a2740] hover:text-white"
+            }`}
+          >
+            <HelpCircle size={18} strokeWidth={pathname.startsWith("/help") ? 2.2 : 1.8} />
+            Help Guide
+          </Link>
+        </div>
       </nav>
 
       {/* Footer */}
