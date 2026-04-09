@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, X, Crown, Zap, Building2 } from "lucide-react";
+import { Check, Crown, Zap, Building2, Sparkles, ArrowRight } from "lucide-react";
 import { TIER_LIMITS, TIER_PRICING } from "@/lib/licensing/features";
 
 type Props = {
@@ -16,41 +16,91 @@ type Props = {
   hasStripeSubscription: boolean;
 };
 
-const TIER_ORDER = ["essentials", "professional", "enterprise"];
+const TIER_ORDER = ["essentials", "professional", "enterprise"] as const;
 
-const TIER_ICONS: Record<string, typeof Zap> = {
-  essentials: Zap,
-  professional: Crown,
-  enterprise: Building2,
+const TIER_META: Record<
+  string,
+  {
+    icon: typeof Zap;
+    color: string;
+    gradient: string;
+    btnClass: string;
+    badge?: string;
+    tagline: string;
+  }
+> = {
+  essentials: {
+    icon: Zap,
+    color: "text-[#6366f1]",
+    gradient: "from-[#6366f1]/10 to-[#6366f1]/5",
+    btnClass: "bg-[#6366f1] hover:bg-[#4f46e5] text-white",
+    tagline: "For schools just getting started",
+  },
+  professional: {
+    icon: Crown,
+    color: "text-[#f59e0b]",
+    gradient: "from-[#f59e0b]/10 to-[#f59e0b]/5",
+    btnClass: "bg-[#f59e0b] hover:bg-[#d97706] text-white",
+    badge: "Most Popular",
+    tagline: "Full platform with AI-powered insights",
+  },
+  enterprise: {
+    icon: Building2,
+    color: "text-[#10b981]",
+    gradient: "from-[#10b981]/10 to-[#10b981]/5",
+    btnClass: "bg-[#10b981] hover:bg-[#059669] text-white",
+    tagline: "For large schools and networks",
+  },
 };
 
-const FEATURE_ROWS = [
-  { label: "Candidate Sessions", essentials: "150/yr", professional: "400/yr", enterprise: "Unlimited" },
-  { label: "Evaluator Seats", essentials: "2", professional: "5", enterprise: "Unlimited" },
-  { label: "Languages", essentials: "English", professional: "English + Portuguese", enterprise: "English + Portuguese" },
-  { label: "TRI Score", essentials: false, professional: true, enterprise: true },
-  { label: "Learning Support Signals", essentials: false, professional: true, enterprise: true },
-  { label: "Voice Response", essentials: false, professional: true, enterprise: true },
-  { label: "Evaluator Intelligence", essentials: false, professional: true, enterprise: true },
-  { label: "CORE Integration", essentials: false, professional: true, enterprise: true },
-  { label: "Outcome Tracking", essentials: false, professional: false, enterprise: true },
-  { label: "Benchmarking Network", essentials: false, professional: false, enterprise: true },
-  { label: "Waitlist Intelligence", essentials: false, professional: false, enterprise: true },
-  { label: "SIS Integrations", essentials: false, professional: false, enterprise: true },
-  { label: "White Label", essentials: false, professional: false, enterprise: true },
-  { label: "Support", essentials: "Email", professional: "Priority Email", enterprise: "Dedicated CSM" },
-];
+const PLAN_FEATURES: Record<string, string[]> = {
+  essentials: [
+    "150 sessions per year",
+    "2 evaluator seats",
+    "AI-powered insight profiles",
+    "Family summary reports",
+    "Placement guidance",
+    "Audit log",
+    "Email support",
+  ],
+  professional: [
+    "400 sessions per year",
+    "5 evaluator seats",
+    "Everything in Essentials, plus:",
+    "TRI Score & Learning Support Signals",
+    "Voice response & passage reader",
+    "Evaluator Intelligence briefings",
+    "English + Portuguese reports",
+    "CORE Integration",
+    "Priority email support",
+  ],
+  enterprise: [
+    "Unlimited sessions",
+    "Unlimited seats",
+    "Everything in Professional, plus:",
+    "Benchmarking network",
+    "Outcome tracking",
+    "Waitlist intelligence",
+    "SIS integrations",
+    "White label & custom branding",
+    "Dedicated CSM",
+  ],
+};
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    trialing: "bg-warning/10 text-warning",
-    active: "bg-success/10 text-success",
-    past_due: "bg-warning/10 text-warning",
-    suspended: "bg-review/10 text-review",
-    cancelled: "bg-muted/10 text-muted",
+    trialing: "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20",
+    active: "bg-[#10b981]/10 text-[#10b981] border-[#10b981]/20",
+    past_due: "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20",
+    suspended: "bg-[#f43f5e]/10 text-[#f43f5e] border-[#f43f5e]/20",
+    cancelled: "bg-muted/10 text-muted border-muted/20",
   };
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${colors[status] ?? colors.cancelled}`}>
+    <span
+      className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
+        colors[status] ?? colors.cancelled
+      }`}
+    >
       {status === "trialing" ? "Trial" : status.replace("_", " ")}
     </span>
   );
@@ -68,19 +118,27 @@ export function SubscriptionClient({
 }: Props) {
   const searchParams = useSearchParams();
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "muted" } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "muted";
+  } | null>(null);
 
   const isTrial = tier === "trial" || status === "trialing";
-  const effectiveTier = isTrial ? "" : tier; // no "current" tier during trial
-  const tierIdx = isTrial ? -1 : TIER_ORDER.indexOf(tier);
+  const effectiveTier = isTrial ? "" : tier;
+  const tierIdx = isTrial ? -1 : TIER_ORDER.indexOf(tier as typeof TIER_ORDER[number]);
 
-  // Handle return from Stripe
   useEffect(() => {
     const payment = searchParams.get("payment");
     if (payment === "success") {
-      setToast({ message: "Payment successful! Your plan is now active.", type: "success" });
+      setToast({
+        message: "Payment successful! Your plan is now active.",
+        type: "success",
+      });
     } else if (payment === "cancelled") {
-      setToast({ message: "Payment cancelled — your trial continues.", type: "muted" });
+      setToast({
+        message: "Payment cancelled — your trial continues.",
+        type: "muted",
+      });
     }
     if (payment) {
       const timer = setTimeout(() => setToast(null), 6000);
@@ -115,39 +173,48 @@ export function SubscriptionClient({
     TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.evaluator_seats ?? 3;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <h1 className="text-2xl font-bold">Subscription</h1>
+    <div className="mx-auto max-w-5xl space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold">Subscription</h1>
+        <p className="mt-1 text-sm text-muted">
+          Choose the plan that fits your school
+        </p>
+      </div>
 
-      {/* Payment toast */}
+      {/* Toast */}
       {toast && (
         <div
-          className={`rounded-lg p-3 text-center text-sm font-medium ${
+          className={`rounded-xl p-4 text-center text-sm font-medium ${
             toast.type === "success"
-              ? "bg-success/10 text-success"
-              : "bg-muted/10 text-muted"
+              ? "bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20"
+              : "bg-muted/10 text-muted border border-muted/20"
           }`}
         >
           {toast.message}
         </div>
       )}
 
-      {/* Current Plan Card */}
-      <div className="rounded-lg border border-lift-border bg-surface p-6">
-        <div className="flex items-start justify-between">
+      {/* Current Plan Banner */}
+      <div className="rounded-xl border border-lift-border bg-gradient-to-r from-surface to-page-bg p-6">
+        <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold capitalize">
-                {tier === "trial" ? "Professional Trial" : tier}
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold capitalize">
+                {isTrial ? "Professional Trial" : tier}
               </h2>
               <StatusBadge status={status} />
             </div>
-            {status === "trialing" && trialDaysRemaining !== null && (
-              <p className="mt-1 text-sm text-muted">
-                {trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} remaining in your trial
+            {isTrial && trialDaysRemaining !== null && (
+              <p className="mt-1.5 text-sm text-muted">
+                <span className="font-semibold text-lift-text">
+                  {trialDaysRemaining} day
+                  {trialDaysRemaining !== 1 ? "s" : ""}
+                </span>{" "}
+                remaining in your free trial
               </p>
             )}
             {status === "active" && currentPeriodEndsAt && (
-              <p className="mt-1 text-sm text-muted">
+              <p className="mt-1.5 text-sm text-muted">
                 Renews{" "}
                 {new Date(currentPeriodEndsAt).toLocaleDateString("en-US", {
                   year: "numeric",
@@ -158,190 +225,201 @@ export function SubscriptionClient({
             )}
           </div>
           <div className="flex gap-2">
-            {status === "trialing" && (
+            {isTrial && (
               <a
                 href="#plans"
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-all"
               >
-                Upgrade to keep access
+                <Sparkles size={14} />
+                Upgrade Now
               </a>
             )}
             {hasStripeSubscription && (
               <button
                 onClick={handleManageBilling}
-                className="rounded-md border border-lift-border px-4 py-2 text-sm font-medium text-lift-text hover:bg-surface"
+                className="rounded-lg border border-lift-border px-4 py-2.5 text-sm font-medium text-lift-text hover:bg-surface transition-colors"
               >
                 Manage Billing
               </button>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Usage Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border border-lift-border bg-surface p-4">
-          <p className="text-xs text-muted">Sessions this year</p>
-          <p className="mt-1 text-xl font-bold">
-            {sessionsUsed}
-            <span className="text-sm font-normal text-muted">
-              {" "}/ {sessionsLimit ?? "∞"}
-            </span>
-          </p>
-          {sessionsLimit && (
-            <div className="mt-2 h-1.5 rounded-full bg-lift-border">
+        {/* Usage bars */}
+        <div className="mt-5 grid grid-cols-2 gap-4">
+          <div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-xs font-medium text-muted">Sessions used</p>
+              <p className="text-xs font-bold text-lift-text">
+                {sessionsUsed} / {sessionsLimit ?? "∞"}
+              </p>
+            </div>
+            {sessionsLimit ? (
+              <div className="mt-1.5 h-2 rounded-full bg-lift-border overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#6366f1] to-[#818cf8] transition-all"
+                  style={{
+                    width: `${Math.min(100, (sessionsUsed / sessionsLimit) * 100)}%`,
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-xs font-medium text-muted">Evaluator seats</p>
+              <p className="text-xs font-bold text-lift-text">
+                {evaluatorSeatsUsed} / {seatLimit ?? "∞"}
+              </p>
+            </div>
+            <div className="mt-1.5 h-2 rounded-full bg-lift-border overflow-hidden">
               <div
-                className="h-full rounded-full bg-primary transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-[#10b981] to-[#34d399] transition-all"
                 style={{
-                  width: `${Math.min(100, (sessionsUsed / sessionsLimit) * 100)}%`,
+                  width: `${seatLimit ? Math.min(100, (evaluatorSeatsUsed / seatLimit) * 100) : 0}%`,
                 }}
               />
             </div>
-          )}
-        </div>
-        <div className="rounded-lg border border-lift-border bg-surface p-4">
-          <p className="text-xs text-muted">Evaluator seats</p>
-          <p className="mt-1 text-xl font-bold">
-            {evaluatorSeatsUsed}
-            <span className="text-sm font-normal text-muted">
-              {" "}/ {seatLimit ?? "∞"}
-            </span>
-          </p>
+          </div>
         </div>
       </div>
 
-      {/* Tier Comparison */}
+      {/* Pricing Cards */}
       <div id="plans" className="scroll-mt-8">
-        <h2 className="mb-4 text-lg font-semibold">Compare Plans</h2>
-        <div className="overflow-x-auto rounded-lg border border-lift-border">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-lift-border bg-surface">
-                <th className="px-4 py-3 text-xs font-medium text-muted">Feature</th>
-                {TIER_ORDER.map((t) => {
-                  const isCurrent = t === effectiveTier;
-                  const Icon = TIER_ICONS[t];
-                  return (
-                    <th
-                      key={t}
-                      className={`px-4 py-3 text-center text-xs font-medium ${
-                        isCurrent
-                          ? "border-x-2 border-t-2 border-primary bg-primary/5"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-center justify-center gap-1.5">
-                        <Icon size={14} />
-                        <span className="capitalize">{t}</span>
-                      </div>
-                      {isCurrent && (
-                        <span className="mt-1 block text-[10px] text-primary">
-                          Current
-                        </span>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-lift-border">
-              {FEATURE_ROWS.map((row) => (
-                <tr key={row.label} className="hover:bg-surface/50">
-                  <td className="px-4 py-2.5 text-xs text-lift-text">
-                    {row.label}
-                  </td>
-                  {TIER_ORDER.map((t) => {
-                    const val = row[t as keyof typeof row];
-                    const isCurrent = t === effectiveTier;
+        <h2 className="mb-6 text-center text-lg font-bold">Choose Your Plan</h2>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          {TIER_ORDER.map((t) => {
+            const meta = TIER_META[t];
+            const Icon = meta.icon;
+            const pricing = TIER_PRICING[t as keyof typeof TIER_PRICING];
+            const features = PLAN_FEATURES[t];
+            const isCurrent = t === effectiveTier;
+            const isHigher = TIER_ORDER.indexOf(t) > tierIdx;
+            const isPopular = t === "professional";
+
+            return (
+              <div
+                key={t}
+                className={`relative flex flex-col rounded-2xl border-2 bg-white p-6 transition-shadow hover:shadow-lg ${
+                  isPopular
+                    ? "border-[#f59e0b] shadow-md"
+                    : isCurrent
+                    ? "border-primary"
+                    : "border-lift-border"
+                }`}
+              >
+                {/* Popular badge */}
+                {meta.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="rounded-full bg-[#f59e0b] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                      {meta.badge}
+                    </span>
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className={`mb-4 flex items-center gap-2 ${meta.color}`}>
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${meta.gradient}`}
+                  >
+                    <Icon size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold capitalize text-lift-text">
+                      {t}
+                    </h3>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted">{meta.tagline}</p>
+
+                {/* Price */}
+                <div className="mt-4 mb-5">
+                  <span className="text-3xl font-extrabold text-lift-text">
+                    ${(pricing.annual / 12).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </span>
+                  <span className="text-sm text-muted">/mo</span>
+                  <p className="mt-0.5 text-[10px] text-muted">
+                    ${pricing.annual.toLocaleString()}/yr billed annually
+                  </p>
+                </div>
+
+                {/* CTA Button */}
+                {isCurrent ? (
+                  <div className="mb-5 rounded-lg border border-primary/20 bg-primary/5 py-2.5 text-center text-sm font-semibold text-primary">
+                    Current Plan
+                  </div>
+                ) : isHigher || isTrial ? (
+                  <button
+                    onClick={() => handleCheckout(t)}
+                    disabled={checkoutLoading === t}
+                    className={`mb-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all disabled:opacity-50 ${meta.btnClass}`}
+                  >
+                    {checkoutLoading === t ? (
+                      <>
+                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Get {t.charAt(0).toUpperCase() + t.slice(1)}
+                        <ArrowRight size={14} />
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <a
+                    href="mailto:lift@inteliflowai.com?subject=LIFT%20Plan%20Change"
+                    className="mb-5 block rounded-lg border border-lift-border py-2.5 text-center text-sm font-medium text-muted hover:bg-surface transition-colors"
+                  >
+                    Contact to change
+                  </a>
+                )}
+
+                {/* Features */}
+                <ul className="flex-1 space-y-2">
+                  {features.map((f) => {
+                    const isHeader = f.endsWith(":");
                     return (
-                      <td
-                        key={t}
-                        className={`px-4 py-2.5 text-center text-xs ${
-                          isCurrent ? "border-x-2 border-primary bg-primary/5" : ""
+                      <li
+                        key={f}
+                        className={`flex items-start gap-2 text-xs ${
+                          isHeader
+                            ? "mt-2 font-semibold text-muted"
+                            : "text-lift-text"
                         }`}
                       >
-                        {val === true ? (
-                          <Check size={14} className="mx-auto text-success" />
-                        ) : val === false ? (
-                          <X size={14} className="mx-auto text-muted/40" />
-                        ) : (
-                          <span className="text-lift-text">{val}</span>
+                        {!isHeader && (
+                          <Check
+                            size={13}
+                            className={`mt-0.5 shrink-0 ${meta.color}`}
+                          />
                         )}
-                      </td>
+                        {f}
+                      </li>
                     );
                   })}
-                </tr>
-              ))}
-              {/* Pricing row */}
-              <tr className="border-t-2 border-lift-border bg-surface">
-                <td className="px-4 py-3 text-xs font-semibold">Annual Price</td>
-                {TIER_ORDER.map((t) => {
-                  const price =
-                    TIER_PRICING[t as keyof typeof TIER_PRICING]?.annual;
-                  const isCurrent = t === effectiveTier;
-                  const isHigher = TIER_ORDER.indexOf(t) > tierIdx;
-                  return (
-                    <td
-                      key={t}
-                      className={`px-4 py-3 text-center ${
-                        isCurrent
-                          ? "border-x-2 border-b-2 border-primary bg-primary/5"
-                          : ""
-                      }`}
-                    >
-                      <p className="text-sm font-bold">
-                        ${price?.toLocaleString()}/yr
-                      </p>
-                      {isCurrent && (
-                        <p className="mt-2 text-[10px] text-muted font-medium">
-                          Current Plan
-                        </p>
-                      )}
-                      {isHigher && (
-                        <button
-                          onClick={() => handleCheckout(t)}
-                          disabled={checkoutLoading === t}
-                          className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
-                        >
-                          {checkoutLoading === t
-                            ? "Loading..."
-                            : `Upgrade to ${t.charAt(0).toUpperCase() + t.slice(1)}`}
-                        </button>
-                      )}
-                      {!isCurrent && !isHigher && (
-                        <a
-                          href="mailto:lift@inteliflowai.com?subject=LIFT%20Downgrade%20Request"
-                          className="mt-2 inline-block text-[10px] text-muted hover:underline"
-                        >
-                          Contact to downgrade
-                        </a>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
+                </ul>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Billing Contact */}
-      <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h3 className="text-sm font-semibold">
-          Questions about your subscription?
-        </h3>
+      {/* Contact */}
+      <div className="rounded-xl border border-lift-border bg-gradient-to-r from-surface to-page-bg p-6 text-center">
+        <p className="text-sm font-semibold text-lift-text">
+          Need a custom plan or have questions?
+        </p>
         <p className="mt-1 text-xs text-muted">
           Contact us at{" "}
           <a
             href="mailto:lift@inteliflowai.com"
-            className="text-primary hover:underline"
+            className="font-medium text-primary hover:underline"
           >
             lift@inteliflowai.com
-          </a>
-        </p>
-        <p className="mt-1 text-[10px] text-muted/70">
-          LIFT uses annual contracts. Our team will send you a quote within 1
-          business day.
+          </a>{" "}
+          — we respond within 1 business day.
         </p>
       </div>
     </div>
