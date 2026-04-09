@@ -5,9 +5,13 @@ import {
   moveHLPipelineStage,
 } from "./client";
 
-const HL_STAGES: Record<string, string> = JSON.parse(
-  process.env.HL_STAGE_IDS ?? "{}"
-);
+function getHLStages(): Record<string, string> {
+  try {
+    return JSON.parse(process.env.HL_STAGE_IDS ?? "{}");
+  } catch {
+    return {};
+  }
+}
 
 export async function syncLicenseEventToHL(event: {
   event_type: string;
@@ -39,24 +43,24 @@ export async function syncLicenseEventToHL(event: {
   switch (event.event_type) {
     case "trial_started":
       await addHLTags(contactId, ["lift-lead", "lift-trial"]);
-      if (HL_STAGES["Trial Active"]) {
-        await moveHLPipelineStage(contactId, HL_STAGES["Trial Active"]);
+      if (getHLStages()["Trial Active"]) {
+        await moveHLPipelineStage(contactId, getHLStages()["Trial Active"]);
       }
       break;
 
     case "trial_expiring_soon":
       await addHLTags(contactId, ["lift-trial-ending"]);
       await removeHLTags(contactId, ["lift-trial"]);
-      if (HL_STAGES["Trial Ending"]) {
-        await moveHLPipelineStage(contactId, HL_STAGES["Trial Ending"]);
+      if (getHLStages()["Trial Ending"]) {
+        await moveHLPipelineStage(contactId, getHLStages()["Trial Ending"]);
       }
       break;
 
     case "trial_expired":
       await addHLTags(contactId, ["lift-expired"]);
       await removeHLTags(contactId, ["lift-trial", "lift-trial-ending"]);
-      if (HL_STAGES["Trial Expired"]) {
-        await moveHLPipelineStage(contactId, HL_STAGES["Trial Expired"]);
+      if (getHLStages()["Trial Expired"]) {
+        await moveHLPipelineStage(contactId, getHLStages()["Trial Expired"]);
       }
       break;
 
@@ -71,10 +75,10 @@ export async function syncLicenseEventToHL(event: {
       const tierLabel = event.tier.charAt(0).toUpperCase() + event.tier.slice(1);
       // Try both "Customer — Tier" and "Customer-Tier" formats
       const stageId =
-        HL_STAGES[`Customer — ${tierLabel}`] ??
-        HL_STAGES[`Customer-${tierLabel}`] ??
-        HL_STAGES[`Customer — ${event.tier}`] ??
-        HL_STAGES[`Customer-${event.tier}`];
+        getHLStages()[`Customer — ${tierLabel}`] ??
+        getHLStages()[`Customer-${tierLabel}`] ??
+        getHLStages()[`Customer — ${event.tier}`] ??
+        getHLStages()[`Customer-${event.tier}`];
       if (stageId) {
         await moveHLPipelineStage(contactId, stageId);
       }
@@ -83,16 +87,16 @@ export async function syncLicenseEventToHL(event: {
 
     case "suspended":
       await addHLTags(contactId, ["lift-expired"]);
-      if (HL_STAGES["Trial Expired"]) {
-        await moveHLPipelineStage(contactId, HL_STAGES["Trial Expired"]);
+      if (getHLStages()["Trial Expired"]) {
+        await moveHLPipelineStage(contactId, getHLStages()["Trial Expired"]);
       }
       break;
 
     case "cancelled":
       await addHLTags(contactId, ["lift-churned"]);
       await removeHLTags(contactId, ["lift-customer"]);
-      if (HL_STAGES["Churned"]) {
-        await moveHLPipelineStage(contactId, HL_STAGES["Churned"]);
+      if (getHLStages()["Churned"]) {
+        await moveHLPipelineStage(contactId, getHLStages()["Churned"]);
       }
       break;
 
@@ -105,8 +109,8 @@ export async function syncLicenseEventToHL(event: {
       break;
 
     case "upgrade_requested":
-      if (HL_STAGES["Negotiating"]) {
-        await moveHLPipelineStage(contactId, HL_STAGES["Negotiating"]);
+      if (getHLStages()["Negotiating"]) {
+        await moveHLPipelineStage(contactId, getHLStages()["Negotiating"]);
       }
       break;
   }

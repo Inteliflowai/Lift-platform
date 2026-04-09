@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { upsertHLContact, addHLTags, moveHLPipelineStage } from "@/lib/highlevel/client";
 import { sendUpgradeRequestEmail } from "@/lib/email";
 
-const HL_STAGES: Record<string, string> = JSON.parse(
-  process.env.HL_STAGE_IDS ?? "{}"
-);
+function getHLStages(): Record<string, string> {
+  try {
+    return JSON.parse(process.env.HL_STAGE_IDS ?? "{}");
+  } catch {
+    return {};
+  }
+}
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-hl-secret");
@@ -53,8 +57,8 @@ export async function POST(req: NextRequest) {
     await addHLTags(contactId, allTags);
 
     // Move to Demo Requested stage
-    if (HL_STAGES["Demo Requested"]) {
-      await moveHLPipelineStage(contactId, HL_STAGES["Demo Requested"]);
+    if (getHLStages()["Demo Requested"]) {
+      await moveHLPipelineStage(contactId, getHLStages()["Demo Requested"]);
     }
   }
 
