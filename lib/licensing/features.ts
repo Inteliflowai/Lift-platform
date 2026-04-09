@@ -84,5 +84,5 @@ export const TIER_LIMITS = {
 export const TIER_PRICING = {
   essentials:   { annual: 4800,  label: 'Essentials' },
   professional: { annual: 9600,  label: 'Professional' },
-  enterprise:   { annual: 24000, label: 'Enterprise' },
+  enterprise:   { annual: 18000, label: 'Enterprise' },
 } as const;
