@@ -85,7 +85,7 @@ export default function PricingPage() {
           className="h-40 w-40 rounded-2xl object-contain"
         />
         <p className="mt-2 text-[11px] font-medium tracking-wider text-white/30 uppercase">
-          by Inteliflow AI
+          by Inteliflow
         </p>
       </div>
 
@@ -250,7 +250,7 @@ export default function PricingPage() {
       </div>
 
       <p className="mt-8 text-center text-[10px] text-white/25">
-        Powered by Inteliflow AI
+        Powered by Inteliflow
       </p>
     </div>
   );
