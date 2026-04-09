@@ -75,15 +75,18 @@ export default function PricingPage() {
   return (
     <div className="relative z-10 w-full max-w-5xl px-4 py-12">
       {/* Logo */}
-      <div className="mb-6 flex justify-center">
+      <div className="mb-4 flex flex-col items-center">
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
-          width={80}
-          height={80}
+          width={160}
+          height={160}
           priority
-          className="h-20 w-20 rounded-2xl object-contain"
+          className="h-40 w-40 rounded-2xl object-contain"
         />
+        <p className="mt-2 text-[11px] font-medium tracking-wider text-white/30 uppercase">
+          by Inteliflow AI
+        </p>
       </div>
 
       <h1 className="text-center font-[family-name:var(--font-display)] text-3xl font-bold text-white">
@@ -127,26 +130,49 @@ export default function PricingPage() {
 
               {/* Price */}
               <div className="mt-4 mb-5">
-                <span className="text-3xl font-extrabold text-[#1a1a2e]">
-                  $
-                  {(t.price / 12).toLocaleString(undefined, {
-                    maximumFractionDigits: 0,
-                  })}
-                </span>
-                <span className="text-sm text-[#6b7280]">/mo</span>
-                <p className="mt-0.5 text-[10px] text-[#6b7280]">
-                  ${t.price.toLocaleString()}/yr billed annually
-                </p>
+                {t.key === "enterprise" ? (
+                  <>
+                    <span className="text-2xl font-extrabold text-[#1a1a2e]">
+                      Contact Us
+                    </span>
+                    <p className="mt-0.5 text-[10px] text-[#6b7280]">
+                      Custom pricing for your school
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-3xl font-extrabold text-[#1a1a2e]">
+                      $
+                      {(t.price / 12).toLocaleString(undefined, {
+                        maximumFractionDigits: 0,
+                      })}
+                    </span>
+                    <span className="text-sm text-[#6b7280]">/mo</span>
+                    <p className="mt-0.5 text-[10px] text-[#6b7280]">
+                      ${t.price.toLocaleString()}/yr billed annually
+                    </p>
+                  </>
+                )}
               </div>
 
-              {/* Buy Now */}
-              <a
-                href={`/register?plan=${t.key}`}
-                className={`mb-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all ${t.btnClass}`}
-              >
-                Buy {t.label}
-                <ArrowRight size={14} />
-              </a>
+              {/* Buy Now / Contact Us */}
+              {t.key === "enterprise" ? (
+                <a
+                  href="mailto:lift@inteliflowai.com?subject=LIFT%20Enterprise%20Inquiry"
+                  className={`mb-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all ${t.btnClass}`}
+                >
+                  Contact Us
+                  <ArrowRight size={14} />
+                </a>
+              ) : (
+                <a
+                  href={`/register?plan=${t.key}`}
+                  className={`mb-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all ${t.btnClass}`}
+                >
+                  Buy {t.label}
+                  <ArrowRight size={14} />
+                </a>
+              )}
 
               {/* Features */}
               <ul className="flex-1 space-y-2">
@@ -174,13 +200,23 @@ export default function PricingPage() {
               </ul>
 
               {/* Bottom CTA */}
-              <a
-                href={`/register?plan=${t.key}`}
-                className={`mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all ${t.btnClass}`}
-              >
-                Buy {t.label}
-                <ArrowRight size={14} />
-              </a>
+              {t.key === "enterprise" ? (
+                <a
+                  href="mailto:lift@inteliflowai.com?subject=LIFT%20Enterprise%20Inquiry"
+                  className={`mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all ${t.btnClass}`}
+                >
+                  Contact Us
+                  <ArrowRight size={14} />
+                </a>
+              ) : (
+                <a
+                  href={`/register?plan=${t.key}`}
+                  className={`mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all ${t.btnClass}`}
+                >
+                  Buy {t.label}
+                  <ArrowRight size={14} />
+                </a>
+              )}
             </div>
           );
         })}

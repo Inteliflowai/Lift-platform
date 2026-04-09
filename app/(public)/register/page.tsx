@@ -106,15 +106,18 @@ function RegisterForm() {
   return (
     <div className="relative z-10 w-full max-w-[460px] px-4 py-8 login-card-enter">
       {/* Logo */}
-      <div className="mb-8 flex flex-col items-center">
+      <div className="mb-6 flex flex-col items-center">
         <Image
           src="/LIFT LOGO.jpeg"
           alt="LIFT"
-          width={80}
-          height={80}
+          width={160}
+          height={160}
           priority
-          className="h-20 w-20 rounded-2xl object-contain"
+          className="h-40 w-40 rounded-2xl object-contain"
         />
+        <p className="mt-2 text-[11px] font-medium tracking-wider text-white/30 uppercase">
+          by Inteliflow AI
+        </p>
       </div>
 
       {/* Card */}
