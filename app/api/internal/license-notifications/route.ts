@@ -11,6 +11,7 @@ import {
   sendDataDeletionWarningEmail,
   sendUpgradeRequestEmail,
 } from "@/lib/email";
+import { syncLicenseEventToHL } from "@/lib/highlevel/events";
 
 async function getSchoolAdmin(tenantId: string) {
   const { data } = await supabaseAdmin
@@ -194,6 +195,22 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error(`License notification failed for ${eventType}:`, err);
   }
+
+  // Sync to HighLevel CRM (fire-and-forget)
+  const { data: lic } = await supabaseAdmin
+    .from("tenant_licenses")
+    .select("tier")
+    .eq("tenant_id", tenantId)
+    .single();
+
+  syncLicenseEventToHL({
+    event_type: eventType,
+    tenant_id: tenantId,
+    tenant_name: schoolName,
+    admin_email: admin.email,
+    admin_name: admin.fullName,
+    tier: lic?.tier ?? "trial",
+  }).catch((err) => console.error("HL sync failed:", err));
 
   return NextResponse.json({ ok: true, event_type: eventType });
 }
