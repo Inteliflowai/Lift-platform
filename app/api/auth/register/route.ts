@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendWelcomeEmail } from "@/lib/email";
+import { seedTaskTemplatesForTenant } from "@/lib/seed-task-templates";
 
 function slugify(name: string): string {
   return name
@@ -140,6 +141,9 @@ export async function POST(req: NextRequest) {
     });
 
     // tenant_licenses is auto-created by DB trigger (create_trial_license)
+
+    // Seed standard task templates for all grade bands
+    await seedTaskTemplatesForTenant(tenant.id);
 
     // Log registration metadata as license event
     await supabaseAdmin.from("license_events").insert({
