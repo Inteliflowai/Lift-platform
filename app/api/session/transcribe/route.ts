@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { requireFeature } from "@/lib/licensing/gate";
 import { handleLicenseError } from "@/lib/licensing/apiHandler";
 import { FEATURES } from "@/lib/licensing/features";
+import { rateLimit, rateLimitResponse } from "@/lib/rateLimit/middleware";
 
 const VOICE_ALLOWED_TYPES = [
   "short_response",
@@ -20,6 +21,11 @@ export async function POST(req: NextRequest) {
 
   if (!audio || !taskInstanceId || !sessionToken) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  // Rate limit: 10 transcriptions per session
+  if (!rateLimit(`transcribe:${sessionToken}`, 10, 3600)) {
+    return rateLimitResponse() as unknown as NextResponse;
   }
 
   // CRITICAL: Never allow voice on reading passages

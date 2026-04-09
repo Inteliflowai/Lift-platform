@@ -5,6 +5,7 @@ import { createHash } from "crypto";
 import { requireFeature } from "@/lib/licensing/gate";
 import { handleLicenseError } from "@/lib/licensing/apiHandler";
 import { FEATURES } from "@/lib/licensing/features";
+import { rateLimit, rateLimitResponse } from "@/lib/rateLimit/middleware";
 
 const MAX_CHUNK = 4000;
 
@@ -40,6 +41,11 @@ export async function POST(req: NextRequest) {
 
   if (!text || !session_token) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  // Rate limit: 20 TTS calls per session per hour
+  if (!rateLimit(`tts:${session_token}`, 20, 3600)) {
+    return rateLimitResponse() as unknown as NextResponse;
   }
 
   // Validate session token

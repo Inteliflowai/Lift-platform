@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { rateLimit } from "@/lib/rateLimit/middleware";
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { type, session_id, task_instance_id, tenant_id, signals } = body;
+  try {
+    const body = await req.json();
+    const { type, session_id, task_instance_id, tenant_id, signals } = body;
 
-  if (!session_id || !tenant_id || !type) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
+    if (!session_id || !tenant_id || !type) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    // Rate limit: 200 signals per session per hour
+    if (!rateLimit(`signals:${session_id}`, 200, 3600)) {
+      return NextResponse.json({ ok: true }); // silent — don't error for signals
+    }
 
   if (type === "interaction") {
     for (const s of signals ?? [body]) {
@@ -41,4 +48,8 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
+  } catch {
+    // Signals are fire-and-forget — never fail visibly
+    return NextResponse.json({ ok: true });
+  }
 }

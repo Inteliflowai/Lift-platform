@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendWelcomeEmail } from "@/lib/email";
 import { seedTaskTemplatesForTenant } from "@/lib/seed-task-templates";
 import { syncLicenseEventToHL } from "@/lib/highlevel/events";
+import { rateLimit, rateLimitResponse } from "@/lib/rateLimit/middleware";
 
 function slugify(name: string): string {
   return name
@@ -30,6 +31,12 @@ async function uniqueSlug(base: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 5 registrations per IP per hour
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+  if (!rateLimit(`register:${ip}`, 5, 3600)) {
+    return rateLimitResponse() as unknown as NextResponse;
+  }
+
   const body = await req.json();
   const {
     schoolName,

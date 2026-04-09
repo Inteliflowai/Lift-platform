@@ -31,204 +31,97 @@ export async function POST(req: NextRequest) {
 
   let features: Record<string, unknown> | null = null;
   let scores: Record<string, unknown> | null = null;
+  let profileId: string | null = null;
+  let needsHumanReview = false;
+  const pipelineErrors: { step: string; error: string }[] = [];
 
+  // Step 1: Extract features
   try {
-    // Step 1: Extract features
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_extract_start",
-    });
-
     const extractRes = await fetch(`${baseUrl}/api/pipeline/extract`, {
       method: "POST",
       headers,
       body: JSON.stringify({ session_id }),
     });
-
-    if (!extractRes.ok) {
+    if (extractRes.ok) {
+      features = await extractRes.json();
+    } else {
       throw new Error(`Extract failed: ${extractRes.status}`);
     }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    pipelineErrors.push({ step: "extract", error: msg });
+    needsHumanReview = true;
+    console.error("[Pipeline] Extract failed:", msg);
+  }
 
-    features = await extractRes.json();
-
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_extract_complete",
-    });
-
-    // Step 2: Score dimensions
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_score_start",
-    });
-
+  // Step 2: Score dimensions
+  let scoreData: Record<string, unknown> = {};
+  try {
     const scoreRes = await fetch(`${baseUrl}/api/pipeline/score`, {
       method: "POST",
       headers,
       body: JSON.stringify({ session_id, features }),
     });
-
-    if (!scoreRes.ok) {
+    if (scoreRes.ok) {
+      scoreData = await scoreRes.json();
+      scores = scoreData.scores as Record<string, unknown>;
+      profileId = scoreData.profile_id as string;
+      if (scoreData.requires_human_review) needsHumanReview = true;
+    } else {
       throw new Error(`Score failed: ${scoreRes.status}`);
     }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    pipelineErrors.push({ step: "score", error: msg });
+    needsHumanReview = true;
+    console.error("[Pipeline] Score failed:", msg);
+  }
 
-    const scoreData = await scoreRes.json();
-    scores = scoreData.scores;
-
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_score_complete",
-      payload: {
-        overall_confidence: scoreData.overall_confidence,
-        requires_human_review: scoreData.requires_human_review,
-      },
-    });
-
-    // Step 2b: Compute TRI
-    if (scoreData.profile_id) {
-      try {
-        const { computeTRI } = await import("@/lib/signals/tri");
-        await computeTRI(scoreData.profile_id);
-      } catch (triErr) {
-        await writeAuditLog(supabaseAdmin, {
-          tenant_id: session.tenant_id,
-          session_id,
-          action: "tri_computation_error",
-          payload: { error: triErr instanceof Error ? triErr.message : String(triErr) },
-        });
-      }
+  // Step 2b: Compute TRI (only if scoring succeeded)
+  if (profileId) {
+    try {
+      const { computeTRI } = await import("@/lib/signals/tri");
+      await computeTRI(profileId);
+    } catch (err) {
+      pipelineErrors.push({ step: "tri", error: err instanceof Error ? err.message : String(err) });
     }
+  }
 
-    // Step 3: Generate narratives
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_narrative_start",
-    });
-
+  // Step 3: Generate narratives
+  try {
     const narrativeRes = await fetch(`${baseUrl}/api/pipeline/narrative`, {
       method: "POST",
       headers,
       body: JSON.stringify({ session_id, scores, features }),
     });
-
     if (!narrativeRes.ok) {
       throw new Error(`Narrative failed: ${narrativeRes.status}`);
     }
-
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_narrative_complete",
-    });
-
-    // Finalize
-    await supabaseAdmin
-      .from("insight_profiles")
-      .update({ is_final: true })
-      .eq("session_id", session_id);
-
-    // Update candidate status
-    await supabaseAdmin
-      .from("candidates")
-      .update({ status: "completed" })
-      .eq("id", session.candidate_id)
-      .neq("status", "completed");
-
-    // Step 4: Compute learning support signals (non-blocking)
-    try {
-      const { computeLearningSupport } = await import(
-        "@/lib/signals/learningSupport"
-      );
-      await computeLearningSupport(session_id);
-      await writeAuditLog(supabaseAdmin, {
-        tenant_id: session.tenant_id,
-        candidate_id: session.candidate_id,
-        session_id,
-        action: "learning_support_computed",
-      });
-    } catch (lsErr) {
-      await writeAuditLog(supabaseAdmin, {
-        tenant_id: session.tenant_id,
-        candidate_id: session.candidate_id,
-        session_id,
-        action: "learning_support_error",
-        payload: {
-          error: lsErr instanceof Error ? lsErr.message : String(lsErr),
-        },
-      });
-    }
-
-    // Step 5: Generate evaluator briefing (non-blocking)
-    try {
-      await fetch(`${baseUrl}/api/pipeline/briefing`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ candidate_id: session.candidate_id, session_id }),
-      });
-    } catch (bErr) {
-      console.error("Briefing generation failed:", bErr);
-    }
-
-    // Step 6: Compute cohort benchmarks (non-blocking)
-    try {
-      const { data: cand } = await supabaseAdmin
-        .from("candidates")
-        .select("cycle_id")
-        .eq("id", session.candidate_id)
-        .single();
-      if (cand?.cycle_id) {
-        await fetch(`${baseUrl}/api/pipeline/benchmarks`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ cycle_id: cand.cycle_id, tenant_id: session.tenant_id }),
-        });
-      }
-    } catch (bmErr) {
-      console.error("Benchmark computation failed:", bmErr);
-    }
-
-    // Check if human review needed → notify evaluators
-    if (scoreData.requires_human_review) {
-      await notifyEvaluators(session.tenant_id, session.candidate_id);
-    }
-
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_complete",
-    });
-
-    return NextResponse.json({ ok: true, profile_id: scoreData.profile_id });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-
-    // Safety fallback: mark as requires human review
+    const msg = err instanceof Error ? err.message : String(err);
+    pipelineErrors.push({ step: "narrative", error: msg });
+    // Set fallback narrative
     await supabaseAdmin
       .from("insight_profiles")
-      .update({ requires_human_review: true })
+      .update({
+        internal_narrative: "Automated narrative generation encountered an issue. Please review session responses manually.",
+        family_narrative: "A detailed summary is being prepared and will be available soon.",
+      })
       .eq("session_id", session_id);
+    console.error("[Pipeline] Narrative failed:", msg);
+  }
 
-    // If no profile exists yet, create one
-    const { data: existing } = await supabaseAdmin
+  // Ensure a profile exists (create if scoring failed to create one)
+  const { data: existingProfile } = await supabaseAdmin
+    .from("insight_profiles")
+    .select("id")
+    .eq("session_id", session_id)
+    .single();
+
+  if (!existingProfile) {
+    const { data: created } = await supabaseAdmin
       .from("insight_profiles")
-      .select("id")
-      .eq("session_id", session_id)
-      .single();
-
-    if (!existing) {
-      await supabaseAdmin.from("insight_profiles").insert({
+      .insert({
         session_id,
         candidate_id: session.candidate_id,
         tenant_id: session.tenant_id,
@@ -236,19 +129,90 @@ export async function POST(req: NextRequest) {
         low_confidence_flags: ["pipeline_error"],
         unusual_pattern_flags: [],
         is_final: false,
+        pipeline_partial: true,
+        pipeline_errors: pipelineErrors,
+      })
+      .select("id")
+      .single();
+    profileId = created?.id ?? null;
+  }
+
+  // Finalize profile
+  const isPartial = pipelineErrors.length > 0;
+  await supabaseAdmin
+    .from("insight_profiles")
+    .update({
+      is_final: true,
+      requires_human_review: needsHumanReview || isPartial,
+      pipeline_partial: isPartial,
+      pipeline_errors: pipelineErrors,
+      pipeline_completed_at: new Date().toISOString(),
+    })
+    .eq("session_id", session_id);
+
+  // Update candidate status — pipeline errors should NOT prevent completion
+  await supabaseAdmin
+    .from("candidates")
+    .update({ status: "completed" })
+    .eq("id", session.candidate_id)
+    .neq("status", "completed");
+
+  // Step 4: Learning support signals (non-blocking)
+  try {
+    const { computeLearningSupport } = await import("@/lib/signals/learningSupport");
+    await computeLearningSupport(session_id);
+  } catch (err) {
+    pipelineErrors.push({ step: "learning_support", error: err instanceof Error ? err.message : String(err) });
+  }
+
+  // Step 5: Evaluator briefing (non-blocking)
+  try {
+    await fetch(`${baseUrl}/api/pipeline/briefing`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ candidate_id: session.candidate_id, session_id }),
+    });
+  } catch {
+    // Silent — briefing is optional
+  }
+
+  // Step 6: Cohort benchmarks (non-blocking)
+  try {
+    const { data: cand } = await supabaseAdmin
+      .from("candidates")
+      .select("cycle_id")
+      .eq("id", session.candidate_id)
+      .single();
+    if (cand?.cycle_id) {
+      await fetch(`${baseUrl}/api/pipeline/benchmarks`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ cycle_id: cand.cycle_id, tenant_id: session.tenant_id }),
       });
     }
-
-    await writeAuditLog(supabaseAdmin, {
-      tenant_id: session.tenant_id,
-      candidate_id: session.candidate_id,
-      session_id,
-      action: "pipeline_error",
-      payload: { error: errorMsg },
-    });
-
-    return NextResponse.json({ error: errorMsg }, { status: 500 });
+  } catch {
+    // Silent — benchmarks are optional
   }
+
+  // Notify evaluators if human review needed
+  if (needsHumanReview) {
+    notifyEvaluators(session.tenant_id, session.candidate_id).catch(() => {});
+  }
+
+  await writeAuditLog(supabaseAdmin, {
+    tenant_id: session.tenant_id,
+    candidate_id: session.candidate_id,
+    session_id,
+    action: isPartial ? "pipeline_partial_complete" : "pipeline_complete",
+    payload: isPartial ? { errors: pipelineErrors } : undefined,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    profile_id: profileId,
+    partial: isPartial,
+    errors: pipelineErrors.length > 0 ? pipelineErrors : undefined,
+  });
 }
 
 async function notifyEvaluators(tenantId: string, candidateId: string) {
