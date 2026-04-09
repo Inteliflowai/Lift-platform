@@ -37,6 +37,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Candidates", href: "/school/candidates", icon: Users, desc: "Import, invite, and manage candidate profiles" },
     { label: "Cycles", href: "/school/cycles", icon: Calendar, desc: "Create and manage admissions cycles with grade bands" },
     { label: "Team", href: "/school/team", icon: UserCheck, desc: "Invite evaluators, interviewers, and staff to your school" },
+    { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
     { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
     { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
