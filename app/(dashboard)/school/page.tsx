@@ -1,6 +1,7 @@
 import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 export default async function SchoolDashboard() {
   const { tenantId, tenant } = await getTenantContext();
@@ -153,10 +154,10 @@ export default async function SchoolDashboard() {
   const needsReview = (flaggedCount ?? 0) + (reviewCount ?? 0);
 
   const stats = [
-    { label: "Total Candidates", value: totalCandidates ?? 0 },
-    { label: "Completed Sessions", value: completedSessions ?? 0 },
-    { label: "Flagged / Needs Review", value: needsReview, highlight: needsReview > 0 },
-    { label: "Avg Completion %", value: `${avgCompletion}%` },
+    { label: "Total Candidates", value: totalCandidates ?? 0, info: "Total number of candidates imported or invited to this school across all cycles." },
+    { label: "Completed Sessions", value: completedSessions ?? 0, info: "Sessions where the candidate finished all tasks. Each completed session generates an AI insight profile." },
+    { label: "Flagged / Needs Review", value: needsReview, highlight: needsReview > 0, info: "Candidates whose profiles were flagged by the AI for human review — typically due to low confidence scores or unusual patterns." },
+    { label: "Avg Completion %", value: `${avgCompletion}%`, info: "Average percentage of tasks completed across all sessions. A low number may indicate candidates dropping off mid-session." },
   ];
 
   return (
@@ -180,7 +181,10 @@ export default async function SchoolDashboard() {
             key={s.label}
             className="rounded-lg border border-lift-border bg-surface p-4"
           >
-            <p className="text-xs text-muted">{s.label}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs text-muted">{s.label}</p>
+              {"info" in s && s.info && <InfoTooltip text={s.info} />}
+            </div>
             <p
               className={`mt-1 text-2xl font-bold ${
                 "highlight" in s && s.highlight ? "text-review" : "text-lift-text"
@@ -228,7 +232,10 @@ export default async function SchoolDashboard() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Review Queue */}
         <div className="rounded-lg border border-lift-border bg-surface p-5">
-          <h2 className="text-lg font-semibold">Review Queue</h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-lg font-semibold">Review Queue</h2>
+            <InfoTooltip text="Candidates flagged by the AI for human review. These may have low-confidence scores, unusual response patterns, or learning support signals that warrant a closer look before making admissions decisions." />
+          </div>
           {dedupedQueue.length === 0 ? (
             <p className="mt-3 text-sm text-muted">
               No candidates require review right now.
@@ -258,7 +265,10 @@ export default async function SchoolDashboard() {
 
         {/* Recent Completions */}
         <div className="rounded-lg border border-lift-border bg-surface p-5">
-          <h2 className="text-lg font-semibold">Recent Completions</h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-lg font-semibold">Recent Completions</h2>
+            <InfoTooltip text="The most recent candidates who finished all their assessment tasks. Once completed, the AI pipeline runs automatically to generate insight profiles, TRI scores, and evaluator briefings." />
+          </div>
           {!recentCompleted || recentCompleted.length === 0 ? (
             <p className="mt-3 text-sm text-muted">No completions yet.</p>
           ) : (

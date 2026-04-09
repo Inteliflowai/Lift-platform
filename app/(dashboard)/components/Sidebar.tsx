@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type NavItem = { label: string; href: string; icon: LucideIcon };
+type NavItem = { label: string; href: string; icon: LucideIcon; desc?: string };
 
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
   platform_admin: [
@@ -32,20 +32,20 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
   school_admin: [
-    { label: "Dashboard", href: "/school", icon: LayoutDashboard },
-    { label: "Candidates", href: "/school/candidates", icon: Users },
-    { label: "Cycles", href: "/school/cycles", icon: Calendar },
-    { label: "Team", href: "/school/team", icon: UserCheck },
-    { label: "Audit Log", href: "/school/audit", icon: ScrollText },
-    { label: "Settings", href: "/school/settings", icon: Settings },
+    { label: "Dashboard", href: "/school", icon: LayoutDashboard, desc: "Overview of candidates, sessions, and review queue" },
+    { label: "Candidates", href: "/school/candidates", icon: Users, desc: "Import, invite, and manage candidate profiles" },
+    { label: "Cycles", href: "/school/cycles", icon: Calendar, desc: "Create and manage admissions cycles with grade bands" },
+    { label: "Team", href: "/school/team", icon: UserCheck, desc: "Invite evaluators, interviewers, and staff to your school" },
+    { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
+    { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
   evaluator: [
-    { label: "My Queue", href: "/evaluator", icon: ClipboardList },
-    { label: "All Candidates", href: "/evaluator/candidates", icon: Users },
-    { label: "Reports", href: "/evaluator/reports", icon: FileText },
+    { label: "My Queue", href: "/evaluator", icon: ClipboardList, desc: "Candidates assigned to you for review" },
+    { label: "All Candidates", href: "/evaluator/candidates", icon: Users, desc: "Browse all candidates across your school" },
+    { label: "Reports", href: "/evaluator/reports", icon: FileText, desc: "Cohort analytics and benchmarking reports" },
   ],
   interviewer: [
-    { label: "My Cases", href: "/interviewer", icon: Briefcase },
+    { label: "My Cases", href: "/interviewer", icon: Briefcase, desc: "Interview assignments and rubric submission" },
   ],
 };
 
@@ -115,6 +115,7 @@ export function Sidebar({
                   <Link
                     key={item.href}
                     href={item.href}
+                    title={item.desc}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
                       active
                         ? "bg-[#6366f1]/15 text-[#6366f1]"
