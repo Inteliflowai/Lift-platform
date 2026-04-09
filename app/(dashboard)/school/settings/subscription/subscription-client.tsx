@@ -400,6 +400,38 @@ export function SubscriptionClient({
                     );
                   })}
                 </ul>
+
+                {/* Bottom CTA */}
+                {isCurrent ? (
+                  <div className="mt-5 rounded-lg border border-primary/20 bg-primary/5 py-2.5 text-center text-sm font-semibold text-primary">
+                    Current Plan
+                  </div>
+                ) : isHigher || isTrial ? (
+                  <button
+                    onClick={() => handleCheckout(t)}
+                    disabled={checkoutLoading === t}
+                    className={`mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold shadow-sm transition-all disabled:opacity-50 ${meta.btnClass}`}
+                  >
+                    {checkoutLoading === t ? (
+                      <>
+                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Get {t.charAt(0).toUpperCase() + t.slice(1)}
+                        <ArrowRight size={14} />
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <a
+                    href="mailto:lift@inteliflowai.com?subject=LIFT%20Plan%20Change"
+                    className="mt-5 block rounded-lg border border-lift-border py-2.5 text-center text-sm font-medium text-muted hover:bg-surface transition-colors"
+                  >
+                    Contact to change
+                  </a>
+                )}
               </div>
             );
           })}
