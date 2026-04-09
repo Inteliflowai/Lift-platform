@@ -61,10 +61,18 @@ export function Sidebar({
   role,
   allRoles,
   userName,
+  branding,
 }: {
   role: string;
   allRoles?: string[];
   userName?: string | null;
+  branding?: {
+    logoUrl: string | null;
+    logoDarkUrl: string | null;
+    hideLiftBranding: boolean;
+    poweredByVisible: boolean;
+    schoolName: string;
+  };
 }) {
   const pathname = usePathname();
 
@@ -84,16 +92,32 @@ export function Sidebar({
 
   return (
     <aside className="sidebar-mesh fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-[#2a2a3a]">
-      {/* Logo — centered, no text */}
-      <div className="flex h-32 items-center justify-center">
-        <Image
-          src="/LIFT LOGO.jpeg"
-          alt="LIFT"
-          width={144}
-          height={144}
-          priority
-          className="h-[120px] w-[120px] rounded-xl object-contain"
-        />
+      {/* Logo */}
+      <div className="flex flex-col items-center justify-center pt-6 pb-3">
+        {branding?.logoDarkUrl || branding?.logoUrl ? (
+          <Image
+            src={branding.logoDarkUrl ?? branding.logoUrl!}
+            alt={branding.schoolName || "School"}
+            width={140}
+            height={44}
+            priority
+            className="max-h-[44px] w-auto object-contain"
+          />
+        ) : (
+          <Image
+            src="/LIFT LOGO.jpeg"
+            alt="LIFT"
+            width={144}
+            height={144}
+            priority
+            className="h-[120px] w-[120px] rounded-xl object-contain"
+          />
+        )}
+        {(!branding?.hideLiftBranding && branding?.poweredByVisible !== false) && (
+          <p className="mt-1.5 text-[10px] text-[#7878a0]/40">
+            Powered by LIFT
+          </p>
+        )}
       </div>
 
       {/* Nav */}

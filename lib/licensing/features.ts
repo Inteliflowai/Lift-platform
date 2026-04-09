@@ -67,8 +67,13 @@ const ENTERPRISE_FEATURES: Feature[] = [
   FEATURES.PRIORITY_SUPPORT,
 ];
 
+// Trial gets Enterprise features minus white-label/branding
+const TRIAL_FEATURES: Feature[] = ENTERPRISE_FEATURES.filter(
+  (f) => f !== FEATURES.WHITE_LABEL && f !== FEATURES.CUSTOM_BRANDING
+);
+
 export const TIER_FEATURES: Record<string, Feature[]> = {
-  trial: ENTERPRISE_FEATURES,
+  trial: TRIAL_FEATURES,
   essentials: ESSENTIALS_FEATURES,
   professional: PROFESSIONAL_FEATURES,
   enterprise: ENTERPRISE_FEATURES,

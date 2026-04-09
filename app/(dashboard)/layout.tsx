@@ -7,6 +7,7 @@ import { LicenseProvider } from "@/lib/licensing/context";
 import { getLicense, isLicenseActive, getTrialDaysRemaining } from "@/lib/licensing/resolver";
 import { checkSessionLimit } from "@/lib/licensing/gate";
 import { TrialBanner } from "@/components/licensing/TrialBanner";
+import { TenantThemeProvider, type TenantBranding } from "@/lib/theming/TenantTheme";
 
 export default async function DashboardLayout({
   children,
@@ -42,16 +43,45 @@ export default async function DashboardLayout({
     .eq("id", user.id)
     .single();
 
-  // Check if tenant is in demo mode
+  // Check if tenant is in demo mode + fetch branding
   const tenantId = roles?.[0]?.tenant_id;
   let isDemo = false;
+  let branding: TenantBranding = {
+    primaryColor: null,
+    logoUrl: null,
+    logoDarkUrl: null,
+    faviconUrl: null,
+    hideLiftBranding: false,
+    poweredByVisible: true,
+    schoolName: "",
+  };
+
   if (tenantId) {
     const { data: tenant } = await supabaseAdmin
       .from("tenants")
-      .select("is_demo")
+      .select("is_demo, name")
       .eq("id", tenantId)
       .single();
     isDemo = tenant?.is_demo ?? false;
+    branding.schoolName = tenant?.name ?? "";
+
+    const { data: wl } = await supabaseAdmin
+      .from("tenant_settings")
+      .select("wl_primary_color, logo_url, wl_logo_dark_url, wl_favicon_url, wl_hide_lift_branding, wl_powered_by_visible")
+      .eq("tenant_id", tenantId)
+      .single();
+
+    if (wl) {
+      branding = {
+        primaryColor: wl.wl_primary_color !== "#6366f1" ? wl.wl_primary_color : null,
+        logoUrl: wl.logo_url ?? null,
+        logoDarkUrl: wl.wl_logo_dark_url ?? null,
+        faviconUrl: wl.wl_favicon_url ?? null,
+        hideLiftBranding: wl.wl_hide_lift_branding ?? false,
+        poweredByVisible: wl.wl_powered_by_visible ?? true,
+        schoolName: tenant?.name ?? "",
+      };
+    }
   }
 
   // Fetch license data for client-side context
@@ -87,9 +117,10 @@ export default async function DashboardLayout({
 
   return (
     <LicenseProvider license={licenseData}>
+      <TenantThemeProvider branding={branding}>
       <TrialBanner />
       <div className="min-h-screen bg-white text-[#1a1a2e]">
-        <Sidebar role={primaryRole} allRoles={userRoles} userName={profile?.full_name} />
+        <Sidebar role={primaryRole} allRoles={userRoles} userName={profile?.full_name} branding={branding} />
         <div className="ml-60 flex min-h-screen flex-col">
           {isDemo && (
             <div className="flex h-10 items-center justify-center bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
@@ -104,6 +135,7 @@ export default async function DashboardLayout({
           <main className="flex-1 bg-[#f8f8fa] p-6">{children}</main>
         </div>
       </div>
+      </TenantThemeProvider>
     </LicenseProvider>
   );
 }

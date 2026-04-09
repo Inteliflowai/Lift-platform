@@ -30,6 +30,14 @@ export async function PATCH(req: NextRequest) {
     "voice_mode_enabled",
     "passage_reader_enabled",
     "welcome_completed",
+    "logo_url",
+    "wl_primary_color",
+    "wl_logo_dark_url",
+    "wl_favicon_url",
+    "wl_hide_lift_branding",
+    "wl_email_from_name",
+    "wl_email_reply_to",
+    "wl_powered_by_visible",
   ];
 
   const updates: Record<string, unknown> = {};
