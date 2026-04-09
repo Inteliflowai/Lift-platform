@@ -8,6 +8,13 @@ const PUBLIC_PREFIXES = ["/session", "/invite", "/consent", "/register"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Hide pricing/register routes when LIFT_HIDE_PRICING is true
+  if (process.env.LIFT_HIDE_PRICING === "true") {
+    if (pathname === "/register" || pathname === "/pricing" || pathname.startsWith("/register")) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
   // Candidate-facing routes are fully public (token-based, no Supabase Auth)
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();

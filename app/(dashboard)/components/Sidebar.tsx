@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import {
   Building2,
   Calendar,
@@ -76,6 +77,27 @@ export function Sidebar({
   };
 }) {
   const pathname = usePathname();
+  const { t, brandName } = useLocale();
+
+  // Translation map for nav labels
+  const navT: Record<string, string> = {
+    "Dashboard": t("nav.dashboard"),
+    "Candidates": t("nav.candidates"),
+    "Cycles": t("nav.cycles"),
+    "Team": t("nav.team"),
+    "Analytics": t("nav.analytics"),
+    "Audit Log": t("nav.audit_log"),
+    "Settings": t("nav.settings"),
+    "My Queue": t("nav.my_queue"),
+    "All Candidates": t("nav.all_candidates"),
+    "Reports": t("nav.reports"),
+    "My Cases": t("nav.my_cases"),
+    "Tenants": t("nav.tenants"),
+    "Licenses": t("nav.licenses"),
+    "All Cycles": t("nav.all_cycles"),
+    "System Reports": t("nav.system_reports"),
+    "Help Guide": t("nav.help"),
+  };
 
   // Build combined nav sections for users with multiple roles
   const rolesToShow = allRoles && allRoles.length > 1
@@ -116,7 +138,7 @@ export function Sidebar({
         )}
         {(!branding?.hideLiftBranding && branding?.poweredByVisible !== false) && (
           <p className="mt-1.5 text-[10px] text-[#7878a0]/40">
-            Powered by LIFT
+            Powered by {brandName}
           </p>
         )}
       </div>
@@ -149,7 +171,7 @@ export function Sidebar({
                     }`}
                   >
                     <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
-                    {item.label}
+                    {navT[item.label] ?? item.label}
                   </Link>
                 );
               })}
@@ -169,7 +191,7 @@ export function Sidebar({
             }`}
           >
             <HelpCircle size={18} strokeWidth={pathname.startsWith("/help") ? 2.2 : 1.8} />
-            Help Guide
+            {t("nav.help")}
           </Link>
         </div>
       </nav>
@@ -196,7 +218,7 @@ export function Sidebar({
           className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-[#7878a0] transition-colors hover:bg-[#2a2740] hover:text-[#f43f5e]"
         >
           <LogOut size={16} />
-          Sign Out
+          {t("nav.sign_out")}
         </button>
       </div>
     </aside>

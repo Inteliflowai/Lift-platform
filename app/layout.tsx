@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
+import { getLocale, getBrand } from "@/lib/i18n/config";
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -21,8 +23,10 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600"],
 });
 
+const brand = getBrand();
+
 export const metadata: Metadata = {
-  title: "LIFT — Learning Insight for Transitions",
+  title: `${brand.name} — ${brand.tagline}`,
   description:
     "Non-diagnostic admissions and readiness insight platform by Inteliflow AI",
 };
@@ -34,7 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang={getLocale()}
       suppressHydrationWarning
       className={`${playfair.variable} ${dmSans.variable} ${geistMono.variable}`}
     >
@@ -42,7 +46,14 @@ export default function RootLayout({
         suppressHydrationWarning
         className="font-[family-name:var(--font-body)] antialiased"
       >
-        {children}
+        <LocaleProvider
+          locale={getLocale()}
+          brandName={brand.name}
+          brandTagline={brand.tagline}
+          hidePricing={brand.hidePricing}
+        >
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

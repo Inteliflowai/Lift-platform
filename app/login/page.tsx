@@ -5,6 +5,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 const SLIDES = ["/slide-1.jpg", "/slide-2.jpg", "/slide-3.jpg", "/slide-4.jpg", "/slide-5.jpg"];
 
@@ -27,6 +28,7 @@ function BackgroundSlideshow() {
 }
 
 function LoginForm() {
+  const { t, brandName, brandTagline, hidePricing } = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -76,71 +78,71 @@ function LoginForm() {
 
   return (
     <div className="relative z-10 w-full max-w-[400px] login-card-enter">
-      {/* Card */}
       <div className={`glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-12 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px] backdrop-saturate-[1.4] ${shaking ? "shake" : ""}`}>
         <div className="flex justify-center mb-2">
-          <Image src="/LIFT LOGO.jpeg" alt="LIFT" width={180} height={180} priority
+          <Image src="/LIFT LOGO.jpeg" alt={brandName} width={180} height={180} priority
             className="h-[168px] w-[168px] rounded-2xl object-contain" />
         </div>
         <p className="mt-1 text-center font-[family-name:var(--font-body)] text-sm text-white/50">
-          Learning Insight for Transitions
+          {brandTagline}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/50">Email</label>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">{t("login.email")}</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
               className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]" />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/50">Password</label>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">{t("login.password")}</label>
             <div className="relative">
               <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
                 className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]" />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black transition-colors">
-                {showPassword ? <EyeOff size={18} key="off" /> : <Eye size={18} key="on" />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
           {error && <p className="text-xs text-[#f43f5e]">{error}</p>}
 
-          {/* URL param banners */}
           {searchParams.get("reset") === "true" && (
             <div className="rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 p-2 text-center">
-              <p className="text-xs text-[#10b981]">Password reset successfully — please sign in.</p>
+              <p className="text-xs text-[#10b981]">{t("login.password_reset")}</p>
             </div>
           )}
           {searchParams.get("confirmed") === "true" && (
             <div className="rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 p-2 text-center">
-              <p className="text-xs text-[#10b981]">Email confirmed — you can now sign in.</p>
+              <p className="text-xs text-[#10b981]">{t("login.email_confirmed")}</p>
             </div>
           )}
           {searchParams.get("expired") === "true" && (
             <div className="rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/20 p-2 text-center">
-              <p className="text-xs text-[#f59e0b]">Your session expired — please sign in again.</p>
+              <p className="text-xs text-[#f59e0b]">{t("login.session_expired")}</p>
             </div>
           )}
 
           <button type="submit" disabled={loading}
             className="w-full rounded-xl bg-[#6366f1] py-3 font-[family-name:var(--font-display)] text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5] disabled:opacity-50">
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? t("login.signing_in") : t("login.sign_in")}
           </button>
 
           <div className="text-center">
             <a href="/forgot-password" className="text-xs text-white/40 hover:text-[#6366f1] transition-colors">
-              Forgot your password?
+              {t("login.forgot_password")}
             </a>
           </div>
         </form>
 
-        <p className="mt-4 text-center text-xs text-white/30">
-          Don&apos;t have an account?{" "}
-          <a href="/register" className="text-[#6366f1] hover:underline">Start free trial</a>
-        </p>
+        {!hidePricing && (
+          <p className="mt-4 text-center text-xs text-white/30">
+            {t("login.no_account")}{" "}
+            <a href="/register" className="text-[#6366f1] hover:underline">{t("login.start_trial")}</a>
+          </p>
+        )}
       </div>
 
-      <p className="mt-8 text-center text-[10px] text-white/25">Powered by Inteliflow AI</p>
+      <p className="mt-8 text-center text-[10px] text-white/25">{t("brand.powered_by")}</p>
     </div>
   );
 }
