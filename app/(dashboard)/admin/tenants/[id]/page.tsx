@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { ImpersonateButton } from "./impersonate-button";
 import { DemoControls } from "./demo-controls";
 
@@ -45,7 +46,21 @@ export default async function TenantDetailPage({
           <h1 className="text-2xl font-bold">{tenant.name}</h1>
           <p className="text-sm text-muted">/{tenant.slug}</p>
         </div>
-        <ImpersonateButton tenantId={params.id} />
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/tenants/${params.id}/reset`}
+            className="rounded-md border border-warning/30 px-4 py-2 text-sm font-medium text-warning hover:bg-warning/5"
+          >
+            Data Management
+          </Link>
+          <Link
+            href={`/admin/licenses/${params.id}`}
+            className="rounded-md border border-lift-border px-4 py-2 text-sm font-medium text-muted hover:bg-surface"
+          >
+            License
+          </Link>
+          <ImpersonateButton tenantId={params.id} />
+        </div>
       </div>
 
       {/* Settings */}

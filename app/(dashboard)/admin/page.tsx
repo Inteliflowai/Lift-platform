@@ -109,6 +109,39 @@ export default async function AdminDashboard() {
           Revenue Report
         </Link>
       </div>
+
+      {/* Dev Tools — only when LIFT_DEV_MODE=true */}
+      {process.env.LIFT_DEV_MODE === "true" && (
+        <DevTools />
+      )}
+    </div>
+  );
+}
+
+function DevTools() {
+  return (
+    <div className="rounded-lg border-2 border-review/30 bg-review/5 p-5">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-review">
+        Developer Tools
+        <span className="rounded bg-review/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider">Dev Only</span>
+      </h2>
+      <p className="mt-1 text-xs text-muted">Hidden in production (LIFT_DEV_MODE=false)</p>
+      <div className="mt-4 flex gap-3">
+        <form action="/api/admin/reset/dev-wipe-all" method="POST">
+          <button
+            type="submit"
+            className="rounded-lg border border-review/30 px-4 py-2 text-xs font-medium text-review hover:bg-review/10"
+          >
+            Wipe All Non-Hillside Tenants
+          </button>
+        </form>
+        <Link
+          href="/admin/tenants"
+          className="rounded-lg border border-lift-border px-4 py-2 text-xs font-medium text-muted hover:bg-surface"
+        >
+          Manage Individual Tenants
+        </Link>
+      </div>
     </div>
   );
 }
