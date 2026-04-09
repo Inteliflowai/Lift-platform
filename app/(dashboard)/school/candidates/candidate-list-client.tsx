@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { EmptyState, EmptyCandidatesIcon } from "@/components/EmptyState";
 
 type Session = {
   status: string;
@@ -126,8 +127,19 @@ export function CandidateListClient({
         </label>
       </div>
 
+      {/* Empty state */}
+      {candidates.length === 0 && (
+        <EmptyState
+          icon={<EmptyCandidatesIcon />}
+          title="No candidates yet"
+          description="Your first admissions cycle is ready. Send a candidate invitation to get started."
+          action={{ label: "Invite Your First Candidate", href: "/school/candidates/invite" }}
+          secondaryAction={{ label: "Set up a cycle first", href: "/school/cycles/new" }}
+        />
+      )}
+
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-lift-border">
+      {candidates.length > 0 && <div className="overflow-x-auto rounded-lg border border-lift-border">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-lift-border bg-surface text-xs text-muted">
             <tr>
@@ -223,7 +235,7 @@ export function CandidateListClient({
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
     </div>
   );
 }

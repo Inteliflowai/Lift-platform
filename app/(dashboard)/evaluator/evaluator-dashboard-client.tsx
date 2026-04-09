@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { TRIPill } from "@/components/TRI/TRIGauge";
+import { EmptyState, EmptyQueueIcon } from "@/components/EmptyState";
 
 type ReviewCandidate = {
   candidate_id: string;
@@ -91,7 +92,12 @@ export function EvaluatorDashboardClient({
       {tab === "queue" && (
         <div className="space-y-3">
           {dedupedQueue.length === 0 && (
-            <p className="py-8 text-center text-muted">No candidates in your review queue.</p>
+            <EmptyState
+              icon={<EmptyQueueIcon />}
+              title="Your queue is clear"
+              description="No candidates are waiting for review right now. Sessions that need attention will appear here."
+              action={{ label: "View All Candidates", href: "/evaluator/candidates" }}
+            />
           )}
           {dedupedQueue.map((q) => (
             <div key={q.candidate!.id} className="flex items-center justify-between rounded-lg border border-lift-border bg-surface p-4">

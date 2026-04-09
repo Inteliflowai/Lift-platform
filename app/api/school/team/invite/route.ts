@@ -3,6 +3,7 @@ import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
 import { sendTeamInviteEmail } from "@/lib/email";
+import { markOnboardingStep } from "@/lib/onboarding";
 
 export async function POST(req: NextRequest) {
   const { tenantId, tenant, user } = await getTenantContext();
@@ -96,6 +97,10 @@ export async function POST(req: NextRequest) {
     action: "team_member_invited",
     payload: { email, role },
   });
+
+  if (role === "evaluator") {
+    markOnboardingStep(tenantId, "evaluator_invited").catch(() => {});
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

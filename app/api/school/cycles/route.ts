@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
+import { markOnboardingStep } from "@/lib/onboarding";
 
 export async function GET() {
   const { tenantId } = await getTenantContext();
@@ -61,6 +62,8 @@ export async function POST(req: NextRequest) {
   }));
 
   await supabaseAdmin.from("grade_band_templates").insert(templates);
+
+  markOnboardingStep(tenantId, "cycle_created").catch(() => {});
 
   await writeAuditLog(supabaseAdmin, {
     tenant_id: tenantId,

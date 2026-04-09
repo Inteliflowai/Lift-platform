@@ -1,6 +1,7 @@
 import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
+import { EmptyState, EmptyCyclesIcon } from "@/components/EmptyState";
 
 export default async function CyclesPage() {
   const { tenantId } = await getTenantContext();
@@ -83,8 +84,13 @@ export default async function CyclesPage() {
             })}
             {(!cycles || cycles.length === 0) && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-muted">
-                  No cycles yet. Create your first cycle to get started.
+                <td colSpan={7}>
+                  <EmptyState
+                    icon={<EmptyCyclesIcon />}
+                    title="No admissions cycles yet"
+                    description="Create your first cycle to configure grade bands, timelines, and candidate invitations."
+                    action={{ label: "Create Your First Cycle", href: "/school/cycles/new" }}
+                  />
                 </td>
               </tr>
             )}

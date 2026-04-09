@@ -3,6 +3,7 @@ import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
 import { sendInviteEmail } from "@/lib/email";
+import { markOnboardingStep } from "@/lib/onboarding";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -137,6 +138,8 @@ export async function POST(req: NextRequest) {
     action: "invite_sent",
     payload: { email, token, grade_band: gradeBand },
   });
+
+  markOnboardingStep(tenantId, "candidate_invited").catch(() => {});
 
   return NextResponse.json({ candidate, token }, { status: 201 });
 }

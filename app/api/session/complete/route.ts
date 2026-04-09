@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { markOnboardingStep } from "@/lib/onboarding";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -51,6 +52,8 @@ export async function POST(req: NextRequest) {
     to_status: "completed",
     reason: "Session completed",
   });
+
+  markOnboardingStep(session.tenant_id, "session_completed").catch(() => {});
 
   // Trigger AI pipeline (fire-and-forget — don't block the candidate)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";

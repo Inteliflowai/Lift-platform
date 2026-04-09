@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { EmptyState, EmptyTeamIcon } from "@/components/EmptyState";
 
 type Member = {
   id: string;
@@ -144,8 +145,13 @@ export function TeamClient({ members }: { members: Member[] }) {
             })}
             {members.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  No team members yet.
+                <td colSpan={5}>
+                  <EmptyState
+                    icon={<EmptyTeamIcon />}
+                    title="Just you so far"
+                    description="Invite evaluators and interviewers to collaborate on candidate reviews."
+                    action={{ label: "Invite a Team Member", href: "/school/team" }}
+                  />
                 </td>
               </tr>
             )}

@@ -2,6 +2,7 @@ import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
 
 export default async function SchoolDashboard() {
   const { tenantId, tenant } = await getTenantContext();
@@ -173,6 +174,9 @@ export default async function SchoolDashboard() {
           </p>
         )}
       </div>
+
+      {/* Onboarding */}
+      <OnboardingBanner />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
