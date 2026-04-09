@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getLicense, getTrialDaysRemaining } from "@/lib/licensing/resolver";
@@ -23,17 +24,16 @@ export default async function SubscriptionPage() {
     .eq("tenant_id", tenantId)
     .eq("role", "evaluator");
 
-  // Get pending upgrade request
-  const { data: pendingRequest } = await supabaseAdmin
-    .from("upgrade_requests")
-    .select("*")
+  // Check for Stripe subscription
+  const { data: licenseRow } = await supabaseAdmin
+    .from("tenant_licenses")
+    .select("stripe_subscription_id")
     .eq("tenant_id", tenantId)
-    .eq("status", "pending")
-    .order("created_at", { ascending: false })
-    .limit(1)
     .single();
+  const stripeSubId = licenseRow?.stripe_subscription_id;
 
   return (
+    <Suspense>
     <SubscriptionClient
       tier={license?.tier ?? "trial"}
       status={license?.status ?? "trialing"}
@@ -42,7 +42,8 @@ export default async function SubscriptionPage() {
       sessionsUsed={sessionInfo.used}
       sessionsLimit={sessionInfo.limit}
       evaluatorSeatsUsed={evaluators?.length ?? 0}
-      hasPendingRequest={!!pendingRequest}
+      hasStripeSubscription={!!stripeSubId}
     />
+    </Suspense>
   );
 }

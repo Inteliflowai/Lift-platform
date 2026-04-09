@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe/client";
 import { handleStripeWebhook } from "@/lib/licensing/stripe";
 
-/**
- * Stripe webhook endpoint — wired but inactive.
- * Set STRIPE_WEBHOOK_SECRET in env to activate.
- */
 export async function POST(req: NextRequest) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) {
@@ -21,16 +18,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
-  // TODO: Validate signature with Stripe SDK when activated
-  // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-  // const event = stripe.webhooks.constructEvent(body, signature, secret);
-
   try {
-    const event = JSON.parse(body);
+    const event = stripe.webhooks.constructEvent(body, signature, secret);
     await handleStripeWebhook(event);
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error("Stripe webhook error:", err);
-    return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
+    return NextResponse.json({ error: "Webhook failed" }, { status: 400 });
   }
 }

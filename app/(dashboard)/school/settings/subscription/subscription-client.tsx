@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Check, X, Crown, Zap, Building2 } from "lucide-react";
 import { TIER_LIMITS, TIER_PRICING } from "@/lib/licensing/features";
 
@@ -12,7 +13,7 @@ type Props = {
   sessionsUsed: number;
   sessionsLimit: number | null;
   evaluatorSeatsUsed: number;
-  hasPendingRequest: boolean;
+  hasStripeSubscription: boolean;
 };
 
 const TIER_ORDER = ["essentials", "professional", "enterprise"];
@@ -63,42 +64,71 @@ export function SubscriptionClient({
   sessionsUsed,
   sessionsLimit,
   evaluatorSeatsUsed,
-  hasPendingRequest,
+  hasStripeSubscription,
 }: Props) {
-  const [requestTier, setRequestTier] = useState<string | null>(null);
-  const [billingCycle, setBillingCycle] = useState("annual");
-  const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(hasPendingRequest);
+  const searchParams = useSearchParams();
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "muted" } | null>(null);
 
   const effectiveTier = tier === "trial" ? "professional" : tier;
   const tierIdx = TIER_ORDER.indexOf(effectiveTier);
 
-  const seatLimit =
-    TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.evaluator_seats ?? 3;
+  // Handle return from Stripe
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    if (payment === "success") {
+      setToast({ message: "Payment successful! Your plan is now active.", type: "success" });
+    } else if (payment === "cancelled") {
+      setToast({ message: "Payment cancelled — your trial continues.", type: "muted" });
+    }
+    if (payment) {
+      const timer = setTimeout(() => setToast(null), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
-  async function handleUpgradeRequest() {
-    if (!requestTier) return;
-    setSubmitting(true);
-    const res = await fetch("/api/licensing/upgrade-request", {
+  async function handleCheckout(targetTier: string) {
+    setCheckoutLoading(targetTier);
+    const res = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requested_tier: requestTier,
-        billing_cycle: billingCycle,
-        message,
-      }),
+      body: JSON.stringify({ tier: targetTier }),
     });
-    if (res.ok) {
-      setSubmitted(true);
-      setRequestTier(null);
+    const data = await res.json();
+    if (data.checkout_url) {
+      window.location.href = data.checkout_url;
+    } else {
+      setCheckoutLoading(null);
     }
-    setSubmitting(false);
   }
+
+  async function handleManageBilling() {
+    const res = await fetch("/api/stripe/portal", { method: "POST" });
+    const data = await res.json();
+    if (data.portal_url) {
+      window.location.href = data.portal_url;
+    }
+  }
+
+  const seatLimit =
+    TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.evaluator_seats ?? 3;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <h1 className="text-2xl font-bold">Subscription</h1>
+
+      {/* Payment toast */}
+      {toast && (
+        <div
+          className={`rounded-lg p-3 text-center text-sm font-medium ${
+            toast.type === "success"
+              ? "bg-success/10 text-success"
+              : "bg-muted/10 text-muted"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
 
       {/* Current Plan Card */}
       <div className="rounded-lg border border-lift-border bg-surface p-6">
@@ -126,14 +156,24 @@ export function SubscriptionClient({
               </p>
             )}
           </div>
-          {status === "trialing" && (
-            <a
-              href="#plans"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-            >
-              Upgrade to keep access
-            </a>
-          )}
+          <div className="flex gap-2">
+            {status === "trialing" && (
+              <a
+                href="#plans"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              >
+                Upgrade to keep access
+              </a>
+            )}
+            {hasStripeSubscription && (
+              <button
+                onClick={handleManageBilling}
+                className="rounded-md border border-lift-border px-4 py-2 text-sm font-medium text-lift-text hover:bg-surface"
+              >
+                Manage Billing
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -251,18 +291,29 @@ export function SubscriptionClient({
                       <p className="text-sm font-bold">
                         ${price?.toLocaleString()}/yr
                       </p>
-                      {isHigher && !submitted && (
+                      {isCurrent && (
+                        <p className="mt-2 text-[10px] text-muted font-medium">
+                          Current Plan
+                        </p>
+                      )}
+                      {isHigher && (
                         <button
-                          onClick={() => setRequestTier(t)}
-                          className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                          onClick={() => handleCheckout(t)}
+                          disabled={checkoutLoading === t}
+                          className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
                         >
-                          Request Upgrade
+                          {checkoutLoading === t
+                            ? "Loading..."
+                            : `Upgrade to ${t.charAt(0).toUpperCase() + t.slice(1)}`}
                         </button>
                       )}
-                      {isHigher && submitted && (
-                        <p className="mt-2 text-[10px] text-success font-medium">
-                          Request sent
-                        </p>
+                      {!isCurrent && !isHigher && (
+                        <a
+                          href="mailto:lift@inteliflowai.com?subject=LIFT%20Downgrade%20Request"
+                          className="mt-2 inline-block text-[10px] text-muted hover:underline"
+                        >
+                          Contact to downgrade
+                        </a>
                       )}
                     </td>
                   );
@@ -272,82 +323,6 @@ export function SubscriptionClient({
           </table>
         </div>
       </div>
-
-      {/* Upgrade Request Modal */}
-      {requestTier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md rounded-lg border border-lift-border bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold">
-              Request upgrade to{" "}
-              <span className="capitalize">{requestTier}</span>
-            </h3>
-            <p className="mt-1 text-xs text-muted">
-              Our team will send you a quote within 1 business day.
-            </p>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted">
-                  Billing preference
-                </label>
-                <div className="flex gap-3">
-                  {["annual", "biannual"].map((opt) => (
-                    <label
-                      key={opt}
-                      className={`flex-1 cursor-pointer rounded-lg border p-3 text-center text-xs font-medium ${
-                        billingCycle === opt
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-lift-border text-muted"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="billing"
-                        value={opt}
-                        checked={billingCycle === opt}
-                        onChange={() => setBillingCycle(opt)}
-                        className="sr-only"
-                      />
-                      {opt === "annual"
-                        ? "Annual (1 payment)"
-                        : "Biannual (2 installments)"}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted">
-                  Message (optional)
-                </label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Any questions or notes for our team..."
-                  className="w-full rounded-lg border border-lift-border bg-page-bg p-3 text-sm outline-none focus:border-primary resize-none"
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <div className="mt-5 flex gap-3">
-              <button
-                onClick={() => setRequestTier(null)}
-                className="flex-1 rounded-lg border border-lift-border py-2 text-sm font-medium text-muted hover:bg-surface"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpgradeRequest}
-                disabled={submitting}
-                className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
-              >
-                {submitting ? "Sending..." : "Send Request"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Billing Contact */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
