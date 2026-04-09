@@ -70,8 +70,9 @@ export function SubscriptionClient({
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "muted" } | null>(null);
 
-  const effectiveTier = tier === "trial" ? "professional" : tier;
-  const tierIdx = TIER_ORDER.indexOf(effectiveTier);
+  const isTrial = tier === "trial" || status === "trialing";
+  const effectiveTier = isTrial ? "" : tier; // no "current" tier during trial
+  const tierIdx = isTrial ? -1 : TIER_ORDER.indexOf(tier);
 
   // Handle return from Stripe
   useEffect(() => {
