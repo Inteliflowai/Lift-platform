@@ -26,7 +26,7 @@ async function getStageIds() {
 
   const data = await res.json();
   const liftPipeline = data.pipelines?.find(
-    (p: { name: string }) => p.name === "LIFT Sales"
+    (p: { name: string }) => p.name.toLowerCase().includes("lift")
   );
 
   if (!liftPipeline) {

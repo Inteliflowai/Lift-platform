@@ -68,9 +68,15 @@ export async function syncLicenseEventToHL(event: {
         "lift-trial-ending",
         "lift-expired",
       ]);
-      const stageKey = `Customer — ${event.tier.charAt(0).toUpperCase() + event.tier.slice(1)}`;
-      if (HL_STAGES[stageKey]) {
-        await moveHLPipelineStage(contactId, HL_STAGES[stageKey]);
+      const tierLabel = event.tier.charAt(0).toUpperCase() + event.tier.slice(1);
+      // Try both "Customer — Tier" and "Customer-Tier" formats
+      const stageId =
+        HL_STAGES[`Customer — ${tierLabel}`] ??
+        HL_STAGES[`Customer-${tierLabel}`] ??
+        HL_STAGES[`Customer — ${event.tier}`] ??
+        HL_STAGES[`Customer-${event.tier}`];
+      if (stageId) {
+        await moveHLPipelineStage(contactId, stageId);
       }
       break;
     }
