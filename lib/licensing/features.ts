@@ -68,7 +68,7 @@ const ENTERPRISE_FEATURES: Feature[] = [
 ];
 
 export const TIER_FEATURES: Record<string, Feature[]> = {
-  trial: PROFESSIONAL_FEATURES,
+  trial: ENTERPRISE_FEATURES,
   essentials: ESSENTIALS_FEATURES,
   professional: PROFESSIONAL_FEATURES,
   enterprise: ENTERPRISE_FEATURES,
