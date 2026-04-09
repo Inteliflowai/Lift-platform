@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
 const SCHOOL_TYPES = [
@@ -25,8 +25,10 @@ const inputClass =
 const selectClass =
   "w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] appearance-none";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedPlan = searchParams.get("plan");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -90,7 +92,11 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/login?redirect=/school/welcome");
+      // If a plan was pre-selected, redirect to checkout after login
+      const redirect = selectedPlan
+        ? `/school/settings/subscription?auto_checkout=${selectedPlan}`
+        : "/school/welcome";
+      router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -114,10 +120,14 @@ export default function RegisterPage() {
       {/* Card */}
       <div className="glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px] backdrop-saturate-[1.4]">
         <h1 className="text-center font-[family-name:var(--font-display)] text-2xl font-bold text-white">
-          Start your 30-day free trial
+          {selectedPlan
+            ? `Get LIFT ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}`
+            : "Start your 30-day free trial"}
         </h1>
         <p className="mt-1 text-center text-xs text-white/40">
-          No credit card required
+          {selectedPlan
+            ? "Create your account, then complete payment"
+            : "No credit card required"}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -332,5 +342,13 @@ export default function RegisterPage() {
         Powered by Inteliflow AI
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

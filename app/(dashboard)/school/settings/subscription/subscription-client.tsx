@@ -144,6 +144,12 @@ export function SubscriptionClient({
       const timer = setTimeout(() => setToast(null), 6000);
       return () => clearTimeout(timer);
     }
+
+    // Auto-trigger checkout if redirected from registration with a plan
+    const autoCheckout = searchParams.get("auto_checkout");
+    if (autoCheckout && ["essentials", "professional", "enterprise"].includes(autoCheckout)) {
+      handleCheckout(autoCheckout);
+    }
   }, [searchParams]);
 
   async function handleCheckout(targetTier: string) {
