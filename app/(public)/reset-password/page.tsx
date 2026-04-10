@@ -28,7 +28,7 @@ function ResetForm() {
   useEffect(() => {
     let resolved = false;
 
-    // Listen for PASSWORD_RECOVERY event
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         resolved = true;
@@ -37,7 +37,7 @@ function ResetForm() {
       }
     });
 
-    // Also try exchanging code from URL if present
+    // Code-based flow
     const code = searchParams.get("code");
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ error: err }) => {
@@ -49,25 +49,34 @@ function ResetForm() {
       });
     }
 
-    // Check for existing session (from hash-based flow)
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        resolved = true;
-        setSessionReady(true);
-        setChecking(false);
-      }
-    });
+    // Hash-based flow: poll for session since the hash parsing is async
+    const hasHash = typeof window !== "undefined" && window.location.hash.includes("type=recovery");
 
-    // Give it time for any auth flow to complete
-    const timer = setTimeout(() => {
+    async function pollSession() {
+      for (let i = 0; i < 10; i++) {
+        if (resolved) return;
+        await new Promise((r) => setTimeout(r, 500));
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          resolved = true;
+          setSessionReady(true);
+          setChecking(false);
+          return;
+        }
+      }
+      // After 5 seconds of polling
       if (!resolved) {
         setExpired(true);
         setChecking(false);
       }
-    }, 5000);
+    }
+
+    if (hasHash || !code) {
+      pollSession();
+    }
 
     return () => {
-      clearTimeout(timer);
+      resolved = true; // prevent further state updates
       subscription.unsubscribe();
     };
   }, [supabase, searchParams]);
