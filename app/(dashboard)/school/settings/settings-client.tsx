@@ -82,9 +82,9 @@ export function SettingsClient({
         {/* Default Language */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium">Default Language</p>
+            <p className="text-sm font-medium">{t("settings.language")}</p>
             <p className="text-xs text-muted">
-              Language for invites and session UI
+              {t("settings.language_desc")}
             </p>
           </div>
           <select
@@ -102,9 +102,9 @@ export function SettingsClient({
         {/* COPPA Mode */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium">COPPA Mode</p>
+            <p className="text-sm font-medium">{t("settings.coppa")}</p>
             <p className="text-xs text-muted">
-              Require guardian consent for all new invites
+              {t("settings.coppa_desc")}
             </p>
           </div>
           <Toggle
@@ -116,9 +116,9 @@ export function SettingsClient({
         {/* Session Pause */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium">Session Pause</p>
+            <p className="text-sm font-medium">{t("settings.session_pause")}</p>
             <p className="text-xs text-muted">
-              Allow candidates to pause and resume sessions
+              {t("settings.session_pause_desc")}
             </p>
           </div>
           <Toggle
@@ -131,7 +131,7 @@ export function SettingsClient({
 
         {settings.session_pause_allowed && (
           <div className="flex items-center justify-between pl-4">
-            <p className="text-sm text-muted">Max pause hours</p>
+            <p className="text-sm text-muted">{t("settings.max_pause_hours")}</p>
             <select
               value={settings.session_pause_limit_hours}
               onChange={(e) =>
@@ -154,9 +154,9 @@ export function SettingsClient({
         {/* Data Retention */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium">Data Retention</p>
+            <p className="text-sm font-medium">{t("settings.data_retention")}</p>
             <p className="text-xs text-muted">
-              How long candidate data is kept
+              {t("settings.data_retention_desc")}
             </p>
           </div>
           <select
@@ -178,9 +178,9 @@ export function SettingsClient({
         {/* Human Review */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium">Require Human Review Always</p>
+            <p className="text-sm font-medium">{t("settings.human_review")}</p>
             <p className="text-xs text-muted">
-              Flag every insight profile for manual review
+              {t("settings.human_review_desc")}
             </p>
           </div>
           <Toggle
@@ -194,17 +194,15 @@ export function SettingsClient({
         {/* Voice & Accessibility */}
         <div className="border-t border-lift-border pt-4 mt-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
-            Voice &amp; Accessibility
+            {t("settings.voice_accessibility")}
           </p>
 
           {/* Voice Response */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Voice Response</p>
+              <p className="text-sm font-medium">{t("settings.voice_response")}</p>
               <p className="text-xs text-muted">
-                Allow candidates to speak their responses instead of typing.
-                Recommended for Grade 6-7 applicants and candidates who find
-                typing difficult.
+                {t("settings.voice_response_desc")}
               </p>
             </div>
             <Toggle
@@ -218,11 +216,9 @@ export function SettingsClient({
           {/* Passage Reader */}
           <div className="flex items-center justify-between mt-4">
             <div>
-              <p className="text-sm font-medium">Passage Reader</p>
+              <p className="text-sm font-medium">{t("settings.passage_reader")}</p>
               <p className="text-xs text-muted">
-                Read passages aloud to candidates. A text-to-speech player will
-                appear above each reading passage. Helps candidates with reading
-                difficulties access the content without affecting scoring.
+                {t("settings.passage_reader_desc")}
               </p>
             </div>
             <Toggle

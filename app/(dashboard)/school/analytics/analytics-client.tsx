@@ -109,16 +109,16 @@ export function AnalyticsClient({
 
       {/* ROW 1: Overview Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatCard label={t("analytics.candidates_invited")} value={o.total_candidates} info="Total candidates imported or invited this cycle" />
-        <StatCard label={t("analytics.sessions_completed")} value={o.completed_sessions} info="Candidates who finished all assessment tasks" />
-        <StatCard label={t("analytics.completion_rate")} value={`${o.completion_rate_pct}%`} info="Percentage of invited candidates who completed their session" />
-        <StatCard label={t("analytics.avg_tri")} value={o.avg_tri_score} info="Average Transition Readiness Index across all completed sessions" />
+        <StatCard label={t("analytics.candidates_invited")} value={o.total_candidates} info={t("analytics.candidates_info")} />
+        <StatCard label={t("analytics.sessions_completed")} value={o.completed_sessions} info={t("analytics.sessions_info")} />
+        <StatCard label={t("analytics.completion_rate")} value={`${o.completion_rate_pct}%`} info={t("analytics.rate_info")} />
+        <StatCard label={t("analytics.avg_tri")} value={o.avg_tri_score} info={t("analytics.tri_info")} />
         <StatCard
           label={t("analytics.sessions_used")}
           value={o.sessions_limit ? `${o.sessions_limit - (o.sessions_remaining ?? 0)}/${o.sessions_limit}` : `${o.sessions_this_month}`}
-          info="Sessions consumed vs your plan limit"
+          info={t("analytics.usage_info")}
         />
-        <StatCard label={t("analytics.avg_time")} value={`${o.avg_session_duration_minutes}m`} info="Average time candidates spend completing all tasks" />
+        <StatCard label={t("analytics.avg_time")} value={`${o.avg_session_duration_minutes}m`} info={t("analytics.time_info")} />
       </div>
 
       {/* ROW 2: TRI Distribution + Grade Band */}
@@ -129,10 +129,10 @@ export function AnalyticsClient({
           <div className="flex items-center justify-center">
             <DonutChart
               segments={[
-                { value: data.tri_distribution.emerging, color: "#f43f5e", label: "Emerging" },
-                { value: data.tri_distribution.developing, color: "#f59e0b", label: "Developing" },
-                { value: data.tri_distribution.ready, color: "#6366f1", label: "Ready" },
-                { value: data.tri_distribution.thriving, color: "#10b981", label: "Thriving" },
+                { value: data.tri_distribution.emerging, color: "#f43f5e", label: t("analytics.emerging") },
+                { value: data.tri_distribution.developing, color: "#f59e0b", label: t("analytics.developing") },
+                { value: data.tri_distribution.ready, color: "#6366f1", label: t("analytics.ready") },
+                { value: data.tri_distribution.thriving, color: "#10b981", label: t("analytics.thriving") },
               ]}
               total={triTotal}
             />

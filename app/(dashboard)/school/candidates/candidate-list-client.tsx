@@ -145,12 +145,12 @@ export function CandidateListClient({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-lift-border bg-surface text-xs text-muted">
             <tr>
-              <th className="px-4 py-3 font-medium">Name</th>
-              <th className="px-4 py-3 font-medium">Grade Band</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Completion</th>
-              <th className="px-4 py-3 font-medium">Last Activity</th>
-              <th className="px-4 py-3 font-medium">Actions</th>
+              <th className="px-4 py-3 font-medium">{t("candidates.name")}</th>
+              <th className="px-4 py-3 font-medium">{t("candidates.grade_band_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("candidates.status_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("candidates.completion_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("candidates.last_activity_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("candidates.actions_col")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-lift-border">

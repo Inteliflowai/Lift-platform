@@ -29,12 +29,12 @@ export default async function CyclesPage() {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-lift-border bg-surface text-xs text-muted">
             <tr>
-              <th className="px-4 py-3 font-medium">Name</th>
-              <th className="px-4 py-3 font-medium">Year</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Candidates</th>
-              <th className="px-4 py-3 font-medium">Opens</th>
-              <th className="px-4 py-3 font-medium">Closes</th>
+              <th className="px-4 py-3 font-medium">{t("cycles.name_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("cycles.year_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("cycles.status_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("cycles.candidates_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("cycles.opens_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("cycles.closes_col")}</th>
               <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
