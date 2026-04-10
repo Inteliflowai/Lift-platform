@@ -117,12 +117,26 @@ function OverviewTab({ candidate, profile, inviteSentAt, sessions, benchmarks }:
 
       {/* TRI Hero Panel */}
       {p && (
-        <TRIGauge
-          score={p.tri_score != null ? Number(p.tri_score) : null}
-          label={p.tri_label as string | null}
-          confidence={p.tri_confidence as string | null}
-          summary={p.tri_summary as string | null}
-        />
+        <>
+          <TRIGauge
+            score={p.tri_score != null ? Number(p.tri_score) : null}
+            label={p.tri_label as string | null}
+            confidence={p.tri_confidence as string | null}
+            summary={p.tri_summary as string | null}
+          />
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 -mt-2">
+            <p className="text-xs font-semibold text-primary mb-1">What is TRI?</p>
+            <p className="text-xs text-muted leading-relaxed">
+              The <strong>Transition Readiness Index (TRI)</strong> is a composite score (0-100) measuring readiness across 6 dimensions: Reading (20%), Writing (20%), Reasoning (20%), Reflection (15%), Persistence (15%), and Support Seeking (10%). Scores are adjusted for AI confidence and learning support signals.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-2 text-[10px]">
+              <span className="text-review">Emerging (0-39)</span>
+              <span className="text-warning">Developing (40-59)</span>
+              <span className="text-primary">Ready (60-79)</span>
+              <span className="text-success">Thriving (80-100)</span>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Radar Chart */}
@@ -631,8 +645,9 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
 
             {/* Profile context */}
             {profile && (
-              <div className="flex flex-wrap gap-3 text-xs text-muted pt-1 border-t border-lift-border">
-                <span className="pt-2">TRI: <span className="font-semibold text-lift-text capitalize">{profile.tri_label as string}</span> ({Number(profile.tri_score ?? 0).toFixed(0)})</span>
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted pt-2 border-t border-lift-border">
+                <span>TRI: <span className="font-semibold text-lift-text capitalize">{profile.tri_label as string}</span> ({Number(profile.tri_score ?? 0).toFixed(0)}/100)</span>
+                <span className="text-[10px] text-muted/60">(Transition Readiness Index — composite of 6 readiness dimensions)</span>
                 {interviewRec && (
                   <span className="pt-2">Interview: <span className="font-semibold text-lift-text capitalize">{interviewRec.replace("_", " ")}</span></span>
                 )}
