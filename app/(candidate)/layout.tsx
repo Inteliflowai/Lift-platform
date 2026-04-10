@@ -24,14 +24,14 @@ export default function CandidateLayout({
           paddingBottom: "max(env(safe-area-inset-bottom), 16px)",
         }}
       >
-        <header className="flex h-20 w-full items-center justify-center border-b border-[#e8e4df]">
+        <header className="flex h-44 w-full items-center justify-center border-b border-[#e8e4df]">
           <Image
             src="/LIFT LOGO.jpeg"
             alt="LIFT"
-            width={72}
-            height={72}
+            width={144}
+            height={144}
             priority
-            className="h-[72px] w-[72px] rounded-lg object-contain"
+            className="h-[144px] w-[144px] rounded-lg object-contain"
           />
         </header>
         <main className="w-full max-w-[720px] flex-1 px-4 py-8 md:px-0 md:py-12">
