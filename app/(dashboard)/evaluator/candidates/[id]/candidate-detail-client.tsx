@@ -461,11 +461,25 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
   }
 
   const aiSnapshot = review?.ai_recommendation_snapshot as Record<string, unknown> | undefined;
+  // The snapshot may have structured format OR raw scores + placement_guidance
   const aiTier = aiSnapshot?.recommended_tier as string | undefined;
   const aiRationale = aiSnapshot?.rationale as string | undefined;
-  const aiConfidence = aiSnapshot?.confidence as number | undefined;
+  const aiConfidence = (aiSnapshot?.confidence ?? aiSnapshot?.overall_confidence) as number | undefined;
   const aiStrengths = aiSnapshot?.strengths as string[] | undefined;
   const aiConcerns = aiSnapshot?.concerns as string[] | undefined;
+  const aiPlacementGuidance = aiSnapshot?.placement_guidance as string | undefined;
+
+  // Extract scores from snapshot
+  const aiScores = aiSnapshot ? {
+    reading: aiSnapshot.reading_score as number | undefined,
+    writing: aiSnapshot.writing_score as number | undefined,
+    reasoning: aiSnapshot.reasoning_score as number | undefined,
+    reflection: aiSnapshot.reflection_score as number | undefined,
+    persistence: aiSnapshot.persistence_score as number | undefined,
+    support_seeking: aiSnapshot.support_seeking_score as number | undefined,
+  } : null;
+
+  const hasScores = aiScores && Object.values(aiScores).some(v => v != null);
 
   const tierColors: Record<string, { bg: string; text: string; label: string }> = {
     admit: { bg: "bg-success/10 border-success/20", text: "text-success", label: "Admit" },
@@ -504,20 +518,55 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
             <p className="mt-0.5 text-[10px] text-muted">Generated from the candidate&apos;s session data, responses, and behavioral signals.</p>
           </div>
 
-          <div className="px-5 pb-4 space-y-3">
-            {/* AI recommended tier */}
+          <div className="px-5 pb-4 space-y-4">
+            {/* AI recommended tier (if structured format) */}
             {aiTier && (
               <div className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 ${tierColors[aiTier]?.bg ?? "bg-muted/10 border-muted/20"}`}>
                 <span className={`text-sm font-bold capitalize ${tierColors[aiTier]?.text ?? "text-muted"}`}>
                   {tierColors[aiTier]?.label ?? aiTier.replace(/_/g, " ")}
                 </span>
-                {aiConfidence && (
+                {aiConfidence != null && (
                   <span className="text-xs text-muted">({aiConfidence}% confidence)</span>
                 )}
               </div>
             )}
 
-            {/* AI rationale */}
+            {/* Confidence (if no structured tier) */}
+            {!aiTier && aiConfidence != null && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted">AI Confidence:</span>
+                <div className="flex-1 max-w-[200px] h-2 rounded-full bg-lift-border overflow-hidden">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${aiConfidence}%` }} />
+                </div>
+                <span className="text-xs font-semibold">{aiConfidence}%</span>
+              </div>
+            )}
+
+            {/* Dimension Scores from snapshot */}
+            {hasScores && (
+              <div>
+                <p className="text-xs font-semibold text-muted mb-2">Dimension Scores</p>
+                <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                  {Object.entries(aiScores!).filter(([,v]) => v != null).map(([dim, score]) => {
+                    const s = score as number;
+                    const color = s >= 70 ? "bg-success" : s >= 40 ? "bg-primary" : "bg-warning";
+                    return (
+                      <div key={dim} className="rounded-lg border border-lift-border p-2">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-[10px] text-muted capitalize">{dim.replace("_", " ")}</span>
+                          <span className="text-xs font-bold">{s}</span>
+                        </div>
+                        <div className="mt-1 h-1.5 rounded-full bg-lift-border overflow-hidden">
+                          <div className={`h-full rounded-full ${color}`} style={{ width: `${s}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* AI rationale (structured format) */}
             {aiRationale && (
               <div className="rounded-lg bg-page-bg p-3">
                 <p className="text-xs font-semibold text-muted mb-1">Rationale</p>
@@ -525,42 +574,67 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
               </div>
             )}
 
-            {/* Strengths & Concerns */}
-            <div className="grid grid-cols-2 gap-3">
-              {aiStrengths && aiStrengths.length > 0 && (
-                <div className="rounded-lg border border-success/20 bg-success/5 p-3">
-                  <p className="text-xs font-semibold text-success mb-1.5">Strengths</p>
-                  <ul className="space-y-1">
-                    {aiStrengths.map((s, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-success shrink-0" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
+            {/* Placement Guidance (from pipeline) */}
+            {aiPlacementGuidance && (
+              <div className="rounded-lg bg-page-bg p-4">
+                <p className="text-xs font-semibold text-primary mb-2">Placement Guidance</p>
+                <div className="text-sm text-lift-text leading-relaxed space-y-2">
+                  {aiPlacementGuidance.split("\n\n").map((para, i) => {
+                    if (para.startsWith("##")) {
+                      return <p key={i} className="font-semibold text-lift-text">{para.replace(/^#+\s*/, "").replace(/\*\*/g, "")}</p>;
+                    }
+                    if (para.startsWith("•") || para.startsWith("- ")) {
+                      return (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                          <span className="text-sm">{para.replace(/^[•\-]\s*/, "").replace(/\*\*/g, "")}</span>
+                        </div>
+                      );
+                    }
+                    return <p key={i}>{para.replace(/\*\*/g, "")}</p>;
+                  })}
                 </div>
-              )}
-              {aiConcerns && aiConcerns.length > 0 && (
-                <div className="rounded-lg border border-warning/20 bg-warning/5 p-3">
-                  <p className="text-xs font-semibold text-warning mb-1.5">Areas of Concern</p>
-                  <ul className="space-y-1">
-                    {aiConcerns.map((c, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-warning shrink-0" />
-                        {c}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Strengths & Concerns (structured format) */}
+            {(aiStrengths?.length || aiConcerns?.length) ? (
+              <div className="grid grid-cols-2 gap-3">
+                {aiStrengths && aiStrengths.length > 0 && (
+                  <div className="rounded-lg border border-success/20 bg-success/5 p-3">
+                    <p className="text-xs font-semibold text-success mb-1.5">Strengths</p>
+                    <ul className="space-y-1">
+                      {aiStrengths.map((s, i) => (
+                        <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
+                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-success shrink-0" />
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {aiConcerns && aiConcerns.length > 0 && (
+                  <div className="rounded-lg border border-warning/20 bg-warning/5 p-3">
+                    <p className="text-xs font-semibold text-warning mb-1.5">Areas of Concern</p>
+                    <ul className="space-y-1">
+                      {aiConcerns.map((c, i) => (
+                        <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
+                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-warning shrink-0" />
+                          {c}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : null}
 
             {/* Profile context */}
             {profile && (
-              <div className="flex flex-wrap gap-3 text-xs text-muted pt-1">
-                <span>TRI: <span className="font-semibold text-lift-text capitalize">{profile.tri_label as string}</span> ({Number(profile.tri_score ?? 0).toFixed(0)})</span>
+              <div className="flex flex-wrap gap-3 text-xs text-muted pt-1 border-t border-lift-border">
+                <span className="pt-2">TRI: <span className="font-semibold text-lift-text capitalize">{profile.tri_label as string}</span> ({Number(profile.tri_score ?? 0).toFixed(0)})</span>
                 {interviewRec && (
-                  <span>Interview: <span className="font-semibold text-lift-text capitalize">{interviewRec.replace("_", " ")}</span></span>
+                  <span className="pt-2">Interview: <span className="font-semibold text-lift-text capitalize">{interviewRec.replace("_", " ")}</span></span>
                 )}
               </div>
             )}
