@@ -48,7 +48,7 @@ export default async function EvaluatorCandidateDetail({
   if (sessionId) {
     const { data } = await supabaseAdmin
       .from("task_instances")
-      .select("id, sequence_order, status, task_templates(title, task_type), response_text(response_body, word_count, submitted_at), response_features(revision_depth)")
+      .select("id, sequence_order, status, task_templates(title, task_type), response_text(response_body, word_count, submitted_at, response_features(revision_depth))")
       .eq("session_id", sessionId)
       .order("sequence_order");
     responses = data ?? [];

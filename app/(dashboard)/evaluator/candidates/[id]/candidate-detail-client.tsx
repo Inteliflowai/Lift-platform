@@ -205,13 +205,13 @@ function OverviewTab({ candidate, profile, inviteSentAt, sessions, benchmarks }:
 }
 
 function ResponsesTab({ responses }: { responses: unknown[] }) {
-  const items = responses as { id: string; sequence_order: number; task_templates: { title: string; task_type: string }; response_text: { response_body: string; word_count: number; submitted_at: string }[]; response_features: { revision_depth: number }[] }[];
+  const items = responses as { id: string; sequence_order: number; task_templates: { title: string; task_type: string }; response_text: { response_body: string; word_count: number; submitted_at: string; response_features: { revision_depth: number }[] }[] }[];
 
   return (
     <div className="space-y-4">
       {items.map((t) => {
         const rt = t.response_text?.[0];
-        const rf = t.response_features?.[0];
+        const rf = rt?.response_features?.[0];
         return (
           <div key={t.id} className="rounded-lg border border-lift-border bg-surface p-4 space-y-2">
             <div className="flex justify-between">
