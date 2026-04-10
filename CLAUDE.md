@@ -73,7 +73,7 @@ Middleware also:
 
 `lib/i18n/` provides full English/Portuguese localization:
 
-- **`en.json`** / **`pt.json`** — ~370 translation keys each
+- **`en.json`** / **`pt.json`** — ~450 translation keys each
 - **`LocaleProvider.tsx`** — Client-side context with `useLocale()` hook returning `{ t, brandName, brandTagline, hidePricing, locale }`
 - **`config.ts`** — `getLocale()`, `getBrand()` from env vars. Server-side `t()` available via `useLocale.ts`
 - **Root layout** wraps everything in `<LocaleProvider>` with locale from `LIFT_LOCALE` env var
@@ -241,6 +241,28 @@ HighLevel: `HL_API_KEY`, `HL_LOCATION_ID`, `HL_PIPELINE_ID`, `HL_STAGE_IDS` (JSO
 Locale/Branding: `LIFT_LOCALE` (en|pt), `LIFT_BRAND_NAME`, `LIFT_BRAND_TAGLINE`, `LIFT_HIDE_PRICING` (true|false).
 
 Optional: `LIFT_TEAM_EMAIL`, `LIFT_DEV_MODE`.
+
+## Evaluator Candidate Detail
+
+`app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 5 tabs:
+
+- **Overview**: TRI gauge with explanation card, radar chart, dimension scores, briefing card, learning support panel
+- **Responses**: Task-by-task display of candidate's written responses, word counts, revision depth. Joined via `task_instances → response_text → response_features` (nested join — do NOT join response_features directly to task_instances)
+- **Signals**: Behavioral data with descriptions — avg time per task, reading time, hints, focus loss, session duration. Time-per-task bar chart. Session timeline with color-coded events. Info banner explaining what signals are.
+- **Evaluator Review**: AI Recommendation shown FIRST (dimension score bars, placement guidance, confidence). Then evaluator's own notes + tier selection (colored buttons). Override rationale only asked when tier actually differs from AI.
+- **Interview Notes**: Rubric scoring + interview synthesis
+
+The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension scores + `placement_guidance` text (not a structured tier/rationale format). The Review tab renders both formats.
+
+## Known Patterns & Gotchas
+
+- **All API routes using `getTenantContext()` or `createClient` from supabase/server MUST have `export const dynamic = "force-dynamic"`** — otherwise Vercel build crashes on `cookies()` access during data collection
+- **`response_text` has no unique constraint on `task_instance_id`** — use simple `insert`, NOT `upsert` with `onConflict`
+- **`response_features` references `response_text_id`**, not `task_instance_id` — Supabase joins must go through `response_text`
+- **Pipeline timeout**: orchestrator (`/api/pipeline/run`) set to 120s in `vercel.json`. Still tight for 6 sequential Claude API calls. Requires Vercel Pro plan.
+- **TTS (PassageReader)**: NOT shown on `reading_passage` tasks (reading comprehension — candidate must read). IS shown on `scenario` and `quantitative_reasoning`.
+- **Hydration errors** (#418/#423): Console-only warnings from `LocaleProvider` wrapping server-rendered content. Don't break functionality.
+- **Task templates**: Must have full content (passage text, scenario text). Original seed script had broken templates with empty content for some grade bands. Use `lib/seed-task-templates.ts` or `scripts/seed-existing-tenants.ts` for proper seeding.
 
 ## Design Tokens
 
