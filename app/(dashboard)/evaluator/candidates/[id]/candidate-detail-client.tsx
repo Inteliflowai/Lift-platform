@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { SupportPanel } from "@/components/LearningSupport/SupportPanel";
 import { TRIGauge } from "@/components/TRI/TRIGauge";
 import { BriefingCard } from "@/components/evaluator/BriefingCard";
@@ -444,17 +445,6 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
     });
   }
 
-  async function handleTierChange(newTier: string) {
-    setTier(newTier);
-    // Check if different from AI default
-    const aiSnapshot = review?.ai_recommendation_snapshot as Record<string, unknown> | undefined;
-    if (aiSnapshot && Object.keys(aiSnapshot).length > 0) {
-      setShowOverride(true);
-    } else {
-      await saveReview({ recommendation_tier: newTier });
-    }
-  }
-
   async function confirmOverride() {
     await saveReview({ recommendation_tier: tier, override_reason: overrideReason });
     setShowOverride(false);
@@ -470,6 +460,21 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
     router.refresh();
   }
 
+  const aiSnapshot = review?.ai_recommendation_snapshot as Record<string, unknown> | undefined;
+  const aiTier = aiSnapshot?.recommended_tier as string | undefined;
+  const aiRationale = aiSnapshot?.rationale as string | undefined;
+  const aiConfidence = aiSnapshot?.confidence as number | undefined;
+  const aiStrengths = aiSnapshot?.strengths as string[] | undefined;
+  const aiConcerns = aiSnapshot?.concerns as string[] | undefined;
+
+  const tierColors: Record<string, { bg: string; text: string; label: string }> = {
+    admit: { bg: "bg-success/10 border-success/20", text: "text-success", label: "Admit" },
+    waitlist: { bg: "bg-warning/10 border-warning/20", text: "text-warning", label: "Waitlist" },
+    decline: { bg: "bg-review/10 border-review/20", text: "text-review", label: "Decline" },
+    defer: { bg: "bg-primary/10 border-primary/20", text: "text-primary", label: "Defer" },
+    needs_more_info: { bg: "bg-muted/10 border-muted/20", text: "text-muted", label: "Needs More Info" },
+  };
+
   if (!review) {
     return (
       <div className="py-8 text-center">
@@ -482,83 +487,167 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
     );
   }
 
-  // Decision context
   const latestRubric = rubricSubmissions[0] as Record<string, unknown> | undefined;
   const interviewRec = latestRubric?.recommendation as string | undefined;
-  const sessionPositive = profile && Number(profile.tri_score ?? 0) >= 60;
-  const interviewPositive = interviewRec === "strong_yes" || interviewRec === "yes";
-  const aligned = latestRubric ? (sessionPositive === interviewPositive) : null;
+
+  // Check if evaluator's tier differs from AI
+  const tierDiffers = aiTier && tier && tier !== aiTier;
 
   return (
     <div className="space-y-6">
-      {/* Decision Context */}
-      <div className="rounded-lg border border-lift-border bg-surface p-4 space-y-2">
-        <h4 className="text-xs font-semibold text-muted uppercase tracking-wide">Decision Context</h4>
-        <div className="flex flex-wrap gap-3 text-sm">
-          {profile && (
-            <span>TRI: <span className="font-semibold capitalize">{profile.tri_label as string}</span> ({Number(profile.tri_score ?? 0).toFixed(1)})</span>
-          )}
-          {interviewRec && (
-            <span>Interview: <span className="font-semibold capitalize">{interviewRec.replace("_", " ")}</span></span>
-          )}
-        </div>
-        {aligned !== null && (
-          <p className={`text-xs ${aligned ? "text-[#10b981]" : "text-[#f59e0b]"}`}>
-            {aligned ? "Session and interview are aligned" : "Session and interview diverge — review both carefully"}
-          </p>
-        )}
-      </div>
 
-      <div className="space-y-4">
+      {/* STEP 1: AI Recommendation (shown first) */}
+      {aiSnapshot && Object.keys(aiSnapshot).length > 0 && (
+        <div className="rounded-xl border-l-4 border-l-primary border border-lift-border bg-surface overflow-hidden">
+          <div className="px-5 pt-4 pb-2">
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider">AI Recommendation</p>
+            <p className="mt-0.5 text-[10px] text-muted">Generated from the candidate&apos;s session data, responses, and behavioral signals.</p>
+          </div>
+
+          <div className="px-5 pb-4 space-y-3">
+            {/* AI recommended tier */}
+            {aiTier && (
+              <div className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 ${tierColors[aiTier]?.bg ?? "bg-muted/10 border-muted/20"}`}>
+                <span className={`text-sm font-bold capitalize ${tierColors[aiTier]?.text ?? "text-muted"}`}>
+                  {tierColors[aiTier]?.label ?? aiTier.replace(/_/g, " ")}
+                </span>
+                {aiConfidence && (
+                  <span className="text-xs text-muted">({aiConfidence}% confidence)</span>
+                )}
+              </div>
+            )}
+
+            {/* AI rationale */}
+            {aiRationale && (
+              <div className="rounded-lg bg-page-bg p-3">
+                <p className="text-xs font-semibold text-muted mb-1">Rationale</p>
+                <p className="text-sm text-lift-text leading-relaxed">{aiRationale}</p>
+              </div>
+            )}
+
+            {/* Strengths & Concerns */}
+            <div className="grid grid-cols-2 gap-3">
+              {aiStrengths && aiStrengths.length > 0 && (
+                <div className="rounded-lg border border-success/20 bg-success/5 p-3">
+                  <p className="text-xs font-semibold text-success mb-1.5">Strengths</p>
+                  <ul className="space-y-1">
+                    {aiStrengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-success shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {aiConcerns && aiConcerns.length > 0 && (
+                <div className="rounded-lg border border-warning/20 bg-warning/5 p-3">
+                  <p className="text-xs font-semibold text-warning mb-1.5">Areas of Concern</p>
+                  <ul className="space-y-1">
+                    {aiConcerns.map((c, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-warning shrink-0" />
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Profile context */}
+            {profile && (
+              <div className="flex flex-wrap gap-3 text-xs text-muted pt-1">
+                <span>TRI: <span className="font-semibold text-lift-text capitalize">{profile.tri_label as string}</span> ({Number(profile.tri_score ?? 0).toFixed(0)})</span>
+                {interviewRec && (
+                  <span>Interview: <span className="font-semibold text-lift-text capitalize">{interviewRec.replace("_", " ")}</span></span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2: Evaluator's Own Review */}
+      <div className="rounded-xl border border-lift-border bg-surface p-5 space-y-4">
         <div>
-          <label className="mb-1 block text-xs text-muted">Evaluator Notes</label>
+          <p className="text-xs font-semibold text-lift-text uppercase tracking-wider">Your Evaluation</p>
+          <p className="mt-0.5 text-[10px] text-muted">Review the AI recommendation above, then provide your own assessment.</p>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium text-muted">Evaluator Notes</label>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
             onBlur={() => saveReview({ notes })} disabled={isFinalized}
-            className="w-full min-h-[120px] rounded-lg border border-lift-border bg-surface p-3 text-sm text-lift-text outline-none focus:border-primary disabled:opacity-60 resize-y"
-            placeholder="Your evaluation notes..." />
+            className="w-full min-h-[120px] rounded-lg border border-lift-border bg-page-bg p-3 text-sm text-lift-text outline-none focus:border-primary disabled:opacity-60 resize-y"
+            placeholder="What did you observe? What stands out about this candidate?" />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs text-muted">Recommendation</label>
-          <select value={tier} onChange={(e) => handleTierChange(e.target.value)} disabled={isFinalized}
-            className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary disabled:opacity-60">
-            <option value="">Select...</option>
-            {TIERS.map((t) => (
-              <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
-            ))}
-          </select>
+          <label className="mb-1 block text-xs font-medium text-muted">Your Recommendation</label>
+          <div className="flex flex-wrap gap-2">
+            {TIERS.map((t) => {
+              const tc = tierColors[t] ?? { bg: "bg-muted/10 border-muted/20", text: "text-muted", label: t };
+              const selected = tier === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setTier(t);
+                    if (!aiTier || t === aiTier) {
+                      saveReview({ recommendation_tier: t });
+                      setShowOverride(false);
+                    } else {
+                      setShowOverride(true);
+                    }
+                  }}
+                  disabled={isFinalized}
+                  className={`rounded-lg border px-4 py-2 text-xs font-semibold transition-all ${
+                    selected
+                      ? `${tc.bg} ${tc.text} ring-2 ring-offset-1 ring-current`
+                      : "border-lift-border text-muted hover:border-primary/30"
+                  } disabled:opacity-60`}
+                >
+                  {tc.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {showOverride && (
+        {/* STEP 3: Override rationale (only when it actually differs from AI) */}
+        {tierDiffers && showOverride && (
           <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 space-y-3">
-            <p className="text-sm font-medium text-warning">Override Rationale Required</p>
-            <p className="text-xs text-muted">Your recommendation differs from the AI suggestion. Please provide a rationale.</p>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-warning" />
+              <p className="text-sm font-medium text-warning">Your recommendation differs from the AI</p>
+            </div>
+            <p className="text-xs text-muted">
+              AI recommended <strong className="capitalize">{tierColors[aiTier!]?.label ?? aiTier}</strong>,
+              you selected <strong className="capitalize">{tierColors[tier]?.label ?? tier}</strong>.
+              Please explain why you disagree — this helps calibrate the AI and documents your reasoning.
+            </p>
             <textarea value={overrideReason} onChange={(e) => setOverrideReason(e.target.value)}
-              className="w-full min-h-[60px] rounded-md border border-lift-border bg-page-bg p-3 text-sm text-lift-text outline-none" placeholder="Reason for override..." />
+              className="w-full min-h-[60px] rounded-md border border-lift-border bg-page-bg p-3 text-sm text-lift-text outline-none focus:border-primary"
+              placeholder="Why does your assessment differ from the AI recommendation?" />
             <button onClick={confirmOverride} disabled={!overrideReason.trim()}
-              className="rounded-md bg-primary px-4 py-2 text-sm text-white disabled:opacity-50">Confirm Override</button>
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              Confirm Override
+            </button>
           </div>
         )}
-
-        {review.ai_recommendation_snapshot ? (
-          <details className="rounded-lg border border-lift-border bg-surface">
-            <summary className="cursor-pointer px-4 py-3 text-xs text-muted">AI Recommendation Snapshot</summary>
-            <pre className="border-t border-lift-border px-4 py-3 text-xs text-muted overflow-x-auto">
-              {JSON.stringify(review.ai_recommendation_snapshot, null, 2)}
-            </pre>
-          </details>
-        ) : null}
       </div>
 
-      <div className="flex gap-3">
+      {/* Finalize */}
+      <div className="flex items-center gap-3">
         {!isFinalized ? (
           <button onClick={finalize} disabled={!tier}
-            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+            className="rounded-lg bg-success px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
             Finalize Review
           </button>
         ) : (
           <>
-            <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
+            <span className="rounded-full bg-success/10 px-4 py-1.5 text-xs font-semibold text-success">
               Finalized {review.finalized_at ? new Date(review.finalized_at as string).toLocaleDateString() : ""}
             </span>
             <button onClick={reopen} className="text-xs text-warning hover:underline">Reopen</button>
@@ -567,16 +656,26 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
       </div>
 
       {/* Export buttons */}
-      <div className="flex gap-2 border-t border-lift-border pt-4">
-        <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=internal&language=en`} target="_blank"
-          className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">Export Internal PDF (EN)</a>
-        <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=internal&language=pt`} target="_blank"
-          className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">Export Internal PDF (PT)</a>
-        <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=family_summary&language=en`} target="_blank"
-          className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">Family Summary (EN)</a>
-        <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=family_summary&language=pt`} target="_blank"
-          className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">Family Summary (PT)</a>
-      </div>
+      <ExportButtons candidateId={candidateId} />
+    </div>
+  );
+}
+
+function ExportButtons({ candidateId }: { candidateId: string }) {
+  const { locale } = useLocale();
+  const lang = locale === "pt" ? "pt" : "en";
+  const langLabel = locale === "pt" ? "PT" : "EN";
+
+  return (
+    <div className="flex flex-wrap gap-2 border-t border-lift-border pt-4">
+      <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=internal&language=${lang}`} target="_blank"
+        className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">
+        Internal Report ({langLabel})
+      </a>
+      <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=family_summary&language=${lang}`} target="_blank"
+        className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">
+        Family Summary ({langLabel})
+      </a>
     </div>
   );
 }
