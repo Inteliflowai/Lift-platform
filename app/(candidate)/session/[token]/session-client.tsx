@@ -490,23 +490,14 @@ function TaskRenderer({
       return (
         <div className={`space-y-4 ${ux.textClass}`}>
           <h2 className="text-xl font-bold">{template.title}</h2>
-          {passageReaderEnabled && template.content.passage ? (
-            <PassageReader
-              passageText={template.content.passage}
-              sessionToken={sessionToken}
-              gradeBand={gradeBand}
-              padding={ux.padding}
-              onListenDuration={onTtsListenDuration}
-            />
-          ) : (
-            <div
-              className={`max-h-80 overflow-y-auto rounded-lg border border-lift-border bg-surface ${ux.padding}`}
-            >
-              <p className="whitespace-pre-wrap leading-relaxed">
-                {template.content.passage}
-              </p>
-            </div>
-          )}
+          {/* Reading comprehension — NO audio reader. Candidate must read. */}
+          <div
+            className={`max-h-80 overflow-y-auto rounded-lg border border-lift-border bg-surface ${ux.padding}`}
+          >
+            <p className="whitespace-pre-wrap leading-relaxed">
+              {template.content.passage}
+            </p>
+          </div>
           {template.content.prompt && (
             <p className="font-medium">{template.content.prompt}</p>
           )}
@@ -622,11 +613,21 @@ function TaskRenderer({
       return (
         <div className={`space-y-4 ${ux.textClass}`}>
           <h2 className="text-xl font-bold">{template.title}</h2>
-          <div
-            className={`rounded-lg border border-lift-border bg-surface ${ux.padding}`}
-          >
-            <p className="whitespace-pre-wrap">{template.content.scenario}</p>
-          </div>
+          {passageReaderEnabled && template.content.scenario ? (
+            <PassageReader
+              passageText={template.content.scenario}
+              sessionToken={sessionToken}
+              gradeBand={gradeBand}
+              padding={ux.padding}
+              onListenDuration={onTtsListenDuration}
+            />
+          ) : (
+            <div
+              className={`rounded-lg border border-lift-border bg-surface ${ux.padding}`}
+            >
+              <p className="whitespace-pre-wrap">{template.content.scenario}</p>
+            </div>
+          )}
           {(template.content.prompts ?? [template.content.prompt]).map(
             (p, i) =>
               p && (
@@ -705,13 +706,23 @@ function TaskRenderer({
         <div className={`space-y-4 ${ux.textClass}`}>
           <h2 className="text-xl font-bold">{template.title}</h2>
           {template.content.problem && (
-            <div
-              className={`rounded-lg border border-lift-border bg-surface ${ux.padding}`}
-            >
-              <p className="whitespace-pre-wrap leading-relaxed font-mono">
-                {template.content.problem}
-              </p>
-            </div>
+            passageReaderEnabled ? (
+              <PassageReader
+                passageText={template.content.problem}
+                sessionToken={sessionToken}
+                gradeBand={gradeBand}
+                padding={ux.padding}
+                onListenDuration={onTtsListenDuration}
+              />
+            ) : (
+              <div
+                className={`rounded-lg border border-lift-border bg-surface ${ux.padding}`}
+              >
+                <p className="whitespace-pre-wrap leading-relaxed font-mono">
+                  {template.content.problem}
+                </p>
+              </div>
+            )
           )}
           {template.content.prompt && (
             <p className="font-medium">{template.content.prompt}</p>
