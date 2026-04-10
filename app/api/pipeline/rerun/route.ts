@@ -1,8 +1,10 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 
 export async function POST(req: NextRequest) {
   // Verify logged-in user
+  const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const {
     data: { user },

@@ -1,11 +1,13 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { cookies } from "next/headers";
 
 export async function POST(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const {
     data: { user },

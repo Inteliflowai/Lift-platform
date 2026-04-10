@@ -1,5 +1,6 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
 import { DEMO_NAMES } from "@/lib/demo/names";
@@ -12,6 +13,7 @@ const GRADE_BANDS = ["6-7", "8", "9-11"] as const;
 const TASK_TYPES = ["reading_passage", "short_response", "extended_writing", "reflection", "scenario"];
 
 export async function POST(req: NextRequest) {
+  const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

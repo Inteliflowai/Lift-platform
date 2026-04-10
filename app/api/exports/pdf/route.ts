@@ -1,5 +1,6 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
 import { requireFeature } from "@/lib/licensing/gate";
@@ -7,6 +8,7 @@ import { handleLicenseError } from "@/lib/licensing/apiHandler";
 import { FEATURES } from "@/lib/licensing/features";
 
 export async function GET(req: NextRequest) {
+  const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
