@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
