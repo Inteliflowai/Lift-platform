@@ -3,46 +3,48 @@
 import { useState, useEffect } from "react";
 import { Check, Circle, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import Link from "next/link";
-
-const STEPS = [
-  {
-    id: "cycle_created",
-    label: "Create your first admissions cycle",
-    desc: "Set up your grade bands, timeline, and candidate experience.",
-    action: { label: "Create Cycle", href: "/school/cycles/new" },
-  },
-  {
-    id: "evaluator_invited",
-    label: "Invite an evaluator to your team",
-    desc: "Evaluators review candidate sessions and make recommendations.",
-    action: { label: "Invite Evaluator", href: "/school/team" },
-  },
-  {
-    id: "candidate_invited",
-    label: "Send your first candidate invitation",
-    desc: "Send a secure link to a test candidate — even a colleague works.",
-    action: { label: "Invite Candidate", href: "/school/candidates/invite" },
-  },
-  {
-    id: "session_completed",
-    label: "Complete a test session",
-    desc: "Have your test candidate complete the LIFT experience end to end.",
-    action: { label: "View Candidates", href: "/school/candidates" },
-  },
-  {
-    id: "report_viewed",
-    label: "Review a candidate report",
-    desc: "See what your evaluators will see — the TRI score, dimensions, and briefing.",
-    action: { label: "Go to Evaluator", href: "/evaluator" },
-  },
-];
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function OnboardingBanner() {
+  const { t } = useLocale();
   const [stepsCompleted, setStepsCompleted] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [minimized, setMinimized] = useState(false);
   const [allDone, setAllDone] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+
+  const STEPS = [
+    {
+      id: "cycle_created",
+      label: t("onboarding.step1_label"),
+      desc: t("onboarding.step1_desc"),
+      action: { label: t("onboarding.step1_action"), href: "/school/cycles/new" },
+    },
+    {
+      id: "evaluator_invited",
+      label: t("onboarding.step2_label"),
+      desc: t("onboarding.step2_desc"),
+      action: { label: t("onboarding.step2_action"), href: "/school/team" },
+    },
+    {
+      id: "candidate_invited",
+      label: t("onboarding.step3_label"),
+      desc: t("onboarding.step3_desc"),
+      action: { label: t("onboarding.step3_action"), href: "/school/candidates/invite" },
+    },
+    {
+      id: "session_completed",
+      label: t("onboarding.step4_label"),
+      desc: t("onboarding.step4_desc"),
+      action: { label: t("onboarding.step4_action"), href: "/school/candidates" },
+    },
+    {
+      id: "report_viewed",
+      label: t("onboarding.step5_label"),
+      desc: t("onboarding.step5_desc"),
+      action: { label: t("onboarding.step5_action"), href: "/evaluator" },
+    },
+  ];
 
   useEffect(() => {
     fetch("/api/onboarding/progress")
@@ -62,7 +64,7 @@ export function OnboardingBanner() {
       setAllDone(true);
       setTimeout(() => setShowCelebration(false), 5000);
     }
-  }, [stepsCompleted, allDone]);
+  }, [stepsCompleted, allDone, STEPS.length]);
 
   if (loading || allDone) return null;
 
@@ -76,7 +78,7 @@ export function OnboardingBanner() {
         className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
       >
         <Sparkles size={14} />
-        Setup: {completedCount}/{STEPS.length} complete
+        {t("onboarding.setup")}: {completedCount}/{STEPS.length} {t("onboarding.complete")}
         <ChevronDown size={14} />
       </button>
     );
@@ -84,29 +86,27 @@ export function OnboardingBanner() {
 
   return (
     <div className="mb-6 rounded-xl border-l-4 border-l-primary border border-lift-border bg-surface overflow-hidden">
-      {/* Celebration overlay */}
       {showCelebration && (
         <div className="bg-success/10 p-5 text-center">
           <div className="text-3xl mb-2">&#127881;</div>
           <p className="font-[family-name:var(--font-display)] text-lg font-bold text-success">
-            You&apos;re all set!
+            {t("onboarding.celebration")}
           </p>
           <p className="text-sm text-muted">
-            LIFT is ready for your admissions cycle.
+            {t("onboarding.celebration_desc")}
           </p>
         </div>
       )}
 
       {!showCelebration && (
         <>
-          {/* Header */}
           <div className="flex items-center justify-between px-5 pt-4 pb-2">
             <h3 className="font-[family-name:var(--font-display)] text-lg font-semibold text-lift-text">
-              Get started with LIFT
+              {t("onboarding.title")}
             </h3>
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted">
-                {completedCount} of {STEPS.length} complete
+                {completedCount} of {STEPS.length} {t("onboarding.complete")}
               </span>
               <button
                 onClick={() => setMinimized(true)}
@@ -117,7 +117,6 @@ export function OnboardingBanner() {
             </div>
           </div>
 
-          {/* Progress bar */}
           <div className="mx-5 mb-4 h-1.5 rounded-full bg-lift-border overflow-hidden">
             <div
               className="h-full rounded-full bg-primary transition-all duration-500"
@@ -125,7 +124,6 @@ export function OnboardingBanner() {
             />
           </div>
 
-          {/* Steps */}
           <div className="px-5 pb-5 space-y-2">
             {STEPS.map((step, i) => {
               const isDone = stepsCompleted.includes(step.id);
@@ -146,7 +144,6 @@ export function OnboardingBanner() {
                       : ""
                   }`}
                 >
-                  {/* Icon */}
                   {isDone ? (
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-success/20">
                       <Check size={14} className="text-success" />
@@ -161,7 +158,6 @@ export function OnboardingBanner() {
                     </div>
                   )}
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-sm font-medium ${
@@ -181,7 +177,6 @@ export function OnboardingBanner() {
                     )}
                   </div>
 
-                  {/* Action */}
                   {isNext && (
                     <Link
                       href={step.action.href}
