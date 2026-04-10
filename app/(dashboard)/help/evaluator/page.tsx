@@ -18,8 +18,10 @@ import {
   StatExplainer,
   TableOfContents,
 } from "../components/HelpUI";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export default function EvaluatorHelp() {
+  const { t } = useLocale();
   const toc = [
     { id: "queue", label: "Your Review Queue" },
     { id: "candidate-review", label: "Reviewing a Candidate" },
@@ -33,9 +35,9 @@ export default function EvaluatorHelp() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Evaluator Guide</h1>
+        <h1 className="text-2xl font-bold">{t("help.evaluator.title")}</h1>
         <p className="mt-1 text-sm text-muted">
-          How to review candidates, interpret AI-generated insights, and write effective evaluations.
+          {t("help.evaluator.subtitle")}
         </p>
       </div>
 

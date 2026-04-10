@@ -15,8 +15,10 @@ import {
   StatExplainer,
   TableOfContents,
 } from "../components/HelpUI";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export default function InterviewerHelp() {
+  const { t } = useLocale();
   const toc = [
     { id: "cases", label: "Your Cases" },
     { id: "preparing", label: "Preparing for an Interview" },
@@ -28,9 +30,9 @@ export default function InterviewerHelp() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Interviewer Guide</h1>
+        <h1 className="text-2xl font-bold">{t("help.interviewer.title")}</h1>
         <p className="mt-1 text-sm text-muted">
-          How to prepare for interviews, use AI briefings, score rubrics, and submit notes.
+          {t("help.interviewer.subtitle")}
         </p>
       </div>
 

@@ -19,33 +19,36 @@ import {
   StatExplainer,
   TableOfContents,
 } from "../components/HelpUI";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export default function SchoolAdminHelp() {
+  const { t } = useLocale();
+
   const toc = [
-    { id: "dashboard", label: "Dashboard Overview" },
-    { id: "candidates", label: "Managing Candidates" },
-    { id: "cycles", label: "Admissions Cycles" },
-    { id: "team", label: "Team Management" },
-    { id: "evaluator-workspace", label: "Understanding Evaluator View" },
-    { id: "reports", label: "Reports & Exports" },
-    { id: "settings", label: "School Settings" },
-    { id: "subscription", label: "Subscription & Billing" },
-    { id: "stats", label: "Stats & Scores Explained" },
+    { id: "dashboard", label: t("help.dashboard.title") },
+    { id: "candidates", label: t("help.candidates.title") },
+    { id: "cycles", label: t("help.cycles.title") },
+    { id: "team", label: t("help.team.title") },
+    { id: "evaluator-workspace", label: t("help.evaluator_workspace.title") },
+    { id: "reports", label: t("help.settings.title") },
+    { id: "settings", label: t("help.settings.title") },
+    { id: "subscription", label: t("help.subscription.title") },
+    { id: "stats", label: t("help.stats.title") },
   ];
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">School Admin Guide</h1>
+        <h1 className="text-2xl font-bold">{t("help.school_admin.title")}</h1>
         <p className="mt-1 text-sm text-muted">
-          Everything you need to run your school&apos;s admissions process on LIFT.
+          {t("help.school_admin.subtitle")}
         </p>
       </div>
 
       <TableOfContents items={toc} />
 
       {/* Dashboard */}
-      <HelpSection id="dashboard" title="Dashboard Overview" icon={LayoutDashboard} defaultOpen>
+      <HelpSection id="dashboard" title={t("help.dashboard.title")} icon={LayoutDashboard} defaultOpen>
         <WhereToFind path={["Sidebar", "Dashboard"]} />
         <p className="text-sm text-muted">
           Your dashboard gives you a real-time snapshot of your admissions pipeline. Here&apos;s what each section shows:

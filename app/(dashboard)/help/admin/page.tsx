@@ -17,8 +17,10 @@ import {
   StatExplainer,
   TableOfContents,
 } from "../components/HelpUI";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export default function AdminHelp() {
+  const { t } = useLocale();
   const toc = [
     { id: "overview", label: "Admin Dashboard" },
     { id: "tenants", label: "Managing Tenants" },
@@ -32,9 +34,9 @@ export default function AdminHelp() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Platform Admin Guide</h1>
+        <h1 className="text-2xl font-bold">{t("help.admin.title")}</h1>
         <p className="mt-1 text-sm text-muted">
-          Managing tenants, licenses, revenue, and platform operations.
+          {t("help.admin.subtitle")}
         </p>
       </div>
 
