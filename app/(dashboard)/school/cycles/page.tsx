@@ -2,6 +2,7 @@ import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { EmptyState, EmptyCyclesIcon } from "@/components/EmptyState";
+import { t } from "@/lib/i18n/useLocale";
 
 export default async function CyclesPage() {
   const { tenantId } = await getTenantContext();
@@ -15,12 +16,12 @@ export default async function CyclesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Application Cycles</h1>
+        <h1 className="text-2xl font-bold">{t("cycles.title")}</h1>
         <Link
           href="/school/cycles/new"
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
-          New Cycle
+          {t("cycles.new")}
         </Link>
       </div>
 
@@ -87,9 +88,9 @@ export default async function CyclesPage() {
                 <td colSpan={7}>
                   <EmptyState
                     icon={<EmptyCyclesIcon />}
-                    title="No admissions cycles yet"
-                    description="Create your first cycle to configure grade bands, timelines, and candidate invitations."
-                    action={{ label: "Create Your First Cycle", href: "/school/cycles/new" }}
+                    title={t("cycles.empty_title")}
+                    description={t("cycles.empty_desc")}
+                    action={{ label: t("cycles.empty_action"), href: "/school/cycles/new" }}
                   />
                 </td>
               </tr>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EmptyState, EmptyTeamIcon } from "@/components/EmptyState";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Member = {
   id: string;
@@ -13,6 +14,7 @@ type Member = {
 
 export function TeamClient({ members }: { members: Member[] }) {
   const router = useRouter();
+  const { t } = useLocale();
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("evaluator");
@@ -148,9 +150,9 @@ export function TeamClient({ members }: { members: Member[] }) {
                 <td colSpan={5}>
                   <EmptyState
                     icon={<EmptyTeamIcon />}
-                    title="Just you so far"
-                    description="Invite evaluators and interviewers to collaborate on candidate reviews."
-                    action={{ label: "Invite a Team Member", href: "/school/team" }}
+                    title={t("team.empty_title")}
+                    description={t("team.empty_desc")}
+                    action={{ label: t("team.empty_action"), href: "/school/team" }}
                   />
                 </td>
               </tr>

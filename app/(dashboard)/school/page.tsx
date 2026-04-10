@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
+import { t } from "@/lib/i18n/useLocale";
 
 export default async function SchoolDashboard() {
   const { tenantId, tenant } = await getTenantContext();
@@ -150,15 +151,15 @@ export default async function SchoolDashboard() {
 
   const hour = new Date().getHours();
   const greeting =
-    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    hour < 12 ? t("dashboard.greeting_morning") : hour < 18 ? t("dashboard.greeting_afternoon") : t("dashboard.greeting_evening");
 
   const needsReview = (flaggedCount ?? 0) + (reviewCount ?? 0);
 
   const stats = [
-    { label: "Total Candidates", value: totalCandidates ?? 0, info: "Total number of candidates imported or invited to this school across all cycles." },
-    { label: "Completed Sessions", value: completedSessions ?? 0, info: "Sessions where the candidate finished all tasks. Each completed session generates an AI insight profile." },
-    { label: "Flagged / Needs Review", value: needsReview, highlight: needsReview > 0, info: "Candidates whose profiles were flagged by the AI for human review — typically due to low confidence scores or unusual patterns." },
-    { label: "Avg Completion %", value: `${avgCompletion}%`, info: "Average percentage of tasks completed across all sessions. A low number may indicate candidates dropping off mid-session." },
+    { label: t("dashboard.total_candidates"), value: totalCandidates ?? 0, info: "Total number of candidates imported or invited to this school across all cycles." },
+    { label: t("dashboard.completed_sessions"), value: completedSessions ?? 0, info: "Sessions where the candidate finished all tasks. Each completed session generates an AI insight profile." },
+    { label: t("dashboard.flagged_review"), value: needsReview, highlight: needsReview > 0, info: "Candidates whose profiles were flagged by the AI for human review — typically due to low confidence scores or unusual patterns." },
+    { label: t("dashboard.avg_completion"), value: `${avgCompletion}%`, info: "Average percentage of tasks completed across all sessions. A low number may indicate candidates dropping off mid-session." },
   ];
 
   return (
@@ -170,7 +171,7 @@ export default async function SchoolDashboard() {
         </h1>
         {cycle && (
           <p className="mt-1 text-muted">
-            Active cycle: <span className="text-lift-text">{cycle.name}</span>
+            {t("dashboard.active_cycle")}: <span className="text-lift-text">{cycle.name}</span>
           </p>
         )}
       </div>

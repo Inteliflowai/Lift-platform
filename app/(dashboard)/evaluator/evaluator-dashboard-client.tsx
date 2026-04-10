@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { TRIPill } from "@/components/TRI/TRIGauge";
 import { EmptyState, EmptyQueueIcon } from "@/components/EmptyState";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type ReviewCandidate = {
   candidate_id: string;
@@ -37,6 +38,7 @@ export function EvaluatorDashboardClient({
   myReviewCandidateIds: string[];
   allCandidates: AllCandidate[];
 }) {
+  const { t } = useLocale();
   const [tab, setTab] = useState<"queue" | "all">("queue");
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState("");
@@ -94,9 +96,9 @@ export function EvaluatorDashboardClient({
           {dedupedQueue.length === 0 && (
             <EmptyState
               icon={<EmptyQueueIcon />}
-              title="Your queue is clear"
-              description="No candidates are waiting for review right now. Sessions that need attention will appear here."
-              action={{ label: "View All Candidates", href: "/evaluator/candidates" }}
+              title={t("evaluator.queue_empty_title")}
+              description={t("evaluator.queue_empty_desc")}
+              action={{ label: t("evaluator.all_candidates"), href: "/evaluator/candidates" }}
             />
           )}
           {dedupedQueue.map((q) => (

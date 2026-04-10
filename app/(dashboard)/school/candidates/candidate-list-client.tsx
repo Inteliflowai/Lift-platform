@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EmptyState, EmptyCandidatesIcon } from "@/components/EmptyState";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Session = {
   status: string;
@@ -35,6 +36,7 @@ export function CandidateListClient({
   candidates: Candidate[];
 }) {
   const router = useRouter();
+  const { t } = useLocale();
   const [search, setSearch] = useState("");
   const [gradeBandFilter, setGradeBandFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -67,19 +69,19 @@ export function CandidateListClient({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Candidates</h1>
+        <h1 className="text-2xl font-bold">{t("candidates.title")}</h1>
         <div className="flex gap-2">
           <Link
             href="/school/candidates/import"
             className="rounded-md border border-lift-border px-4 py-2 text-sm font-medium text-muted hover:text-lift-text"
           >
-            Import Excel
+            {t("candidates.import")}
           </Link>
           <Link
             href="/school/candidates/invite"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
           >
-            Invite Candidate
+            {t("candidates.invite")}
           </Link>
         </div>
       </div>
@@ -90,7 +92,7 @@ export function CandidateListClient({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name..."
+          placeholder={t("candidates.search")}
           className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
         />
         <select
@@ -131,10 +133,10 @@ export function CandidateListClient({
       {candidates.length === 0 && (
         <EmptyState
           icon={<EmptyCandidatesIcon />}
-          title="No candidates yet"
-          description="Your first admissions cycle is ready. Send a candidate invitation to get started."
-          action={{ label: "Invite Your First Candidate", href: "/school/candidates/invite" }}
-          secondaryAction={{ label: "Set up a cycle first", href: "/school/cycles/new" }}
+          title={t("candidates.empty_title")}
+          description={t("candidates.empty_desc")}
+          action={{ label: t("candidates.empty_action"), href: "/school/candidates/invite" }}
+          secondaryAction={{ label: t("cycles.empty_action"), href: "/school/cycles/new" }}
         />
       )}
 
