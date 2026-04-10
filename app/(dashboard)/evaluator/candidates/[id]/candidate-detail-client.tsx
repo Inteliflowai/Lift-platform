@@ -241,52 +241,168 @@ function ResponsesTab({ responses }: { responses: unknown[] }) {
 function SignalsTab({ timing, help, interactions, events }: {
   timing: unknown[]; help: unknown[]; interactions: unknown[]; events: unknown[];
 }) {
-  const ts = timing as { signal_type: string; value_ms: number }[];
+  const ts = timing as { signal_type: string; value_ms: number; task_instance_id: string }[];
   const hs = help as { event_type: string }[];
-  const is_ = interactions as { signal_type: string }[];
-  const es = events as { event_type: string; occurred_at: string; payload: Record<string, unknown> }[];
+  const is_ = interactions as { signal_type: string; occurred_at: string }[];
+  const es = events as { event_type: string; occurred_at: string; task_instance_id: string }[];
 
-  const latencies = ts.filter((t) => t.signal_type === "task_dwell_time").map((t) => t.value_ms);
-  const avgLatency = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length / 1000) : 0;
+  const dwellTimes = ts.filter((t) => t.signal_type === "task_dwell_time").map((t) => t.value_ms);
+  const avgDwell = dwellTimes.length > 0 ? Math.round(dwellTimes.reduce((a, b) => a + b, 0) / dwellTimes.length / 1000) : 0;
+  const maxDwell = dwellTimes.length > 0 ? Math.round(Math.max(...dwellTimes) / 1000) : 0;
   const textTimes = ts.filter((t) => t.signal_type === "time_on_text").map((t) => t.value_ms);
+  const avgTextTime = textTimes.length > 0 ? Math.round(textTimes.reduce((a, b) => a + b, 0) / textTimes.length / 1000) : 0;
   const hintCount = hs.filter((h) => h.event_type === "hint_open").length;
+  const voiceUsed = hs.filter((h) => h.event_type === "voice_response_used").length;
+  const passageRead = hs.filter((h) => h.event_type === "passage_read_aloud").length;
   const focusLost = is_.filter((i) => i.signal_type === "focus_lost").length;
+
+  // Total session duration from events
+  const eventTimes = es.map((e) => new Date(e.occurred_at).getTime()).filter(Boolean);
+  const sessionDuration = eventTimes.length >= 2 ? Math.round((Math.max(...eventTimes) - Math.min(...eventTimes)) / 60000) : 0;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {[
-          { label: "Avg Response Time", value: `${avgLatency}s` },
-          { label: "Hints Used", value: hintCount },
-          { label: "Focus Lost", value: focusLost },
-          { label: "Session Events", value: es.length },
-        ].map((s) => (
-          <div key={s.label} className="rounded-lg border border-lift-border bg-surface p-3 text-center">
-            <p className="text-xs text-muted">{s.label}</p>
-            <p className="mt-1 text-xl font-bold">{s.value}</p>
-          </div>
-        ))}
+      {/* What are signals? */}
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+        <p className="text-xs text-primary font-semibold mb-1">What are Behavioral Signals?</p>
+        <p className="text-xs text-muted leading-relaxed">
+          Signals are behavioral data captured during the candidate&apos;s session. They show HOW the candidate approached the tasks — not just what they wrote. Use these alongside responses to understand engagement, pace, and help-seeking patterns.
+        </p>
       </div>
 
-      {textTimes.length > 0 && (
-        <div><h3 className="text-sm font-semibold mb-2">Time on Text (reading tasks)</h3>
-          <div className="flex gap-2">{textTimes.map((t, i) => (
-            <span key={i} className="rounded-md border border-lift-border px-3 py-1 text-sm">{Math.round(t / 1000)}s</span>
-          ))}</div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <SignalCard
+          label="Avg Time Per Task"
+          value={`${avgDwell}s`}
+          description="Average time spent on each task. Very short times may indicate rushing. Very long times may indicate difficulty."
+          level={avgDwell < 30 ? "warning" : avgDwell > 300 ? "warning" : "normal"}
+        />
+        <SignalCard
+          label="Longest Task"
+          value={`${maxDwell}s`}
+          description="The most time spent on a single task. Identifies which task type challenged this candidate most."
+          level="normal"
+        />
+        <SignalCard
+          label="Reading Time"
+          value={avgTextTime > 0 ? `${avgTextTime}s avg` : "N/A"}
+          description="Time spent reading passages before responding. Below 30 seconds may indicate the candidate didn't fully read the text."
+          level={avgTextTime > 0 && avgTextTime < 30 ? "warning" : "normal"}
+        />
+        <SignalCard
+          label="Hints Requested"
+          value={`${hintCount}`}
+          description="Number of times the candidate asked for a hint. Some hint-seeking is healthy — it shows self-awareness. Excessive hints may indicate difficulty."
+          level={hintCount > 6 ? "warning" : "normal"}
+        />
+        <SignalCard
+          label="Focus Lost"
+          value={`${focusLost}x`}
+          description="Times the candidate switched away from the session (changed tabs, opened another app). Frequent focus loss may indicate distraction or disengagement."
+          level={focusLost >= 4 ? "warning" : "normal"}
+        />
+        <SignalCard
+          label="Session Duration"
+          value={sessionDuration > 0 ? `${sessionDuration} min` : "—"}
+          description="Total time from first task to last submission. Provides context for the overall pace of the session."
+          level="normal"
+        />
+      </div>
+
+      {/* Accessibility Features Used */}
+      {(voiceUsed > 0 || passageRead > 0) && (
+        <div className="rounded-lg border border-lift-border bg-surface p-4">
+          <h3 className="text-sm font-semibold mb-2">Accessibility Features Used</h3>
+          <div className="flex gap-4 text-xs text-muted">
+            {voiceUsed > 0 && (
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                Voice response: {voiceUsed} task{voiceUsed > 1 ? "s" : ""}
+              </span>
+            )}
+            {passageRead > 0 && (
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                Passage read aloud: {passageRead} time{passageRead > 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-[10px] text-muted">
+            Use of accessibility features does not affect scoring. These tools are provided to ensure equitable access.
+          </p>
         </div>
       )}
 
-      <div>
-        <h3 className="text-sm font-semibold mb-2">Session Timeline</h3>
+      {/* Time Per Task Bar Chart */}
+      {dwellTimes.length > 0 && (
+        <div className="rounded-lg border border-lift-border bg-surface p-4">
+          <h3 className="text-sm font-semibold mb-1">Time Per Task</h3>
+          <p className="text-[10px] text-muted mb-3">How long the candidate spent on each task. Longer bars indicate more time spent.</p>
+          <div className="space-y-2">
+            {dwellTimes.map((t, i) => {
+              const secs = Math.round(t / 1000);
+              const maxVal = Math.max(...dwellTimes);
+              const pct = maxVal > 0 ? (t / maxVal) * 100 : 0;
+              return (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="text-[10px] text-muted w-14 shrink-0">Task {i + 1}</span>
+                  <div className="flex-1 h-4 rounded-full bg-lift-border overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary/60"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-mono w-12 text-right">{secs}s</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Session Timeline */}
+      <div className="rounded-lg border border-lift-border bg-surface p-4">
+        <h3 className="text-sm font-semibold mb-1">Session Timeline</h3>
+        <p className="text-[10px] text-muted mb-3">Chronological log of everything that happened during the session. Helps you understand the candidate&apos;s workflow and engagement patterns.</p>
         <div className="max-h-64 overflow-y-auto space-y-1">
-          {es.map((e, i) => (
-            <div key={i} className="flex gap-3 text-xs">
-              <span className="w-36 shrink-0 text-muted">{new Date(e.occurred_at).toLocaleString()}</span>
-              <span className="font-mono">{e.event_type}</span>
-            </div>
-          ))}
+          {es.length === 0 && <p className="text-xs text-muted">No session events recorded.</p>}
+          {es.map((e, i) => {
+            const labels: Record<string, { label: string; color: string }> = {
+              session_created: { label: "Session started", color: "text-success" },
+              task_complete: { label: "Task submitted", color: "text-primary" },
+              session_complete: { label: "Session completed", color: "text-success" },
+              heartbeat: { label: "Active", color: "text-muted" },
+            };
+            const info = labels[e.event_type] ?? { label: e.event_type.replace(/_/g, " "), color: "text-muted" };
+
+            return (
+              <div key={i} className="flex items-center gap-3 text-xs py-0.5">
+                <span className="w-20 shrink-0 text-muted font-mono text-[10px]">
+                  {new Date(e.occurred_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                </span>
+                <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${info.color === "text-success" ? "bg-success" : info.color === "text-primary" ? "bg-primary" : "bg-muted/40"}`} />
+                <span className={info.color}>{info.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
+    </div>
+  );
+}
+
+function SignalCard({ label, value, description, level }: {
+  label: string;
+  value: string;
+  description: string;
+  level: "normal" | "warning";
+}) {
+  return (
+    <div className={`rounded-lg border p-3 ${level === "warning" ? "border-warning/30 bg-warning/5" : "border-lift-border bg-surface"}`}>
+      <p className="text-[10px] text-muted">{label}</p>
+      <p className={`mt-0.5 text-lg font-bold ${level === "warning" ? "text-warning" : "text-lift-text"}`}>{value}</p>
+      <p className="mt-1.5 text-[10px] text-muted leading-relaxed">{description}</p>
     </div>
   );
 }
