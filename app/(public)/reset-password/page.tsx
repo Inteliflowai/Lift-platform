@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
+import { Suspense } from "react";
 
 const inputClass =
   "w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]";
 
-export default function ResetPasswordPage() {
+function ResetForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -21,30 +23,54 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [expired, setExpired] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Supabase puts the token in the URL hash — the client auto-exchanges it
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    let resolved = false;
+
+    // Listen for PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        resolved = true;
         setSessionReady(true);
+        setChecking(false);
       }
     });
 
-    // Check if we already have a session from the recovery link
+    // Also try exchanging code from URL if present
+    const code = searchParams.get("code");
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error: err }) => {
+        if (!err) {
+          resolved = true;
+          setSessionReady(true);
+        }
+        setChecking(false);
+      });
+    }
+
+    // Check for existing session (from hash-based flow)
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
+        resolved = true;
         setSessionReady(true);
-      } else {
-        // Give it a moment for the hash exchange
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: d }) => {
-            if (d.session) setSessionReady(true);
-            else setExpired(true);
-          });
-        }, 2000);
+        setChecking(false);
       }
     });
-  }, [supabase]);
+
+    // Give it time for any auth flow to complete
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        setExpired(true);
+        setChecking(false);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
+  }, [supabase, searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -83,9 +109,9 @@ export default function ResetPasswordPage() {
           Set new password
         </h1>
 
-        {expired && (
+        {expired && !sessionReady && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-[#f43f5e]">This reset link has expired.</p>
+            <p className="text-sm text-[#f43f5e]">This reset link has expired or is invalid.</p>
             <Link href="/forgot-password" className="mt-2 inline-block text-xs text-[#6366f1] hover:underline">
               Request a new one
             </Link>
@@ -99,7 +125,7 @@ export default function ResetPasswordPage() {
           </div>
         )}
 
-        {sessionReady && !success && !expired && (
+        {sessionReady && !success && (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-white/50">New password</label>
@@ -112,7 +138,7 @@ export default function ResetPasswordPage() {
                   minLength={8}
                   className={inputClass + " pr-10"}
                 />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black">
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white">
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -138,12 +164,21 @@ export default function ResetPasswordPage() {
           </form>
         )}
 
-        {!sessionReady && !expired && (
-          <div className="mt-6 flex justify-center">
+        {checking && !sessionReady && !expired && (
+          <div className="mt-6 flex flex-col items-center gap-2">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#6366f1] border-t-transparent" />
+            <p className="text-xs text-white/40">Verifying reset link...</p>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetForm />
+    </Suspense>
   );
 }
