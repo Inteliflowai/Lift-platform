@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { InfoTooltip } from "../../components/InfoTooltip";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Cycle = { id: string; name: string; status: string };
 
@@ -45,6 +46,7 @@ export function AnalyticsClient({
   cycles: Cycle[];
   defaultCycleId: string | null;
 }) {
+  const { t } = useLocale();
   const [cycleId, setCycleId] = useState(defaultCycleId ?? "");
   const [data, setData] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ export function AnalyticsClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Analytics</h1>
+          <h1 className="text-2xl font-bold">{t("analytics.title")}</h1>
           <p className="text-sm text-muted">{cycleName}</p>
         </div>
         {cycles.length > 1 && (
@@ -107,23 +109,23 @@ export function AnalyticsClient({
 
       {/* ROW 1: Overview Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatCard label="Candidates Invited" value={o.total_candidates} info="Total candidates imported or invited this cycle" />
-        <StatCard label="Sessions Completed" value={o.completed_sessions} info="Candidates who finished all assessment tasks" />
-        <StatCard label="Completion Rate" value={`${o.completion_rate_pct}%`} info="Percentage of invited candidates who completed their session" />
-        <StatCard label="Avg TRI Score" value={o.avg_tri_score} info="Average Transition Readiness Index across all completed sessions" />
+        <StatCard label={t("analytics.candidates_invited")} value={o.total_candidates} info="Total candidates imported or invited this cycle" />
+        <StatCard label={t("analytics.sessions_completed")} value={o.completed_sessions} info="Candidates who finished all assessment tasks" />
+        <StatCard label={t("analytics.completion_rate")} value={`${o.completion_rate_pct}%`} info="Percentage of invited candidates who completed their session" />
+        <StatCard label={t("analytics.avg_tri")} value={o.avg_tri_score} info="Average Transition Readiness Index across all completed sessions" />
         <StatCard
-          label="Sessions Used"
+          label={t("analytics.sessions_used")}
           value={o.sessions_limit ? `${o.sessions_limit - (o.sessions_remaining ?? 0)}/${o.sessions_limit}` : `${o.sessions_this_month}`}
           info="Sessions consumed vs your plan limit"
         />
-        <StatCard label="Avg Session Time" value={`${o.avg_session_duration_minutes}m`} info="Average time candidates spend completing all tasks" />
+        <StatCard label={t("analytics.avg_time")} value={`${o.avg_session_duration_minutes}m`} info="Average time candidates spend completing all tasks" />
       </div>
 
       {/* ROW 2: TRI Distribution + Grade Band */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Donut */}
         <div className="rounded-lg border border-lift-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold">TRI Distribution</h2>
+          <h2 className="mb-4 text-sm font-semibold">{t("analytics.tri_distribution")}</h2>
           <div className="flex items-center justify-center">
             <DonutChart
               segments={[
@@ -139,7 +141,7 @@ export function AnalyticsClient({
 
         {/* Grade Band Table */}
         <div className="rounded-lg border border-lift-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold">By Grade Band</h2>
+          <h2 className="mb-4 text-sm font-semibold">{t("analytics.by_grade_band")}</h2>
           <table className="w-full text-sm">
             <thead className="text-xs text-muted">
               <tr>
@@ -167,7 +169,7 @@ export function AnalyticsClient({
 
       {/* ROW 3: Dimension Averages */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-4 text-sm font-semibold">Average Readiness Dimensions</h2>
+        <h2 className="mb-4 text-sm font-semibold">{t("analytics.dimensions")}</h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           {Object.entries(data.dimension_averages).map(([dim, val]) => (
             <div key={dim} className="rounded-lg border border-lift-border p-3">
@@ -188,7 +190,7 @@ export function AnalyticsClient({
 
       {/* ROW 4: Learning Support */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-4 text-sm font-semibold">Learning Support Signals</h2>
+        <h2 className="mb-4 text-sm font-semibold">{t("analytics.support_signals")}</h2>
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-lg border border-success/20 bg-success/5 p-4 text-center">
             <p className="text-2xl font-bold text-success">{data.support_signals.none}</p>
@@ -210,7 +212,7 @@ export function AnalyticsClient({
 
       {/* ROW 5: Session Completion Trend */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-4 text-sm font-semibold">Sessions Completed — Last 12 Weeks</h2>
+        <h2 className="mb-4 text-sm font-semibold">{t("analytics.trend")}</h2>
         <SparklineChart data={data.completion_by_week} />
       </div>
     </div>

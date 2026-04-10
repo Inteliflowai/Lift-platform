@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { VoiceResponseInput } from "@/components/session/VoiceResponseInput";
 import { PassageReader } from "@/components/session/PassageReader";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type TaskTemplate = {
   id: string;
@@ -92,6 +93,7 @@ export function SessionClient({
   passageReaderEnabled: boolean;
   existingSession: Session | null;
 }) {
+  const { t } = useLocale();
   const ux = UX_CONFIG[gradeBand];
   const [session, setSession] = useState<Session | null>(existingSession);
   const [tasks, setTasks] = useState<TaskInstance[]>([]);
@@ -287,7 +289,7 @@ export function SessionClient({
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-muted">Loading your session...</p>
+          <p className="mt-3 text-muted">{t("session.loading")}</p>
         </div>
       </div>
     );
@@ -296,9 +298,9 @@ export function SessionClient({
   if (paused) {
     return (
       <div className="flex flex-col items-center py-16 text-center">
-        <h1 className="text-2xl font-bold">Session Paused</h1>
+        <h1 className="text-2xl font-bold">{t("session.paused")}</h1>
         <p className="mt-3 text-muted">
-          We&apos;ve emailed you a link to continue when you&apos;re ready.
+          {t("session.paused_desc")}
         </p>
         <p className="mt-1 text-sm text-muted">
           Check your inbox at {candidateEmail}.
@@ -310,10 +312,9 @@ export function SessionClient({
   if (tasks.length === 0) {
     return (
       <div className="py-16 text-center">
-        <h1 className="text-2xl font-bold">No Tasks Available</h1>
+        <h1 className="text-2xl font-bold">{t("session.no_tasks")}</h1>
         <p className="mt-2 text-muted">
-          Your school hasn&apos;t set up tasks for your grade band yet. Please
-          contact them.
+          {t("session.no_tasks_desc")}
         </p>
       </div>
     );
