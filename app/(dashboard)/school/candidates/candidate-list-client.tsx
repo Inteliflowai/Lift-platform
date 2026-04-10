@@ -41,6 +41,7 @@ export function CandidateListClient({
   const [gradeBandFilter, setGradeBandFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [groupByGrade, setGroupByGrade] = useState(true);
   const [resending, setResending] = useState<string | null>(null);
 
   const filtered = candidates.filter((c) => {
@@ -125,9 +126,46 @@ export function CandidateListClient({
             onChange={(e) => setFlaggedOnly(e.target.checked)}
             className="rounded"
           />
-          Flagged only
+          {t("candidates.flagged_only")}
+        </label>
+        <label className="flex items-center gap-2 text-sm text-muted ml-auto">
+          <input
+            type="checkbox"
+            checked={groupByGrade}
+            onChange={(e) => setGroupByGrade(e.target.checked)}
+            className="rounded accent-primary"
+          />
+          {t("candidates.grade_band_col")}
         </label>
       </div>
+
+      {/* Grade band summary */}
+      {candidates.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          {["6-7", "8", "9-11"].map((band) => {
+            const count = candidates.filter((c) => c.grade_band === band).length;
+            if (count === 0) return null;
+            const completed = candidates.filter((c) => c.grade_band === band && c.status === "completed").length;
+            return (
+              <div
+                key={band}
+                className={`rounded-lg border px-4 py-2 text-xs cursor-pointer transition-colors ${
+                  gradeBandFilter === band
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-lift-border text-muted hover:border-primary/30"
+                }`}
+                onClick={() => setGradeBandFilter(gradeBandFilter === band ? "" : band)}
+              >
+                <span className="font-semibold">{t("candidates.grade_band_col")} {band}</span>
+                <span className="ml-2">{count} {t("candidates.title").toLowerCase()}</span>
+                {completed > 0 && (
+                  <span className="ml-1 text-success">({completed} {t("analytics.completed").toLowerCase()})</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Empty state */}
       {candidates.length === 0 && (
@@ -154,7 +192,25 @@ export function CandidateListClient({
             </tr>
           </thead>
           <tbody className="divide-y divide-lift-border">
-            {filtered.map((c) => {
+            {(() => {
+              const bands = groupByGrade ? ["6-7", "8", "9-11"] : [null];
+              return bands.map((band) => {
+                const group = band ? filtered.filter((c) => c.grade_band === band) : filtered;
+                if (group.length === 0) return null;
+                return [
+                  band && groupByGrade ? (
+                    <tr key={`header-${band}`}>
+                      <td colSpan={6} className="bg-page-bg px-4 py-2">
+                        <span className="text-xs font-semibold text-primary">
+                          {t("candidates.grade_band_col")} {band}
+                        </span>
+                        <span className="ml-2 text-xs text-muted">
+                          ({group.length})
+                        </span>
+                      </td>
+                    </tr>
+                  ) : null,
+                  ...group.map((c) => {
               const sortedSessions = [...(c.sessions ?? [])].sort(
                 (a, b) => Number(b.completion_pct) - Number(a.completion_pct)
               );
@@ -227,7 +283,10 @@ export function CandidateListClient({
                   </td>
                 </tr>
               );
-            })}
+            }),
+                ];
+              });
+            })()}
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-muted">
