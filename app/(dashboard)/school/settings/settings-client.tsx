@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Settings = {
   id: string;
@@ -27,6 +28,7 @@ export function SettingsClient({
   isPlatformAdmin: boolean;
   tenantId: string;
 }) {
+  const { t } = useLocale();
   const [settings, setSettings] = useState<Settings | null>(initial);
   const [saving, setSaving] = useState(false);
   const [coreEnabled, setCoreEnabled] = useState(coreIntegration?.enabled ?? false);
@@ -37,7 +39,7 @@ export function SettingsClient({
   if (!settings) {
     return (
       <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
+        <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
         <p className="mt-2 text-muted">No settings found for this tenant.</p>
       </div>
     );
@@ -74,7 +76,7 @@ export function SettingsClient({
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
 
       <div className="space-y-5 rounded-lg border border-lift-border bg-surface p-5">
         {/* Default Language */}
@@ -246,9 +248,9 @@ export function SettingsClient({
           disabled={saving}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? t("common.loading") : t("settings.save")}
         </button>
-        {saved && <span className="text-xs text-success">Settings saved</span>}
+        {saved && <span className="text-xs text-success">{t("settings.saved")}</span>}
       </div>
 
       {/* CORE Integration */}
