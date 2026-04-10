@@ -89,40 +89,24 @@ export async function POST(req: NextRequest) {
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", task_instance_id);
 
-    // 2. Insert response_text (upsert to handle race conditions)
+    // 2. Insert response_text
     let responseTextId: string | null = null;
-    try {
-      const { data: responseText } = await supabaseAdmin
-        .from("response_text")
-        .upsert(
-          {
-            task_instance_id,
-            session_id,
-            tenant_id: session.tenant_id,
-            response_body: text,
-            word_count: wordCount,
-            language_detected: language,
-          },
-          { onConflict: "task_instance_id" }
-        )
-        .select("id")
-        .single();
-      responseTextId = responseText?.id ?? null;
-    } catch (err) {
-      // Fallback: try regular insert
-      logError(err, { step: "response_text_upsert", task_instance_id });
-      const { data: responseText } = await supabaseAdmin
-        .from("response_text")
-        .insert({
-          task_instance_id,
-          session_id,
-          tenant_id: session.tenant_id,
-          response_body: text,
-          word_count: wordCount,
-          language_detected: language,
-        })
-        .select("id")
-        .single();
+    const { data: responseText, error: rtError } = await supabaseAdmin
+      .from("response_text")
+      .insert({
+        task_instance_id,
+        session_id,
+        tenant_id: session.tenant_id,
+        response_body: text,
+        word_count: wordCount,
+        language_detected: language,
+      })
+      .select("id")
+      .single();
+
+    if (rtError) {
+      logError(rtError, { step: "response_text_insert", task_instance_id });
+    } else {
       responseTextId = responseText?.id ?? null;
     }
 
