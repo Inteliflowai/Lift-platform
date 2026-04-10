@@ -137,7 +137,7 @@ export function Sidebar({
           />
         )}
         {(!branding?.hideLiftBranding && branding?.poweredByVisible !== false) && (
-          <p className="mt-1.5 text-[10px] text-[#7878a0]/40">
+          <p className="mt-1.5 text-[10px] text-[#a0a0c0]/40">
             Powered by {brandName}
           </p>
         )}
@@ -148,7 +148,7 @@ export function Sidebar({
         {sections.map((section, sIdx) => (
           <div key={section.role} className={sIdx > 0 ? "mt-4" : ""}>
             {isMultiRole && (
-              <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#7878a0]/60">
+              <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#a0a0c0]/60">
                 {section.label}
               </p>
             )}
@@ -167,7 +167,7 @@ export function Sidebar({
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
                       active
                         ? "bg-[#6366f1]/15 text-[#6366f1]"
-                        : "text-[#7878a0] hover:bg-[#2a2740] hover:text-white"
+                        : "text-[#a0a0c0] hover:bg-[#2a2740] hover:text-white"
                     }`}
                   >
                     <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
@@ -187,7 +187,7 @@ export function Sidebar({
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
               pathname.startsWith("/help")
                 ? "bg-[#6366f1]/15 text-[#6366f1]"
-                : "text-[#7878a0] hover:bg-[#2a2740] hover:text-white"
+                : "text-[#a0a0c0] hover:bg-[#2a2740] hover:text-white"
             }`}
           >
             <HelpCircle size={18} strokeWidth={pathname.startsWith("/help") ? 2.2 : 1.8} />
@@ -203,7 +203,7 @@ export function Sidebar({
             <p className="truncate text-xs font-medium text-[#e8e8f0]">
               {userName || "User"}
             </p>
-            <p className="mt-0.5 truncate text-[11px] text-[#7878a0] capitalize">
+            <p className="mt-0.5 truncate text-[11px] text-[#a0a0c0] capitalize">
               {role.replace("_", " ")}
             </p>
           </div>
@@ -215,7 +215,7 @@ export function Sidebar({
               window.location.href = "/login";
             });
           }}
-          className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-[#7878a0] transition-colors hover:bg-[#2a2740] hover:text-[#f43f5e]"
+          className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-[#a0a0c0] transition-colors hover:bg-[#2a2740] hover:text-[#f43f5e]"
         >
           <LogOut size={16} />
           {t("nav.sign_out")}

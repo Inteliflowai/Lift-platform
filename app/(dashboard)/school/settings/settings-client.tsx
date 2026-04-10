@@ -94,8 +94,8 @@ export function SettingsClient({
             }
             className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
           >
-            <option value="en">English</option>
-            <option value="pt">Portuguese</option>
+            <option value="en">{t("common.english") || "English"}</option>
+            <option value="pt">{t("common.portuguese") || "Portuguese"}</option>
           </select>
         </div>
 
@@ -144,7 +144,7 @@ export function SettingsClient({
             >
               {[12, 24, 48, 72].map((h) => (
                 <option key={h} value={h}>
-                  {h} hours
+                  {h} {t("common.hours")}
                 </option>
               ))}
             </select>
@@ -169,9 +169,9 @@ export function SettingsClient({
             }
             className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
           >
-            <option value={365}>1 year</option>
-            <option value={1095}>3 years</option>
-            <option value={2555}>7 years</option>
+            <option value={365}>1 {t("common.year")}</option>
+            <option value={1095}>3 {t("common.years")}</option>
+            <option value={2555}>7 {t("common.years")}</option>
           </select>
         </div>
 
@@ -231,9 +231,7 @@ export function SettingsClient({
 
           {/* Audio privacy note */}
           <p className="mt-3 text-[10px] text-muted/70">
-            {settings.delete_audio_after_transcription
-              ? "Voice recordings are transcribed and immediately deleted. No audio is stored after transcription."
-              : "Voice recordings are stored securely and used only for transcription purposes."}
+            {t("settings.audio_privacy")}
           </p>
         </div>
       </div>

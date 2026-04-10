@@ -199,6 +199,11 @@
   "common.back": "Back",
   "common.next": "Next",
   "common.done": "Done",
+  "common.english": "English",
+  "common.portuguese": "Portuguese",
+  "common.hours": "hours",
+  "common.year": "year",
+  "common.years": "years",
 
   "onboarding.title": "Get started with LIFT",
   "onboarding.complete": "complete",

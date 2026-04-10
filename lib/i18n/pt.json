@@ -199,6 +199,11 @@
   "common.back": "Voltar",
   "common.next": "Próximo",
   "common.done": "Concluído",
+  "common.english": "Inglês",
+  "common.portuguese": "Português",
+  "common.hours": "horas",
+  "common.year": "ano",
+  "common.years": "anos",
 
   "onboarding.title": "Comece a usar o EduInsights",
   "onboarding.complete": "concluídos",
