@@ -1,6 +1,6 @@
 {
   "functions": {
-    "app/api/pipeline/run/route.ts": { "maxDuration": 60 },
+    "app/api/pipeline/run/route.ts": { "maxDuration": 120 },
     "app/api/pipeline/score/route.ts": { "maxDuration": 60 },
     "app/api/pipeline/narrative/route.ts": { "maxDuration": 60 },
     "app/api/pipeline/briefing/route.ts": { "maxDuration": 60 },
