@@ -21,6 +21,7 @@ import {
   CreditCard,
   ListOrdered,
   RotateCcw,
+  Target,
   HelpCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -43,6 +44,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
     { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score" },
     { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison" },
+    { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes" },
     { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
     { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
@@ -103,6 +105,7 @@ export function Sidebar({
     "Help Guide": t("nav.help"),
     "Waitlist": t("nav.waitlist") || "Waitlist",
     "Re-Applications": t("nav.reapplications") || "Re-Applications",
+    "Prediction Accuracy": t("nav.accuracy") || "Prediction Accuracy",
   };
 
   // Build combined nav sections for users with multiple roles

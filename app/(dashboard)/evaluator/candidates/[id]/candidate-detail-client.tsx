@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { SupportPanel } from "@/components/LearningSupport/SupportPanel";
@@ -10,7 +10,7 @@ import { SynthesisPanel } from "@/components/evaluator/SynthesisPanel";
 import { RubricForm } from "@/components/interviewer/RubricForm";
 import { RadarChart } from "@/components/RadarChart";
 
-type Tab = "overview" | "responses" | "signals" | "review" | "interview";
+type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "outcomes";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
 const DIMENSIONS = ["reading", "writing", "reasoning", "reflection", "persistence", "support_seeking"] as const;
 
@@ -51,7 +51,9 @@ export function CandidateDetailClient({
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
 
-  const tabs: Tab[] = ["overview", "responses", "signals", "review", "interview"];
+  const candidateStatus = candidate.status as string;
+  const showOutcomes = ["completed", "reviewed", "admitted", "waitlisted", "offered"].includes(candidateStatus);
+  const tabs: Tab[] = ["overview", "responses", "signals", "review", "interview", ...(showOutcomes ? ["outcomes" as Tab] : [])];
 
   return (
     <div className="space-y-6">
@@ -109,6 +111,7 @@ export function CandidateDetailClient({
       {tab === "signals" && <SignalsTab timing={timingSignals} help={helpEvents} interactions={interactionSignals} events={sessionEvents} />}
       {tab === "review" && <ReviewTab candidateId={candidate.id as string} tenantId={tenantId} reviews={reviews} router={router} rubricSubmissions={rubricSubmissions} profile={profile} />}
       {tab === "interview" && <InterviewTabV2 candidateId={candidate.id as string} tenantId={tenantId} candidateName={`${candidate.first_name} ${candidate.last_name}`} rubricSubmissions={rubricSubmissions} notes={interviewNotes} router={router} />}
+      {tab === "outcomes" && <OutcomesTab candidateId={candidate.id as string} profile={profile} />}
     </div>
   );
 }
@@ -887,6 +890,208 @@ function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmission
         candidateName={candidateName}
         onSubmitted={() => router.refresh()}
       />
+    </div>
+  );
+}
+
+function OutcomesTab({ candidateId, profile }: { candidateId: string; profile: Record<string, unknown> | null }) {
+  const [outcomes, setOutcomes] = useState<Record<string, unknown>[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [form, setForm] = useState({
+    academic_year: new Date().getFullYear().toString(),
+    term: "full_year",
+    gpa: "",
+    gpa_scale: "4.0",
+    academic_standing: "",
+    tutoring_sessions_per_week: "",
+    counseling_engaged: false,
+    learning_support_plan_active: false,
+    social_adjustment: "",
+    extracurricular_engaged: false,
+    retained: true,
+    withdrawal_reason: "",
+    advisor_notes: "",
+  });
+
+  useEffect(() => {
+    fetch(`/api/school/outcomes?candidate_id=${candidateId}`)
+      .then((r) => r.json())
+      .then((data) => { setOutcomes(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [candidateId]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setSaved(false);
+    await fetch("/api/school/outcomes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ candidate_id: candidateId, ...form, gpa: form.gpa ? Number(form.gpa) : null, gpa_scale: Number(form.gpa_scale), tutoring_sessions_per_week: form.tutoring_sessions_per_week ? Number(form.tutoring_sessions_per_week) : null }),
+    });
+    setSaving(false);
+    setSaved(true);
+    // Refresh outcomes
+    const res = await fetch(`/api/school/outcomes?candidate_id=${candidateId}`);
+    setOutcomes(await res.json());
+  }
+
+  const standingColors: Record<string, string> = {
+    excellent: "text-success", good: "text-primary", satisfactory: "text-muted",
+    needs_support: "text-warning", probation: "text-review",
+  };
+
+  if (loading) return <p className="py-8 text-center text-muted">Loading outcomes…</p>;
+
+  return (
+    <div className="space-y-6">
+      {/* LIFT Prediction (side reference) */}
+      {profile && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+          <p className="text-xs font-semibold text-primary mb-2">LIFT Prediction at Time of Admission</p>
+          <div className="flex flex-wrap gap-4 text-xs">
+            <span>TRI: <strong className="capitalize">{profile.tri_label as string}</strong> ({Number(profile.tri_score ?? 0).toFixed(0)})</span>
+            <span>Reading: {Number(profile.reading_score ?? 0).toFixed(0)}</span>
+            <span>Writing: {Number(profile.writing_score ?? 0).toFixed(0)}</span>
+            <span>Reasoning: {Number(profile.reasoning_score ?? 0).toFixed(0)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Outcome History */}
+      {outcomes.length > 0 && (
+        <div className="rounded-lg border border-lift-border bg-surface p-4">
+          <h3 className="text-sm font-semibold mb-3">Outcome History</h3>
+          <div className="space-y-2">
+            {outcomes.map((o, i) => (
+              <div key={i} className="flex items-center justify-between rounded-md border border-lift-border p-3">
+                <div>
+                  <span className="text-sm font-medium">{o.academic_year as string}</span>
+                  <span className="ml-2 text-xs text-muted capitalize">{(o.term as string)?.replace("_", " ")}</span>
+                </div>
+                <div className="flex items-center gap-4 text-xs">
+                  {o.gpa != null && <span>GPA: <strong>{Number(o.gpa).toFixed(2)}</strong></span>}
+                  {o.academic_standing ? (
+                    <span className={`font-medium capitalize ${standingColors[o.academic_standing as string] ?? "text-muted"}`}>
+                      {(o.academic_standing as string).replace("_", " ")}
+                    </span>
+                  ) : null}
+                  {o.retained === false && <span className="text-review font-medium">Withdrawn</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Entry Form */}
+      <div className="rounded-lg border border-lift-border bg-surface p-5">
+        <h3 className="text-sm font-semibold mb-3">Record Outcome</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-muted">Academic Year</label>
+              <input type="text" value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} required
+                className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm outline-none focus:border-primary" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted">Term</label>
+              <select value={form.term} onChange={(e) => setForm({ ...form, term: e.target.value })}
+                className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm outline-none focus:border-primary">
+                <option value="fall">Fall</option>
+                <option value="spring">Spring</option>
+                <option value="full_year">Full Year</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted">GPA</label>
+              <div className="flex gap-1">
+                <input type="number" step="0.01" min="0" max="5" value={form.gpa} onChange={(e) => setForm({ ...form, gpa: e.target.value })} placeholder="e.g. 3.5"
+                  className="flex-1 rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm outline-none focus:border-primary" />
+                <span className="flex items-center text-xs text-muted px-1">/ {form.gpa_scale}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-muted">Academic Standing</label>
+              <select value={form.academic_standing} onChange={(e) => setForm({ ...form, academic_standing: e.target.value })}
+                className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm outline-none focus:border-primary">
+                <option value="">Select...</option>
+                <option value="excellent">Excellent</option>
+                <option value="good">Good</option>
+                <option value="satisfactory">Satisfactory</option>
+                <option value="needs_support">Needs Support</option>
+                <option value="probation">Probation</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted">Social Adjustment</label>
+              <select value={form.social_adjustment} onChange={(e) => setForm({ ...form, social_adjustment: e.target.value })}
+                className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm outline-none focus:border-primary">
+                <option value="">Select...</option>
+                <option value="thriving">Thriving</option>
+                <option value="settled">Settled</option>
+                <option value="adjusting">Adjusting</option>
+                <option value="struggling">Struggling</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-muted">Tutoring (sessions/week)</label>
+              <input type="number" step="0.5" min="0" value={form.tutoring_sessions_per_week} onChange={(e) => setForm({ ...form, tutoring_sessions_per_week: e.target.value })}
+                className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm outline-none focus:border-primary" />
+            </div>
+            <div className="flex flex-col gap-2 pt-5">
+              <label className="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked={form.counseling_engaged} onChange={(e) => setForm({ ...form, counseling_engaged: e.target.checked })} className="accent-primary" />
+                Counseling engaged
+              </label>
+              <label className="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked={form.learning_support_plan_active} onChange={(e) => setForm({ ...form, learning_support_plan_active: e.target.checked })} className="accent-primary" />
+                Learning support plan active
+              </label>
+              <label className="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked={form.extracurricular_engaged} onChange={(e) => setForm({ ...form, extracurricular_engaged: e.target.checked })} className="accent-primary" />
+                Extracurricular engaged
+              </label>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 text-xs">
+            <input type="checkbox" checked={form.retained} onChange={(e) => setForm({ ...form, retained: e.target.checked })} className="accent-primary" />
+            Student retained (still enrolled)
+          </label>
+
+          {!form.retained && (
+            <div>
+              <label className="mb-1 block text-xs text-muted">Withdrawal Reason</label>
+              <input type="text" value={form.withdrawal_reason} onChange={(e) => setForm({ ...form, withdrawal_reason: e.target.value })}
+                className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm outline-none focus:border-primary" />
+            </div>
+          )}
+
+          <div>
+            <label className="mb-1 block text-xs text-muted">Advisor Notes</label>
+            <textarea value={form.advisor_notes} onChange={(e) => setForm({ ...form, advisor_notes: e.target.value })}
+              className="w-full min-h-[80px] rounded-md border border-lift-border bg-page-bg p-3 text-sm outline-none focus:border-primary resize-y"
+              placeholder="How is this student doing? Any observations for the record..." />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button type="submit" disabled={saving}
+              className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+              {saving ? "Saving..." : "Record Outcome"}
+            </button>
+            {saved && <span className="text-xs text-success">Outcome recorded</span>}
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
