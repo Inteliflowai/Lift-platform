@@ -3,13 +3,22 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { invalidateLicenseCache } from "./resolver";
 import { TIER_PRICING } from "./features";
 import { sendActivationEmail, sendSuspendedEmail, sendPlanUpdatedEmail } from "@/lib/email";
+import { seedTaskTemplatesForTenant } from "@/lib/seed-task-templates";
+import { syncLicenseEventToHL } from "@/lib/highlevel/events";
 
 export async function handleStripeWebhook(event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const tenantId = session.metadata?.tenant_id;
       const tier = session.metadata?.tier;
+
+      // Guest purchase — create tenant + user from Stripe data
+      if (session.metadata?.guest_purchase === "true" && tier) {
+        await handleGuestPurchase(session, tier);
+        break;
+      }
+
+      const tenantId = session.metadata?.tenant_id;
       if (!tenantId || !tier) break;
 
       const { stripe } = await import("@/lib/stripe/client");
@@ -87,6 +96,191 @@ export async function handleStripeWebhook(event: Stripe.Event): Promise<void> {
       await changeLicenseTier(tenantId, newTier);
       break;
     }
+  }
+}
+
+async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: string) {
+  const email = session.metadata?.email ?? session.customer_details?.email ?? "";
+  const fullName = session.metadata?.full_name ?? session.customer_details?.name ?? "";
+  const schoolName = session.metadata?.school_name ?? `${fullName}'s School`;
+  const customerId = session.customer as string;
+  const subscriptionId = session.subscription as string;
+
+  if (!email) {
+    console.error("[GuestPurchase] No email found in session metadata or customer_details");
+    return;
+  }
+
+  // Check if user already exists
+  const { data: existingUsers } = await supabaseAdmin
+    .from("users")
+    .select("id")
+    .eq("email", email)
+    .limit(1);
+
+  if (existingUsers && existingUsers.length > 0) {
+    // User exists — find their tenant and just activate the license
+    const { data: roles } = await supabaseAdmin
+      .from("user_tenant_roles")
+      .select("tenant_id")
+      .eq("user_id", existingUsers[0].id)
+      .limit(1);
+
+    if (roles?.[0]?.tenant_id) {
+      const { stripe: stripeClient } = await import("@/lib/stripe/client");
+      const sub = await stripeClient.subscriptions.retrieve(subscriptionId) as unknown as {
+        current_period_start: number;
+        current_period_end: number;
+      };
+
+      // Update subscription metadata with tenant_id for future webhooks
+      await stripeClient.subscriptions.update(subscriptionId, {
+        metadata: { tenant_id: roles[0].tenant_id, tier },
+      });
+
+      await activateLicense({
+        tenantId: roles[0].tenant_id,
+        tier,
+        stripeSubscriptionId: subscriptionId,
+        stripeCustomerId: customerId,
+        periodStart: new Date(sub.current_period_start * 1000).toISOString(),
+        periodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+      });
+
+      // HL sync
+      syncLicenseEventToHL({
+        event_type: "tier_changed",
+        tenant_id: roles[0].tenant_id,
+        tenant_name: schoolName,
+        admin_email: email,
+        admin_name: fullName,
+        tier,
+      }).catch((err) => console.error("HL sync failed:", err));
+
+      return;
+    }
+  }
+
+  // Create new auth user with a random password (user will set via reset email)
+  const tempPassword = crypto.randomUUID() + "Aa1!";
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true,
+  });
+
+  if (authError || !authData.user) {
+    console.error("[GuestPurchase] Failed to create auth user:", authError?.message);
+    return;
+  }
+
+  const userId = authData.user.id;
+
+  try {
+    // Create tenant
+    const slug = schoolName
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
+    const { data: tenant, error: tenantErr } = await supabaseAdmin
+      .from("tenants")
+      .insert({ name: schoolName.trim(), slug, status: "active" })
+      .select()
+      .single();
+
+    if (tenantErr || !tenant) throw new Error(tenantErr?.message || "Failed to create tenant");
+
+    // Update user profile
+    await supabaseAdmin.from("users").update({ full_name: fullName.trim(), email }).eq("id", userId);
+
+    // Assign school_admin role
+    await supabaseAdmin.from("user_tenant_roles").insert({
+      user_id: userId,
+      tenant_id: tenant.id,
+      role: "school_admin",
+    });
+
+    // Create tenant settings
+    await supabaseAdmin.from("tenant_settings").insert({
+      tenant_id: tenant.id,
+      default_language: "en",
+      coppa_mode: false,
+      session_pause_allowed: true,
+      session_pause_limit_hours: 48,
+      data_retention_days: 1095,
+      require_human_review_always: false,
+      voice_mode_enabled: true,
+      passage_reader_enabled: true,
+      delete_audio_after_transcription: true,
+    });
+
+    // Seed task templates
+    await seedTaskTemplatesForTenant(tenant.id);
+
+    // Get subscription details
+    const { stripe: stripeClient } = await import("@/lib/stripe/client");
+    const sub = await stripeClient.subscriptions.retrieve(subscriptionId) as unknown as {
+      current_period_start: number;
+      current_period_end: number;
+    };
+
+    // Update subscription metadata with tenant_id
+    await stripeClient.subscriptions.update(subscriptionId, {
+      metadata: { tenant_id: tenant.id, tier },
+    });
+
+    // Activate license (skip trial — they paid)
+    await activateLicense({
+      tenantId: tenant.id,
+      tier,
+      stripeSubscriptionId: subscriptionId,
+      stripeCustomerId: customerId,
+      periodStart: new Date(sub.current_period_start * 1000).toISOString(),
+      periodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+    });
+
+    // Log event
+    await supabaseAdmin.from("license_events").insert({
+      tenant_id: tenant.id,
+      actor_id: userId,
+      event_type: "guest_purchase_completed",
+      to_tier: tier,
+      to_status: "active",
+      payload: { source: "stripe_guest_checkout", school_name: schoolName },
+    });
+
+    // Send password reset email so user can set their password
+    await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password` },
+    });
+
+    // HL sync — purchased directly
+    syncLicenseEventToHL({
+      event_type: "tier_changed",
+      tenant_id: tenant.id,
+      tenant_name: schoolName,
+      admin_email: email,
+      admin_name: fullName,
+      tier,
+    }).catch((err) => console.error("HL sync failed:", err));
+
+    // Seed demo candidates
+    const demos = [
+      { first_name: "Sofia", last_name: "Martinez (Demo)", grade_band: "8", status: "active" },
+      { first_name: "James", last_name: "Chen (Demo)", grade_band: "6-7", status: "active" },
+      { first_name: "Amara", last_name: "Okafor (Demo)", grade_band: "9-11", status: "active" },
+    ];
+    for (const demo of demos) {
+      await supabaseAdmin.from("candidates").insert({ ...demo, tenant_id: tenant.id });
+    }
+
+  } catch (err) {
+    console.error("[GuestPurchase] Tenant creation failed:", err);
+    await supabaseAdmin.auth.admin.deleteUser(userId);
   }
 }
 
