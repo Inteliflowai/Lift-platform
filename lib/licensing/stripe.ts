@@ -122,6 +122,7 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
     .limit(1);
 
   if (existingUsers && existingUsers.length > 0) {
+    console.log("[GuestPurchase] Existing user found:", existingUsers[0].id);
     // User exists — find their tenant and just activate the license
     const { data: roles } = await supabaseAdmin
       .from("user_tenant_roles")
@@ -130,6 +131,7 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
       .limit(1);
 
     if (roles?.[0]?.tenant_id) {
+      console.log("[GuestPurchase] Activating license for existing tenant:", roles[0].tenant_id);
       const { stripe: stripeClient } = await import("@/lib/stripe/client");
       const sub = await stripeClient.subscriptions.retrieve(subscriptionId) as unknown as {
         current_period_start: number;
@@ -150,7 +152,30 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
         periodEnd: new Date(sub.current_period_end * 1000).toISOString(),
       });
 
+      console.log("[GuestPurchase] License activated, sending confirmation email");
+
+      // Send confirmation email
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://lift.inteliflowai.com";
+      const { sendLiftEmail } = await import("@/lib/emails/send");
+      const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
+      await sendLiftEmail({
+        to: email,
+        subject: `LIFT ${tierLabel} Plan Activated`,
+        tenantId: roles[0].tenant_id,
+        content: `
+          <h2 style="margin:0 0 12px;font-size:20px;color:#1a1a2e">Your Plan is Active!</h2>
+          <p>Hi ${fullName.split(" ")[0]},</p>
+          <p>Your <strong>${tierLabel}</strong> plan is now active. You can log in to your dashboard to get started.</p>
+          <div style="text-align:center;margin:28px 0">
+            <a href="${appUrl}/login" style="display:inline-block;padding:14px 32px;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
+              Go to Dashboard
+            </a>
+          </div>
+        `,
+      }).catch((err) => console.error("[GuestPurchase] Confirmation email failed:", err));
+
       // HL sync
+      console.log("[GuestPurchase] Syncing to HL");
       syncLicenseEventToHL({
         event_type: "tier_changed",
         tenant_id: roles[0].tenant_id,
@@ -158,9 +183,12 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
         admin_email: email,
         admin_name: fullName,
         tier,
-      }).catch((err) => console.error("HL sync failed:", err));
+      }).catch((err) => console.error("[GuestPurchase] HL sync failed:", err));
 
+      console.log("[GuestPurchase] Done (existing user path)");
       return;
+    } else {
+      console.log("[GuestPurchase] Existing user has no tenant role, creating new tenant");
     }
   }
 
