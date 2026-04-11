@@ -79,6 +79,14 @@ export async function POST(req: NextRequest) {
     }).catch((err) => {
       console.error("Support plan generation trigger failed:", err);
     });
+    // SIS sync
+    fetch(`${baseUrl}/api/integrations/sis-sync`, {
+      method: "POST",
+      headers: internalHeaders,
+      body: JSON.stringify({ candidate_id }),
+    }).catch((err) => {
+      console.error("SIS sync trigger failed:", err);
+    });
   }
 
   return NextResponse.json(rec, { status: 201 });
