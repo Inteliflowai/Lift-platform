@@ -585,7 +585,7 @@ function Hero() {
 
           <div className="lift-hero-buttons" style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
             <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
-            <GlassButton href="#forms">Request a Demo</GlassButton>
+            <GlassButton href="mailto:lift@inteliflowai.com?subject=Demo%20Request">Request a Demo</GlassButton>
           </div>
 
           <p style={{ fontSize: 13, color: BRAND.muted, lineHeight: 1.7 }}>
@@ -755,6 +755,69 @@ function DimensionsSection() {
           admissions review and must be interpreted by qualified school staff.
         </p>
       </Glass>
+    </Section>
+  );
+}
+
+/* ─── Enterprise Features ─── */
+
+function EnterpriseSection() {
+  const features = [
+    {
+      title: "Waitlist Intelligence",
+      desc: "Automatically rank waitlisted candidates by TRI score. When a spot opens, you know exactly who to offer it to. Track offers, acceptances, and declines in real time — no more spreadsheets.",
+      color: BRAND.liftIndigo,
+    },
+    {
+      title: "Re-Application Intelligence",
+      desc: "When a candidate applies for a second time, LIFT automatically compares their current session to their prior one. See exactly what changed — which dimensions improved, which declined, and whether the overall readiness trajectory is positive. Evaluators get this context before the interview.",
+      color: BRAND.liftAmber,
+    },
+    {
+      title: "Outcome Tracking & Prediction Accuracy",
+      desc: "Record how admitted students actually perform after enrollment — GPA, academic standing, support needs, retention. LIFT compares these real outcomes against the TRI predictions it made, computing a prediction accuracy report that proves the platform's value to your board.",
+      color: BRAND.liftEmerald,
+    },
+    {
+      title: "Support Plan Generator",
+      desc: "For students flagged with Learning Support Signals, LIFT generates an onboarding-ready support plan: recommended interventions mapped to the specific patterns observed in their session. Hand this to your learning support team on day one — before the student even arrives on campus.",
+      color: BRAND.sky,
+    },
+    {
+      title: "Benchmarking Network",
+      desc: "Compare your school's admissions data against anonymized benchmarks from similar schools in the LIFT network. See how your applicant pool's readiness compares regionally and by school type.",
+      color: BRAND.magenta,
+    },
+    {
+      title: "White Label & Custom Branding",
+      desc: "Run LIFT on your own domain with your school's logo, colors, and branding throughout. Candidates see your institution's identity — not ours. Emails, reports, and the dashboard all reflect your brand.",
+      color: BRAND.orange,
+    },
+  ];
+
+  return (
+    <Section>
+      <Label>Enterprise</Label>
+      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>
+        Advanced tools for data-driven admissions.
+      </h2>
+      <p style={{ fontSize: 17, color: BRAND.muted, maxWidth: 720, marginBottom: 48, lineHeight: 1.7 }}>
+        Enterprise features give your admissions team intelligence that goes beyond the initial assessment — from waitlist management to post-enrollment outcome tracking.
+      </p>
+
+      <div
+        className="lift-grid-2"
+        style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}
+      >
+        {features.map((f) => (
+          <Glass key={f.title} style={{ borderLeft: `4px solid ${f.color}` }}>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>
+              {f.title}
+            </h3>
+            <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{f.desc}</p>
+          </Glass>
+        ))}
+      </div>
     </Section>
   );
 }
@@ -972,14 +1035,17 @@ function PricingSection() {
         "Unlimited sessions",
         "Unlimited evaluator seats",
         "Everything in Professional",
-        "Cohort benchmarking",
-        "Outcome tracking",
+        "Cohort benchmarking network",
+        "Outcome tracking & prediction accuracy",
+        "Waitlist intelligence",
+        "Re-application intelligence",
+        "Support plan generator",
         "SIS integrations",
-        "White-label option",
-        "Customer Success Manager",
+        "White-label & custom branding",
+        "Dedicated Customer Success Manager",
       ],
-      cta: "Start Free Trial",
-      href: "https://lift.inteliflowai.com/register?tier=enterprise",
+      cta: "Contact Us",
+      href: "mailto:lift@inteliflowai.com?subject=LIFT%20Enterprise%20Inquiry",
       popular: false,
       enterprise: true,
     },
@@ -1369,19 +1435,7 @@ function InquiryForm({ formType }) {
 /* ─── Forms Section ─── */
 
 function FormsSection() {
-  return (
-    <Section id="forms">
-      <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <Label>Start the conversation</Label>
-        <h2 style={{ fontSize: 42, color: BRAND.white }}>Choose the right next step.</h2>
-      </div>
-      <div className="lift-forms-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-        <InquiryForm formType="Schedule a Demo" />
-        <InquiryForm formType="Explore a Pilot" />
-        <InquiryForm formType="Talk With Our Team" />
-      </div>
-    </Section>
-  );
+  return null;
 }
 
 /* ─── CTA ─── */
@@ -1398,8 +1452,8 @@ function CTASection() {
           </h2>
           <div className="lift-cta-buttons" style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
             <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
-            <GlassButton href="#forms">Request a Demo</GlassButton>
-            <GlassButton href="#forms">Talk With Our Team</GlassButton>
+            <GlassButton href="mailto:lift@inteliflowai.com?subject=Demo%20Request">Request a Demo</GlassButton>
+            <GlassButton href="mailto:lift@inteliflowai.com?subject=LIFT%20Inquiry">Talk With Our Team</GlassButton>
           </div>
         </div>
       </Glass>
@@ -1489,13 +1543,13 @@ export default function LiftLandingPage() {
       <HowItWorks />
       <DimensionsSection />
       <YearRoundSection />
+      <EnterpriseSection />
       <AudienceSection />
       <TransformationSection />
       <FoundersSection />
       <PricingSection />
       <ComplianceSection />
       <FAQSection />
-      <FormsSection />
       <CTASection />
       <Footer />
     </div>
