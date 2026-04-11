@@ -156,16 +156,28 @@ export function SubscriptionClient({
 
   async function handleCheckout(targetTier: string) {
     setCheckoutLoading(targetTier);
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tier: targetTier }),
-    });
-    const data = await res.json();
-    if (data.checkout_url) {
-      window.location.href = data.checkout_url;
-    } else {
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: targetTier }),
+      });
+      const data = await res.json();
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        setCheckoutLoading(null);
+        setToast({
+          message: data.error || "Unable to start checkout. Please contact support.",
+          type: "muted",
+        });
+      }
+    } catch {
       setCheckoutLoading(null);
+      setToast({
+        message: "Unable to connect to payment system. Please try again.",
+        type: "muted",
+      });
     }
   }
 

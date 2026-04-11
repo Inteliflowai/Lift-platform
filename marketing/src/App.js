@@ -1138,7 +1138,7 @@ function PricingSection() {
               )}
               {!tier.enterprise && (
                 <a
-                  href="https://lift.inteliflowai.com/pricing"
+                  href={`https://lift.inteliflowai.com/register?plan=${tier.name.toLowerCase()}`}
                   style={{
                     textAlign: "center", fontSize: 13, color: BRAND.sky,
                     fontWeight: 500, fontFamily: "'DM Sans', sans-serif",

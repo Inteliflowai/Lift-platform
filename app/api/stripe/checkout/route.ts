@@ -7,6 +7,13 @@ import { getStripePrices } from "@/lib/stripe/prices";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json(
+        { error: "Stripe is not configured. Please contact support." },
+        { status: 500 }
+      );
+    }
+
     const { user, tenantId, tenant } = await getTenantContext();
 
     const body = await req.json();
