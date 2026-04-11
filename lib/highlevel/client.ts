@@ -33,13 +33,18 @@ export async function upsertHLContact(
   if (!process.env.HL_API_KEY) return null;
 
   try {
+    const locationId = process.env.HL_LOCATION_ID;
+
     // Search for existing contact by email
-    const searchRes = await fetch(
-      `${HL_BASE}/contacts/search?query=${encodeURIComponent(contact.email)}`,
-      { headers: hlHeaders() }
-    );
+    const searchUrl = isPIT
+      ? `${HL_BASE}/contacts/search/duplicate?locationId=${locationId}&email=${encodeURIComponent(contact.email)}`
+      : `${HL_BASE}/contacts/search?query=${encodeURIComponent(contact.email)}`;
+
+    const searchRes = await fetch(searchUrl, { headers: hlHeaders() });
     const searchData = await searchRes.json();
-    const existing = searchData?.contacts?.[0];
+    const existing = isPIT
+      ? searchData?.contact
+      : searchData?.contacts?.[0];
 
     if (existing) {
       await fetch(`${HL_BASE}/contacts/${existing.id}`, {
@@ -54,7 +59,7 @@ export async function upsertHLContact(
         headers: hlHeaders(),
         body: JSON.stringify({
           ...contact,
-          locationId: process.env.HL_LOCATION_ID,
+          locationId,
         }),
       });
       const created = await createRes.json();
@@ -98,10 +103,11 @@ export async function moveHLPipelineStage(
 
   try {
     // Find existing opportunity for this contact
-    const oppsRes = await fetch(
-      `${HL_BASE}/opportunities/search?contact_id=${contactId}`,
-      { headers: hlHeaders() }
-    );
+    const locationId = process.env.HL_LOCATION_ID;
+    const oppsUrl = isPIT
+      ? `${HL_BASE}/opportunities/search?location_id=${locationId}&contact_id=${contactId}`
+      : `${HL_BASE}/opportunities/search?contact_id=${contactId}`;
+    const oppsRes = await fetch(oppsUrl, { headers: hlHeaders() });
     const oppsData = await oppsRes.json();
     const opp = oppsData?.opportunities?.[0];
 
