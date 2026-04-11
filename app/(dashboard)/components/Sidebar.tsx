@@ -5,6 +5,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useLicense } from "@/lib/licensing/context";
+import { FEATURES } from "@/lib/licensing/features";
 import {
   Building2,
   Calendar,
@@ -27,7 +29,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type NavItem = { label: string; href: string; icon: LucideIcon; desc?: string };
+type NavItem = { label: string; href: string; icon: LucideIcon; desc?: string; feature?: string };
 
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
   platform_admin: [
@@ -43,10 +45,10 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Cycles", href: "/school/cycles", icon: Calendar, desc: "Create and manage admissions cycles with grade bands" },
     { label: "Team", href: "/school/team", icon: UserCheck, desc: "Invite evaluators, interviewers, and staff to your school" },
     { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
-    { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score" },
-    { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison" },
-    { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes" },
-    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates" },
+    { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score", feature: FEATURES.WAITLIST_INTELLIGENCE },
+    { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison", feature: FEATURES.REAPPLICATION_INTELLIGENCE },
+    { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes", feature: FEATURES.OUTCOME_TRACKING },
+    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates", feature: FEATURES.PLACEMENT_SUPPORT_PLAN },
     { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
     { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
@@ -94,6 +96,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { t, brandName } = useLocale();
+  const { hasFeature } = useLicense();
 
   // Translation map for nav labels
   const navT: Record<string, string> = {
@@ -126,7 +129,7 @@ export function Sidebar({
 
   const sections = rolesToShow.map((r) => ({
     label: ROLE_LABELS[r] ?? r,
-    items: NAV_BY_ROLE[r] ?? [],
+    items: (NAV_BY_ROLE[r] ?? []).filter((item) => !item.feature || hasFeature(item.feature)),
     role: r,
   })).filter((s) => s.items.length > 0);
 
