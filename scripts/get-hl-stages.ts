@@ -15,9 +15,23 @@ async function getStageIds() {
     process.exit(1);
   }
 
-  const res = await fetch("https://rest.gohighlevel.com/v1/pipelines/", {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
+  const isPIT = apiKey.startsWith("pit-");
+  const baseUrl = isPIT ? "https://services.leadconnectorhq.com" : "https://rest.gohighlevel.com/v1";
+  const headers: Record<string, string> = { Authorization: `Bearer ${apiKey}` };
+  if (isPIT) {
+    headers["Version"] = "2021-07-28";
+    if (!process.env.HL_LOCATION_ID) {
+      console.error("HL_LOCATION_ID required for PIT keys. Set it in .env.local");
+      process.exit(1);
+    }
+    // V2 API needs location ID in the URL
+  }
+
+  const pipelinesUrl = isPIT
+    ? `${baseUrl}/opportunities/pipelines?locationId=${process.env.HL_LOCATION_ID}`
+    : `${baseUrl}/pipelines/`;
+
+  const res = await fetch(pipelinesUrl, { headers });
 
   if (!res.ok) {
     console.error("Failed to fetch pipelines:", res.status, await res.text());

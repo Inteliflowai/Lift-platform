@@ -1,10 +1,18 @@
-const HL_BASE = "https://rest.gohighlevel.com/v1";
+// Support both v1 (location API key) and v2 (PIT key) formats
+const isPIT = process.env.HL_API_KEY?.startsWith("pit-");
+const HL_BASE = isPIT
+  ? "https://services.leadconnectorhq.com"
+  : "https://rest.gohighlevel.com/v1";
 
 function hlHeaders() {
-  return {
+  const headers: Record<string, string> = {
     Authorization: `Bearer ${process.env.HL_API_KEY}`,
     "Content-Type": "application/json",
   };
+  if (isPIT) {
+    headers["Version"] = "2021-07-28";
+  }
+  return headers;
 }
 
 interface HLContact {
