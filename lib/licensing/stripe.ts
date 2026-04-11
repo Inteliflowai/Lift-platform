@@ -100,11 +100,14 @@ export async function handleStripeWebhook(event: Stripe.Event): Promise<void> {
 }
 
 async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: string) {
+  console.log("[GuestPurchase] Starting for tier:", tier, "session:", session.id);
   const email = session.metadata?.email ?? session.customer_details?.email ?? "";
   const fullName = session.metadata?.full_name ?? session.customer_details?.name ?? "";
   const schoolName = session.metadata?.school_name ?? `${fullName}'s School`;
   const customerId = session.customer as string;
   const subscriptionId = session.subscription as string;
+
+  console.log("[GuestPurchase] Email:", email, "Name:", fullName, "School:", schoolName);
 
   if (!email) {
     console.error("[GuestPurchase] No email found in session metadata or customer_details");
@@ -251,12 +254,37 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
       payload: { source: "stripe_guest_checkout", school_name: schoolName },
     });
 
-    // Send password reset email so user can set their password
-    await supabaseAdmin.auth.admin.generateLink({
+    // Generate password reset link and send via our own SMTP
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://lift.inteliflowai.com";
+    const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
       email,
-      options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password` },
+      options: { redirectTo: `${appUrl}/reset-password` },
     });
+
+    const resetUrl = linkData?.properties?.action_link;
+    if (resetUrl) {
+      const { sendLiftEmail } = await import("@/lib/emails/send");
+      await sendLiftEmail({
+        to: email,
+        subject: "Welcome to LIFT — Set Your Password",
+        tenantId: tenant.id,
+        content: `
+          <h2 style="margin:0 0 12px;font-size:20px;color:#1a1a2e">Welcome to LIFT!</h2>
+          <p>Hi ${fullName.split(" ")[0]},</p>
+          <p>Your <strong>${tier.charAt(0).toUpperCase() + tier.slice(1)}</strong> plan for <strong>${schoolName}</strong> is now active.</p>
+          <p>Click the button below to set your password and access your dashboard:</p>
+          <div style="text-align:center;margin:28px 0">
+            <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
+              Set Your Password
+            </a>
+          </div>
+          <p style="font-size:13px;color:#6b7280">This link expires in 24 hours. If it expires, visit <a href="${appUrl}/forgot-password">${appUrl}/forgot-password</a> to request a new one.</p>
+        `,
+      }).catch((err) => console.error("[GuestPurchase] Password email failed:", err));
+    } else {
+      console.error("[GuestPurchase] generateLink returned no action_link for", email);
+    }
 
     // HL sync — purchased directly
     syncLicenseEventToHL({
