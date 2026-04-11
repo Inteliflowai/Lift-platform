@@ -12,6 +12,7 @@ export default function InviteCandidatePage() {
   const [dob, setDob] = useState("");
   const [guardianName, setGuardianName] = useState("");
   const [guardianEmail, setGuardianEmail] = useState("");
+  const [gender, setGender] = useState("");
   const [showGuardian, setShowGuardian] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,7 @@ export default function InviteCandidatePage() {
         email,
         grade_applying_to: grade,
         date_of_birth: dob || undefined,
+        gender: gender || undefined,
         guardian_name: guardianName || undefined,
         guardian_email: guardianEmail || undefined,
       }),
@@ -129,6 +131,22 @@ export default function InviteCandidatePage() {
               className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs text-muted">Gender</label>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            required
+            className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
+          >
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="lgbtq+">LGBTQ+</option>
+            <option value="prefer_not_to_say">Prefer not to say</option>
+          </select>
         </div>
 
         {showGuardian && (

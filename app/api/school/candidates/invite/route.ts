@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     email,
     grade_applying_to,
     date_of_birth,
+    gender,
     guardian_name,
     guardian_email,
   } = body;
@@ -80,6 +81,7 @@ export async function POST(req: NextRequest) {
       grade_applying_to: String(grade_applying_to),
       grade_band: gradeBand,
       date_of_birth: date_of_birth || null,
+      gender: gender || null,
       status: needsGuardian ? "consent_pending" : "invited",
     })
     .select()

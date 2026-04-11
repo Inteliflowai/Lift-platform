@@ -19,6 +19,8 @@ import {
   ScrollText,
   LogOut,
   CreditCard,
+  ListOrdered,
+  RotateCcw,
   HelpCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -39,6 +41,8 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Cycles", href: "/school/cycles", icon: Calendar, desc: "Create and manage admissions cycles with grade bands" },
     { label: "Team", href: "/school/team", icon: UserCheck, desc: "Invite evaluators, interviewers, and staff to your school" },
     { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
+    { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score" },
+    { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison" },
     { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
     { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
@@ -97,6 +101,8 @@ export function Sidebar({
     "All Cycles": t("nav.all_cycles"),
     "System Reports": t("nav.system_reports"),
     "Help Guide": t("nav.help"),
+    "Waitlist": t("nav.waitlist") || "Waitlist",
+    "Re-Applications": t("nav.reapplications") || "Re-Applications",
   };
 
   // Build combined nav sections for users with multiple roles
