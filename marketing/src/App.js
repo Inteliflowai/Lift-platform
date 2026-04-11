@@ -585,7 +585,7 @@ function Hero() {
 
           <div className="lift-hero-buttons" style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
             <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
-            <GlassButton href="mailto:lift@inteliflowai.com?subject=Demo%20Request">Request a Demo</GlassButton>
+            <GlassButton href="#contact">Request a Demo</GlassButton>
           </div>
 
           <p style={{ fontSize: 13, color: BRAND.muted, lineHeight: 1.7 }}>
@@ -1435,7 +1435,18 @@ function InquiryForm({ formType }) {
 /* ─── Forms Section ─── */
 
 function FormsSection() {
-  return null;
+  return (
+    <Section id="contact">
+      <Label>Get in Touch</Label>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, textAlign: "center", marginBottom: 40 }}>
+        Ready to see LIFT in action?
+      </h2>
+      <div className="lift-forms-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, maxWidth: 900, margin: "0 auto" }}>
+        <InquiryForm formType="Request a Demo" />
+        <InquiryForm formType="Talk With Our Team" />
+      </div>
+    </Section>
+  );
 }
 
 /* ─── CTA ─── */
@@ -1452,8 +1463,8 @@ function CTASection() {
           </h2>
           <div className="lift-cta-buttons" style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
             <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
-            <GlassButton href="mailto:lift@inteliflowai.com?subject=Demo%20Request">Request a Demo</GlassButton>
-            <GlassButton href="mailto:lift@inteliflowai.com?subject=LIFT%20Inquiry">Talk With Our Team</GlassButton>
+            <GlassButton href="#contact">Request a Demo</GlassButton>
+            <GlassButton href="#contact">Talk With Our Team</GlassButton>
           </div>
         </div>
       </Glass>
@@ -1550,6 +1561,7 @@ export default function LiftLandingPage() {
       <PricingSection />
       <ComplianceSection />
       <FAQSection />
+      <FormsSection />
       <CTASection />
       <Footer />
     </div>
