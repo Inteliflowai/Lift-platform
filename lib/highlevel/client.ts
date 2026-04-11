@@ -1,15 +1,20 @@
 // Support both v1 (location API key) and v2 (PIT key) formats
-const isPIT = process.env.HL_API_KEY?.startsWith("pit-");
-const HL_BASE = isPIT
-  ? "https://services.leadconnectorhq.com"
-  : "https://rest.gohighlevel.com/v1";
+function isPIT(): boolean {
+  return process.env.HL_API_KEY?.startsWith("pit-") ?? false;
+}
+
+function getHLBase(): string {
+  return isPIT()
+    ? "https://services.leadconnectorhq.com"
+    : "https://rest.gohighlevel.com/v1";
+}
 
 function hlHeaders() {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${process.env.HL_API_KEY}`,
     "Content-Type": "application/json",
   };
-  if (isPIT) {
+  if (isPIT()) {
     headers["Version"] = "2021-07-28";
   }
   return headers;
@@ -36,25 +41,25 @@ export async function upsertHLContact(
     const locationId = process.env.HL_LOCATION_ID;
 
     // Search for existing contact by email
-    const searchUrl = isPIT
-      ? `${HL_BASE}/contacts/search/duplicate?locationId=${locationId}&email=${encodeURIComponent(contact.email)}`
-      : `${HL_BASE}/contacts/search?query=${encodeURIComponent(contact.email)}`;
+    const searchUrl = isPIT()
+      ? `${getHLBase()}/contacts/search/duplicate?locationId=${locationId}&email=${encodeURIComponent(contact.email)}`
+      : `${getHLBase()}/contacts/search?query=${encodeURIComponent(contact.email)}`;
 
     const searchRes = await fetch(searchUrl, { headers: hlHeaders() });
     const searchData = await searchRes.json();
-    const existing = isPIT
+    const existing = isPIT()
       ? searchData?.contact
       : searchData?.contacts?.[0];
 
     if (existing) {
-      await fetch(`${HL_BASE}/contacts/${existing.id}`, {
+      await fetch(`${getHLBase()}/contacts/${existing.id}`, {
         method: "PUT",
         headers: hlHeaders(),
         body: JSON.stringify(contact),
       });
       return existing.id;
     } else {
-      const createRes = await fetch(`${HL_BASE}/contacts/`, {
+      const createRes = await fetch(`${getHLBase()}/contacts/`, {
         method: "POST",
         headers: hlHeaders(),
         body: JSON.stringify({
@@ -76,7 +81,7 @@ export async function addHLTags(
   tags: string[]
 ): Promise<void> {
   if (!process.env.HL_API_KEY) return;
-  await fetch(`${HL_BASE}/contacts/${contactId}/tags`, {
+  await fetch(`${getHLBase()}/contacts/${contactId}/tags`, {
     method: "POST",
     headers: hlHeaders(),
     body: JSON.stringify({ tags }),
@@ -88,7 +93,7 @@ export async function removeHLTags(
   tags: string[]
 ): Promise<void> {
   if (!process.env.HL_API_KEY) return;
-  await fetch(`${HL_BASE}/contacts/${contactId}/tags`, {
+  await fetch(`${getHLBase()}/contacts/${contactId}/tags`, {
     method: "DELETE",
     headers: hlHeaders(),
     body: JSON.stringify({ tags }),
@@ -104,21 +109,21 @@ export async function moveHLPipelineStage(
   try {
     // Find existing opportunity for this contact
     const locationId = process.env.HL_LOCATION_ID;
-    const oppsUrl = isPIT
-      ? `${HL_BASE}/opportunities/search?location_id=${locationId}&contact_id=${contactId}`
-      : `${HL_BASE}/opportunities/search?contact_id=${contactId}`;
+    const oppsUrl = isPIT()
+      ? `${getHLBase()}/opportunities/search?location_id=${locationId}&contact_id=${contactId}`
+      : `${getHLBase()}/opportunities/search?contact_id=${contactId}`;
     const oppsRes = await fetch(oppsUrl, { headers: hlHeaders() });
     const oppsData = await oppsRes.json();
     const opp = oppsData?.opportunities?.[0];
 
     if (opp) {
-      await fetch(`${HL_BASE}/opportunities/${opp.id}`, {
+      await fetch(`${getHLBase()}/opportunities/${opp.id}`, {
         method: "PUT",
         headers: hlHeaders(),
         body: JSON.stringify({ stageId }),
       });
     } else {
-      await fetch(`${HL_BASE}/opportunities/`, {
+      await fetch(`${getHLBase()}/opportunities/`, {
         method: "POST",
         headers: hlHeaders(),
         body: JSON.stringify({
