@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/admin", "/school", "/evaluator", "/interviewer"];
+const PROTECTED_PREFIXES = ["/admin", "/school", "/evaluator", "/interviewer", "/support"];
 const PUBLIC_PREFIXES = ["/session", "/invite", "/consent", "/register"];
 
 export async function middleware(request: NextRequest) {
@@ -88,6 +88,15 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/interviewer") &&
     !userRoles.includes("interviewer") &&
+    !userRoles.includes("platform_admin")
+  ) {
+    return NextResponse.redirect(new URL("/unauthorized", request.url));
+  }
+  if (
+    pathname.startsWith("/support") &&
+    !userRoles.includes("grade_dean") &&
+    !userRoles.includes("learning_specialist") &&
+    !userRoles.includes("school_admin") &&
     !userRoles.includes("platform_admin")
   ) {
     return NextResponse.redirect(new URL("/unauthorized", request.url));

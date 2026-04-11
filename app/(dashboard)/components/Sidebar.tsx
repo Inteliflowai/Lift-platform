@@ -23,6 +23,7 @@ import {
   RotateCcw,
   Target,
   HelpCircle,
+  HeartHandshake,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -45,6 +46,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score" },
     { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison" },
     { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes" },
+    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates" },
     { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
     { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
@@ -56,6 +58,12 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
   interviewer: [
     { label: "My Cases", href: "/interviewer", icon: Briefcase, desc: "Interview assignments and rubric submission" },
   ],
+  grade_dean: [
+    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates" },
+  ],
+  learning_specialist: [
+    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates" },
+  ],
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -63,6 +71,8 @@ const ROLE_LABELS: Record<string, string> = {
   school_admin: "School",
   evaluator: "Evaluator",
   interviewer: "Interviewer",
+  grade_dean: "Grade Dean",
+  learning_specialist: "Learning Specialist",
 };
 
 export function Sidebar({
@@ -106,11 +116,12 @@ export function Sidebar({
     "Waitlist": t("nav.waitlist") || "Waitlist",
     "Re-Applications": t("nav.reapplications") || "Re-Applications",
     "Prediction Accuracy": t("nav.accuracy") || "Prediction Accuracy",
+    "Support Plans": t("nav.support_plans") || "Support Plans",
   };
 
   // Build combined nav sections for users with multiple roles
   const rolesToShow = allRoles && allRoles.length > 1
-    ? ["platform_admin", "school_admin", "evaluator", "interviewer"].filter((r) => allRoles.includes(r))
+    ? ["platform_admin", "school_admin", "evaluator", "interviewer", "grade_dean", "learning_specialist"].filter((r) => allRoles.includes(r))
     : [role];
 
   const sections = rolesToShow.map((r) => ({

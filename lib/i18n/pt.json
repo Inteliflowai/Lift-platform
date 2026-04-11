@@ -20,6 +20,10 @@
   "nav.all_cycles": "Todos os Ciclos",
   "nav.system_reports": "Relatórios do Sistema",
   "nav.sign_out": "Sair",
+  "nav.waitlist": "Lista de Espera",
+  "nav.reapplications": "Reaplicações",
+  "nav.accuracy": "Precisão de Previsão",
+  "nav.support_plans": "Planos de Apoio",
 
   "login.title": "Entrar",
   "login.email": "E-mail",

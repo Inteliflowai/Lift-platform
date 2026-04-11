@@ -10,7 +10,7 @@ import { SynthesisPanel } from "@/components/evaluator/SynthesisPanel";
 import { RubricForm } from "@/components/interviewer/RubricForm";
 import { RadarChart } from "@/components/RadarChart";
 
-type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "outcomes";
+type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "outcomes" | "support_plan";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
 const DIMENSIONS = ["reading", "writing", "reasoning", "reflection", "persistence", "support_seeking"] as const;
 
@@ -53,7 +53,8 @@ export function CandidateDetailClient({
 
   const candidateStatus = candidate.status as string;
   const showOutcomes = ["completed", "reviewed", "admitted", "waitlisted", "offered"].includes(candidateStatus);
-  const tabs: Tab[] = ["overview", "responses", "signals", "review", "interview", ...(showOutcomes ? ["outcomes" as Tab] : [])];
+  const showSupportPlan = ["admitted", "offered"].includes(candidateStatus);
+  const tabs: Tab[] = ["overview", "responses", "signals", "review", "interview", ...(showOutcomes ? ["outcomes" as Tab] : []), ...(showSupportPlan ? ["support_plan" as Tab] : [])];
 
   return (
     <div className="space-y-6">
@@ -80,7 +81,7 @@ export function CandidateDetailClient({
         {tabs.map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-primary text-primary" : "text-muted hover:text-lift-text"}`}>
-            {t === "review" ? "Evaluator Review" : t === "interview" ? "Interview Notes" : t}
+            {t === "review" ? "Evaluator Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t}
           </button>
         ))}
       </div>
@@ -112,6 +113,7 @@ export function CandidateDetailClient({
       {tab === "review" && <ReviewTab candidateId={candidate.id as string} tenantId={tenantId} reviews={reviews} router={router} rubricSubmissions={rubricSubmissions} profile={profile} />}
       {tab === "interview" && <InterviewTabV2 candidateId={candidate.id as string} tenantId={tenantId} candidateName={`${candidate.first_name} ${candidate.last_name}`} rubricSubmissions={rubricSubmissions} notes={interviewNotes} router={router} />}
       {tab === "outcomes" && <OutcomesTab candidateId={candidate.id as string} profile={profile} />}
+      {tab === "support_plan" && <SupportPlanTab candidateId={candidate.id as string} candidateName={`${candidate.first_name} ${candidate.last_name}`} />}
     </div>
   );
 }
@@ -1197,6 +1199,370 @@ function AssignmentPanel({
           {assigning ? "..." : "Assign"}
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ─── Support Plan Tab ─── */
+
+interface ChecklistItem {
+  id: string;
+  text: string;
+  phase: string;
+  completed: boolean;
+  completed_at: string | null;
+  completed_by: string | null;
+}
+
+interface RecommendedResource {
+  name: string;
+  resource_type: string;
+  rationale: string;
+  priority: "high" | "medium" | "low";
+}
+
+interface SupportPlan {
+  id: string;
+  support_level: string;
+  week_1_2_actions: string[];
+  month_1_priorities: string[];
+  month_2_3_checkpoints: string[];
+  recommended_resources: RecommendedResource[];
+  academic_accommodations: string[];
+  social_integration_notes: string;
+  flag_for_early_review: boolean;
+  plan_narrative: string;
+  family_welcome_note: string;
+  checklist_items: ChecklistItem[];
+  status: string;
+  shared_with: unknown[];
+  shared_at: string | null;
+  generated_at: string;
+}
+
+const SUPPORT_LEVEL_COLORS: Record<string, string> = {
+  independent: "bg-green-100 text-green-700",
+  standard: "bg-blue-100 text-blue-700",
+  enhanced: "bg-amber-100 text-amber-700",
+  intensive: "bg-red-100 text-red-700",
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  high: "bg-red-100 text-red-700",
+  medium: "bg-amber-100 text-amber-700",
+  low: "bg-green-100 text-green-700",
+};
+
+function SupportPlanTab({ candidateId, candidateName }: { candidateId: string; candidateName: string }) {
+  const [plan, setPlan] = useState<SupportPlan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<{ id: string; full_name: string; email: string }[]>([]);
+  const [selectedShareUsers, setSelectedShareUsers] = useState<string[]>([]);
+  const [sharing, setSharing] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/support-plans?candidate_id=${candidateId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setPlan(data[0]);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [candidateId]);
+
+  async function generatePlan() {
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/pipeline/support-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-secret": "" },
+        body: JSON.stringify({ candidate_id: candidateId }),
+      });
+      if (res.ok) {
+        // Refetch
+        const data = await fetch(`/api/support-plans?candidate_id=${candidateId}`).then((r) => r.json());
+        if (Array.isArray(data) && data.length > 0) setPlan(data[0]);
+      }
+    } catch { /* ignore */ }
+    setGenerating(false);
+  }
+
+  async function toggleChecklist(itemId: string, completed: boolean) {
+    if (!plan) return;
+    await fetch("/api/support-plans/checklist", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan_id: plan.id, item_id: itemId, completed }),
+    });
+    // Optimistic update
+    setPlan((p) => {
+      if (!p) return p;
+      return {
+        ...p,
+        checklist_items: p.checklist_items.map((item) =>
+          item.id === itemId ? { ...item, completed, completed_at: completed ? new Date().toISOString() : null } : item
+        ),
+      };
+    });
+  }
+
+  async function finalizePlan() {
+    if (!plan) return;
+    const res = await fetch("/api/support-plans", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: plan.id, status: "finalized" }),
+    });
+    if (res.ok) {
+      setPlan((p) => p ? { ...p, status: "finalized" } : p);
+    }
+  }
+
+  async function openShare() {
+    setShowShare(true);
+    // Fetch team members with grade_dean or learning_specialist roles
+    const res = await fetch("/api/school/team");
+    const data = await res.json();
+    setTeamMembers(Array.isArray(data) ? data : []);
+  }
+
+  async function sharePlan() {
+    if (!plan || selectedShareUsers.length === 0) return;
+    setSharing(true);
+    await fetch("/api/support-plans/share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan_id: plan.id, user_ids: selectedShareUsers }),
+    });
+    setPlan((p) => p ? { ...p, status: "shared", shared_at: new Date().toISOString() } : p);
+    setSharing(false);
+    setShowShare(false);
+  }
+
+  if (loading) return <p className="py-8 text-center text-muted">Loading support plan...</p>;
+
+  if (!plan) {
+    return (
+      <div className="rounded-lg border border-dashed border-lift-border p-8 text-center">
+        <p className="text-sm text-muted">Plan will be generated when this candidate is admitted.</p>
+        <button
+          onClick={generatePlan}
+          disabled={generating}
+          className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+        >
+          {generating ? "Generating Plan..." : "Generate Support Plan"}
+        </button>
+      </div>
+    );
+  }
+
+  const checklistDone = plan.checklist_items.filter((i) => i.completed).length;
+  const checklistTotal = plan.checklist_items.length;
+  const week12Items = plan.checklist_items.filter((i) => i.phase === "week_1_2");
+  const month1Items = plan.checklist_items.filter((i) => i.phase === "month_1");
+
+  return (
+    <div className="space-y-6">
+      {/* Header with support level + status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className={`rounded-full px-3 py-1 text-sm font-semibold capitalize ${SUPPORT_LEVEL_COLORS[plan.support_level] ?? "bg-gray-100 text-gray-700"}`}>
+            {plan.support_level} Support
+          </span>
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+            plan.status === "shared" ? "bg-primary/10 text-primary" : plan.status === "finalized" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+          }`}>
+            {plan.status}
+          </span>
+          {checklistTotal > 0 && (
+            <span className="text-xs text-muted">{checklistDone}/{checklistTotal} items completed</span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {plan.status === "draft" && (
+            <button onClick={finalizePlan} className="rounded-lg bg-success px-3 py-1.5 text-xs font-medium text-white hover:bg-success/90">
+              Finalize Plan
+            </button>
+          )}
+          {(plan.status === "finalized" || plan.status === "shared") && (
+            <button onClick={openShare} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90">
+              Share with Team
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Flag for early review */}
+      {plan.flag_for_early_review && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">⚠ Flagged for Early Review</p>
+          <p className="mt-1 text-xs text-amber-700">This student&apos;s profile suggests they may benefit from an early check-in before the standard 30-day mark.</p>
+        </div>
+      )}
+
+      {/* Week 1-2 Actions (interactive checklist) */}
+      <div className="rounded-lg border border-lift-border bg-surface p-4">
+        <h3 className="mb-3 text-sm font-semibold text-lift-text">Week 1-2 Actions</h3>
+        <div className="space-y-2">
+          {week12Items.length > 0 ? week12Items.map((item) => (
+            <label key={item.id} className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={item.completed}
+                onChange={(e) => toggleChecklist(item.id, e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary accent-primary"
+              />
+              <span className={`text-sm ${item.completed ? "text-muted line-through" : "text-lift-text"}`}>
+                {item.text}
+              </span>
+            </label>
+          )) : (plan.week_1_2_actions ?? []).map((action, i) => (
+            <p key={i} className="text-sm text-lift-text">• {action}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Month 1 Priorities (interactive checklist) */}
+      <div className="rounded-lg border border-lift-border bg-surface p-4">
+        <h3 className="mb-3 text-sm font-semibold text-lift-text">Month 1 Priorities</h3>
+        <div className="space-y-2">
+          {month1Items.length > 0 ? month1Items.map((item) => (
+            <label key={item.id} className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={item.completed}
+                onChange={(e) => toggleChecklist(item.id, e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary accent-primary"
+              />
+              <span className={`text-sm ${item.completed ? "text-muted line-through" : "text-lift-text"}`}>
+                {item.text}
+              </span>
+            </label>
+          )) : (plan.month_1_priorities ?? []).map((p, i) => (
+            <p key={i} className="text-sm text-lift-text">• {p}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Month 2-3 Checkpoints */}
+      <div className="rounded-lg border border-lift-border bg-surface p-4">
+        <h3 className="mb-3 text-sm font-semibold text-lift-text">Month 2-3 Checkpoints</h3>
+        <div className="space-y-2">
+          {(plan.month_2_3_checkpoints ?? []).map((cp, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <div className="mt-1.5 h-2 w-2 rounded-full bg-primary/40 shrink-0" />
+              <p className="text-sm text-lift-text">{cp}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recommended Resources */}
+      {(plan.recommended_resources ?? []).length > 0 && (
+        <div className="rounded-lg border border-lift-border bg-surface p-4">
+          <h3 className="mb-3 text-sm font-semibold text-lift-text">Recommended Resources</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(plan.recommended_resources as RecommendedResource[]).map((r, i) => (
+              <div key={i} className="rounded-lg border border-lift-border p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-lift-text">{r.name}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${PRIORITY_COLORS[r.priority] ?? "bg-gray-100 text-gray-600"}`}>
+                    {r.priority}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted capitalize">{r.resource_type?.replace("_", " ")}</p>
+                <p className="mt-1 text-xs text-muted">{r.rationale}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Academic Accommodations */}
+      {(plan.academic_accommodations ?? []).length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-amber-800">Accommodations to Consider</h3>
+          <p className="mb-2 text-xs text-amber-600">These are suggestions — not automatic accommodations. Review with the appropriate team.</p>
+          <ul className="space-y-1">
+            {plan.academic_accommodations.map((a, i) => (
+              <li key={i} className="text-sm text-amber-800">• {a}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Social Integration Notes */}
+      {plan.social_integration_notes && (
+        <div className="rounded-lg border border-lift-border bg-surface p-4">
+          <h3 className="mb-2 text-sm font-semibold text-lift-text">Social Integration</h3>
+          <p className="text-sm text-lift-text leading-relaxed">{plan.social_integration_notes}</p>
+        </div>
+      )}
+
+      {/* Plan Narrative (for grade dean) */}
+      {plan.plan_narrative && (
+        <div className="rounded-lg border border-lift-border bg-surface p-4">
+          <h3 className="mb-2 text-sm font-semibold text-lift-text">Plan Narrative</h3>
+          <p className="text-sm text-lift-text leading-relaxed whitespace-pre-line">{plan.plan_narrative}</p>
+        </div>
+      )}
+
+      {/* Family Welcome Note */}
+      {plan.family_welcome_note && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-primary">Family Welcome Note</h3>
+          <p className="text-sm text-lift-text leading-relaxed">{plan.family_welcome_note}</p>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShare && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-lift-text">Share Support Plan</h3>
+            <p className="mt-1 text-sm text-muted">Select team members to share {candidateName}&apos;s support plan with.</p>
+            <div className="mt-4 max-h-48 space-y-2 overflow-y-auto">
+              {teamMembers.map((m) => (
+                <label key={m.id} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedShareUsers.includes(m.id)}
+                    onChange={(e) => {
+                      setSelectedShareUsers((prev) =>
+                        e.target.checked ? [...prev, m.id] : prev.filter((id) => id !== m.id)
+                      );
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 accent-primary"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-lift-text">{m.full_name}</span>
+                    <span className="ml-2 text-xs text-muted">{m.email}</span>
+                  </div>
+                </label>
+              ))}
+              {teamMembers.length === 0 && <p className="text-sm text-muted">No team members found.</p>}
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setShowShare(false)} className="rounded-lg border border-lift-border px-4 py-2 text-sm text-muted hover:bg-gray-50">
+                Cancel
+              </button>
+              <button
+                onClick={sharePlan}
+                disabled={sharing || selectedShareUsers.length === 0}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+              >
+                {sharing ? "Sharing..." : "Share"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {plan.shared_at && (
+        <p className="text-xs text-muted">Last shared: {new Date(plan.shared_at).toLocaleDateString()}</p>
+      )}
     </div>
   );
 }

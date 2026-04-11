@@ -20,6 +20,10 @@
   "nav.all_cycles": "All Cycles",
   "nav.system_reports": "System Reports",
   "nav.sign_out": "Sign Out",
+  "nav.waitlist": "Waitlist",
+  "nav.reapplications": "Re-Applications",
+  "nav.accuracy": "Prediction Accuracy",
+  "nav.support_plans": "Support Plans",
 
   "login.title": "Sign In",
   "login.email": "Email",

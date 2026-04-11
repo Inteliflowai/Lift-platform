@@ -34,16 +34,17 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Update candidate status
+  const newStatus = decision === "admit" ? "admitted" : decision === "waitlist" ? "waitlisted" : "reviewed";
   await supabaseAdmin
     .from("candidates")
-    .update({ status: "reviewed" })
+    .update({ status: newStatus })
     .eq("id", candidate_id);
 
   await supabaseAdmin.from("candidate_status_history").insert({
     candidate_id,
     tenant_id,
     from_status: "completed",
-    to_status: "reviewed",
+    to_status: newStatus,
     changed_by: user.id,
     reason: `Final decision: ${decision}`,
   });
@@ -56,18 +57,27 @@ export async function POST(req: NextRequest) {
     payload: { decision, rationale },
   });
 
-  // If admit → trigger CORE handoff asynchronously
+  // If admit → trigger CORE handoff + support plan generation asynchronously
   if (decision === "admit") {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const internalHeaders = {
+      "Content-Type": "application/json",
+      "x-internal-secret": process.env.INTERNAL_API_SECRET!,
+    };
     fetch(`${baseUrl}/api/integrations/core-handoff`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-internal-secret": process.env.INTERNAL_API_SECRET!,
-      },
+      headers: internalHeaders,
       body: JSON.stringify({ candidate_id }),
     }).catch((err) => {
       console.error("CORE handoff trigger failed:", err);
+    });
+    // Generate support plan
+    fetch(`${baseUrl}/api/pipeline/support-plan`, {
+      method: "POST",
+      headers: internalHeaders,
+      body: JSON.stringify({ candidate_id }),
+    }).catch((err) => {
+      console.error("Support plan generation trigger failed:", err);
     });
   }
 
