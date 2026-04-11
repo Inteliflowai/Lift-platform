@@ -33,8 +33,8 @@ export default function BuySuccessPage() {
               <div>
                 <p className="text-sm font-medium text-white">Check your email</p>
                 <p className="mt-1 text-xs text-white/50">
-                  We sent you a password reset link to set up your account password.
-                  Click the link in the email, set your password, then log in to your dashboard.
+                  We sent your login credentials to your email. Use the temporary password
+                  to log in, then change it from Settings &gt; Account.
                 </p>
               </div>
             </div>

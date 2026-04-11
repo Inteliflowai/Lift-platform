@@ -192,8 +192,11 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
     }
   }
 
-  // Create new auth user with a random password (user will set via reset email)
-  const tempPassword = crypto.randomUUID() + "Aa1!";
+  // Create new auth user with a readable temp password
+  const words = ["Lift", "School", "Ready", "Bright", "Learn", "Start", "Grow", "Focus"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const num = Math.floor(1000 + Math.random() * 9000);
+  const tempPassword = `${word}${num}!`;
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email,
     password: tempPassword,
@@ -282,37 +285,38 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
       payload: { source: "stripe_guest_checkout", school_name: schoolName },
     });
 
-    // Generate password reset link and send via our own SMTP
+    // Send welcome email with temporary credentials
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://lift.inteliflowai.com";
-    const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-      options: { redirectTo: `${appUrl}/reset-password` },
-    });
+    const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
+    const { sendLiftEmail } = await import("@/lib/emails/send");
+    await sendLiftEmail({
+      to: email,
+      subject: `Welcome to LIFT — Your ${tierLabel} Account is Ready`,
+      tenantId: tenant.id,
+      content: `
+        <h2 style="margin:0 0 12px;font-size:20px;color:#1a1a2e">Welcome to LIFT!</h2>
+        <p>Hi ${fullName.split(" ")[0]},</p>
+        <p>Your <strong>${tierLabel}</strong> plan for <strong>${schoolName}</strong> is now active. Here are your login credentials:</p>
+        <div style="margin:20px 0;padding:20px;background:#f8f8fa;border-radius:8px;border:1px solid #e5e5e5">
+          <p style="margin:0 0 8px;font-size:13px;color:#6b7280">Email</p>
+          <p style="margin:0 0 16px;font-size:16px;font-weight:600;color:#1a1a2e">${email}</p>
+          <p style="margin:0 0 8px;font-size:13px;color:#6b7280">Temporary Password</p>
+          <p style="margin:0;font-size:16px;font-weight:600;color:#1a1a2e;font-family:monospace;letter-spacing:1px">${tempPassword}</p>
+        </div>
+        <div style="text-align:center;margin:28px 0">
+          <a href="${appUrl}/login" style="display:inline-block;padding:14px 32px;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
+            Log In to Your Dashboard
+          </a>
+        </div>
+        <p style="font-size:13px;color:#f59e0b;font-weight:600">&#9888; Please change your password after your first login via Settings &gt; Account.</p>
+        <p style="font-size:13px;color:#6b7280">If you have any questions, reply to this email or contact us at lift@inteliflowai.com.</p>
+      `,
+    }).catch((err) => console.error("[GuestPurchase] Welcome email failed:", err));
 
-    const resetUrl = linkData?.properties?.action_link;
-    if (resetUrl) {
-      const { sendLiftEmail } = await import("@/lib/emails/send");
-      await sendLiftEmail({
-        to: email,
-        subject: "Welcome to LIFT — Set Your Password",
-        tenantId: tenant.id,
-        content: `
-          <h2 style="margin:0 0 12px;font-size:20px;color:#1a1a2e">Welcome to LIFT!</h2>
-          <p>Hi ${fullName.split(" ")[0]},</p>
-          <p>Your <strong>${tier.charAt(0).toUpperCase() + tier.slice(1)}</strong> plan for <strong>${schoolName}</strong> is now active.</p>
-          <p>Click the button below to set your password and access your dashboard:</p>
-          <div style="text-align:center;margin:28px 0">
-            <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
-              Set Your Password
-            </a>
-          </div>
-          <p style="font-size:13px;color:#6b7280">This link expires in 24 hours. If it expires, visit <a href="${appUrl}/forgot-password">${appUrl}/forgot-password</a> to request a new one.</p>
-        `,
-      }).catch((err) => console.error("[GuestPurchase] Password email failed:", err));
-    } else {
-      console.error("[GuestPurchase] generateLink returned no action_link for", email);
-    }
+    // Flag user for password change on first login (via auth metadata)
+    await supabaseAdmin.auth.admin.updateUserById(userId, {
+      user_metadata: { must_change_password: true },
+    });
 
     // HL sync — purchased directly
     syncLicenseEventToHL({

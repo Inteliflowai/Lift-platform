@@ -122,6 +122,12 @@ export default async function DashboardLayout({
       <div className="min-h-screen bg-white text-[#1a1a2e]">
         <Sidebar role={primaryRole} allRoles={userRoles} userName={profile?.full_name} branding={branding} />
         <div className="ml-60 flex min-h-screen flex-col">
+          {user.user_metadata?.must_change_password && (
+            <div className="flex h-10 items-center justify-center gap-2 bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
+              You&apos;re using a temporary password.
+              <a href="/settings/account" className="underline hover:no-underline">Change it now →</a>
+            </div>
+          )}
           {isDemo && (
             <div className="flex h-10 items-center justify-center bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
               Demo Mode — All candidates and data on this account are synthetic. No real student information is present.

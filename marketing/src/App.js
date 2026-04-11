@@ -1013,6 +1013,7 @@ function PricingSection() {
       price: "$9,600",
       monthly: 800,
       features: [
+        "Everything in Essentials, plus:",
         "400 candidate sessions",
         "5 evaluator seats",
         "English + Portuguese reports",
@@ -1034,7 +1035,7 @@ function PricingSection() {
       features: [
         "Unlimited sessions",
         "Unlimited evaluator seats",
-        "Everything in Professional",
+        "Everything in Professional, plus:",
         "Cohort benchmarking network",
         "Outcome tracking & prediction accuracy",
         "Waitlist intelligence",
@@ -1119,12 +1120,15 @@ function PricingSection() {
             </div>
 
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px 0" }}>
-              {tier.features.map((f) => (
-                <li key={f} style={{ fontSize: 14, color: BRAND.muted, padding: "6px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
-                  <span style={{ color: BRAND.liftEmerald, fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>&#10003;</span>
-                  <span>{f}</span>
-                </li>
-              ))}
+              {tier.features.map((f) => {
+                const isHeader = f.endsWith(":");
+                return (
+                  <li key={f} style={{ fontSize: 14, color: isHeader ? BRAND.white : BRAND.muted, padding: "6px 0", display: "flex", gap: 8, alignItems: "flex-start", fontWeight: isHeader ? 600 : 400, marginTop: isHeader ? 4 : 0 }}>
+                    {!isHeader && <span style={{ color: BRAND.liftEmerald, fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>&#10003;</span>}
+                    <span>{f}</span>
+                  </li>
+                );
+              })}
             </ul>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {tier.popular ? (
