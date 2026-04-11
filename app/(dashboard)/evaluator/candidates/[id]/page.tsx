@@ -156,6 +156,23 @@ export default async function EvaluatorCandidateDetail({
     benchmarks = data;
   }
 
+  // Team members for assignment dropdown
+  const { data: teamMembers } = await supabaseAdmin
+    .from("user_tenant_roles")
+    .select("user_id, role, users(id, full_name, email)")
+    .eq("tenant_id", tenantId)
+    .in("role", ["evaluator", "interviewer", "school_admin"]);
+
+  // Current assignments for this candidate
+  const { data: assignments } = await supabaseAdmin
+    .from("candidate_assignments")
+    .select("id, assigned_to, assignment_type, status, users!assigned_to(full_name)")
+    .eq("candidate_id", params.id)
+    .eq("tenant_id", tenantId);
+
+  const { isPlatformAdmin, primaryRole } = await getTenantContext();
+  const isAdmin = isPlatformAdmin || primaryRole === "school_admin";
+
   return (
     <CandidateDetailClient
       candidate={candidate}
@@ -175,6 +192,9 @@ export default async function EvaluatorCandidateDetail({
       rubricSubmissions={rubricSubmissions ?? []}
       synthesis={synthesis}
       benchmarks={benchmarks}
+      teamMembers={teamMembers ?? []}
+      assignments={assignments ?? []}
+      isAdmin={isAdmin}
     />
   );
 }

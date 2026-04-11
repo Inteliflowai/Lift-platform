@@ -25,6 +25,7 @@ export function CandidateDetailClient({
   candidate, profile, sessions, responses, timingSignals, helpEvents,
   interactionSignals, sessionEvents, reviews, interviewNotes, inviteSentAt,
   tenantId, learningSupport, briefing, rubricSubmissions, synthesis, benchmarks,
+  teamMembers, assignments, isAdmin,
 }: {
   candidate: Record<string, unknown>;
   profile: Record<string, unknown> | null;
@@ -43,6 +44,9 @@ export function CandidateDetailClient({
   rubricSubmissions: Record<string, unknown>[];
   synthesis: Record<string, unknown> | null;
   benchmarks: Record<string, unknown> | null;
+  teamMembers?: unknown[];
+  assignments?: unknown[];
+  isAdmin?: boolean;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
@@ -51,12 +55,24 @@ export function CandidateDetailClient({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">
-        {candidate.first_name as string} {candidate.last_name as string}
-      </h1>
-      <p className="text-sm text-muted">
-        Grade {candidate.grade_applying_to as string} (Band {candidate.grade_band as string})
-      </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">
+            {candidate.first_name as string} {candidate.last_name as string}
+          </h1>
+          <p className="text-sm text-muted">
+            Grade {candidate.grade_applying_to as string} (Band {candidate.grade_band as string})
+            {candidate.gender ? <span className="ml-2 capitalize">{String(candidate.gender).replace("_", " ")}</span> : null}
+          </p>
+        </div>
+        {isAdmin && (
+          <AssignmentPanel
+            candidateId={candidate.id as string}
+            teamMembers={teamMembers ?? []}
+            assignments={assignments ?? []}
+          />
+        )}
+      </div>
 
       <div className="flex gap-1 border-b border-lift-border">
         {tabs.map((t) => (
@@ -871,6 +887,111 @@ function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmission
         candidateName={candidateName}
         onSubmitted={() => router.refresh()}
       />
+    </div>
+  );
+}
+
+function AssignmentPanel({
+  candidateId,
+  teamMembers,
+  assignments,
+}: {
+  candidateId: string;
+  teamMembers: unknown[];
+  assignments: unknown[];
+}) {
+  const [selectedUser, setSelectedUser] = useState("");
+  const [assigning, setAssigning] = useState(false);
+  const router = useRouter();
+
+  const members = teamMembers as { user_id: string; role: string; users: { id: string; full_name: string; email: string } }[];
+  const current = assignments as { id: string; assigned_to: string; assignment_type: string; status: string; users: { full_name: string } }[];
+
+  // Deduplicate members
+  const uniqueMembers = members.filter((m, i, arr) =>
+    arr.findIndex((x) => x.user_id === m.user_id) === i
+  );
+
+  const assignedIds = current.map((a) => a.assigned_to);
+
+  async function handleAssign() {
+    if (!selectedUser) return;
+    setAssigning(true);
+    await fetch("/api/school/assignments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        candidate_id: candidateId,
+        assigned_to: selectedUser,
+        assignment_type: "both",
+      }),
+    });
+    setAssigning(false);
+    setSelectedUser("");
+    router.refresh();
+  }
+
+  async function handleRemove(assignmentId: string) {
+    await fetch("/api/school/assignments", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignment_id: assignmentId }),
+    });
+    router.refresh();
+  }
+
+  return (
+    <div className="rounded-lg border border-lift-border bg-surface p-3 min-w-[240px]">
+      <p className="text-xs font-semibold text-muted mb-2">Assigned To</p>
+
+      {/* Current assignments */}
+      {current.length > 0 && (
+        <div className="space-y-1 mb-2">
+          {current.map((a) => (
+            <div key={a.id} className="flex items-center justify-between rounded-md bg-page-bg px-2 py-1">
+              <div>
+                <span className="text-xs font-medium">{a.users?.full_name ?? "Unknown"}</span>
+                <span className="ml-1.5 text-[9px] text-muted capitalize">{a.assignment_type}</span>
+              </div>
+              <button
+                onClick={() => handleRemove(a.id)}
+                className="text-[10px] text-review hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {current.length === 0 && (
+        <p className="text-[10px] text-muted mb-2">No one assigned yet</p>
+      )}
+
+      {/* Assign new */}
+      <div className="flex gap-1">
+        <select
+          value={selectedUser}
+          onChange={(e) => setSelectedUser(e.target.value)}
+          className="flex-1 rounded-md border border-lift-border bg-page-bg px-2 py-1 text-xs outline-none focus:border-primary"
+        >
+          <option value="">Select team member...</option>
+          {uniqueMembers
+            .filter((m) => !assignedIds.includes(m.user_id))
+            .map((m) => (
+              <option key={m.user_id} value={m.user_id}>
+                {m.users?.full_name ?? m.users?.email ?? "Unknown"}
+              </option>
+            ))}
+        </select>
+        <button
+          onClick={handleAssign}
+          disabled={!selectedUser || assigning}
+          className="rounded-md bg-primary px-2 py-1 text-[10px] font-medium text-white disabled:opacity-50"
+        >
+          {assigning ? "..." : "Assign"}
+        </button>
+      </div>
     </div>
   );
 }

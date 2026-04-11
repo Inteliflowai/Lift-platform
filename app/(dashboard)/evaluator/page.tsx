@@ -7,7 +7,28 @@ export const dynamic = "force-dynamic";
 export default async function EvaluatorDashboard() {
   const { tenantId, user } = await getTenantContext();
 
-  // Queue: requires review OR has in_progress review assigned to this evaluator
+  // My assignments (candidates assigned to me)
+  const { data: myAssignments } = await supabaseAdmin
+    .from("candidate_assignments")
+    .select("candidate_id, assignment_type, status, seen_at, created_at")
+    .eq("tenant_id", tenantId)
+    .eq("assigned_to", user.id)
+    .in("status", ["pending", "in_progress"]);
+
+  const assignedCandidateIds = (myAssignments ?? []).map((a) => a.candidate_id);
+  const newAssignments = (myAssignments ?? []).filter((a) => !a.seen_at).length;
+
+  // Mark assignments as seen
+  if (newAssignments > 0) {
+    await supabaseAdmin
+      .from("candidate_assignments")
+      .update({ seen_at: new Date().toISOString() })
+      .eq("assigned_to", user.id)
+      .eq("tenant_id", tenantId)
+      .is("seen_at", null);
+  }
+
+  // Queue: candidates assigned to me OR flagged for human review
   const { data: reviewCandidates } = await supabaseAdmin
     .from("insight_profiles")
     .select(
@@ -15,8 +36,13 @@ export default async function EvaluatorDashboard() {
     )
     .eq("tenant_id", tenantId)
     .eq("is_final", true)
-    .eq("requires_human_review", true)
     .order("generated_at", { ascending: false });
+
+  // Filter to only assigned candidates + flagged ones
+  const filteredReview = (reviewCandidates ?? []).filter((rc) => {
+    const cid = rc.candidate_id;
+    return assignedCandidateIds.includes(cid) || rc.requires_human_review;
+  });
 
   const { data: myReviews } = await supabaseAdmin
     .from("evaluator_reviews")
@@ -29,7 +55,7 @@ export default async function EvaluatorDashboard() {
     myReviews?.map((r) => r.candidate_id) ?? []
   );
 
-  // All candidates for all-candidates tab
+  // All candidates
   const { data: allCandidates } = await supabaseAdmin
     .from("candidates")
     .select(
@@ -40,9 +66,10 @@ export default async function EvaluatorDashboard() {
 
   return (
     <EvaluatorDashboardClient
-      reviewCandidates={reviewCandidates ?? []}
+      reviewCandidates={filteredReview}
       myReviewCandidateIds={Array.from(myReviewCandidateIds)}
       allCandidates={allCandidates ?? []}
+      newAssignmentCount={newAssignments}
     />
   );
 }

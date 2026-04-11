@@ -33,10 +33,12 @@ export function EvaluatorDashboardClient({
   reviewCandidates,
   myReviewCandidateIds,
   allCandidates,
+  newAssignmentCount,
 }: {
   reviewCandidates: ReviewCandidate[];
   myReviewCandidateIds: string[];
   allCandidates: AllCandidate[];
+  newAssignmentCount?: number;
 }) {
   const { t } = useLocale();
   const [tab, setTab] = useState<"queue" | "all">("queue");
@@ -77,6 +79,20 @@ export function EvaluatorDashboardClient({
 
   return (
     <div className="space-y-6">
+      {/* New assignment notification */}
+      {(newAssignmentCount ?? 0) > 0 && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-center gap-3">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+            {newAssignmentCount}
+          </span>
+          <p className="text-sm text-primary font-medium">
+            {newAssignmentCount === 1
+              ? "1 new candidate assigned to you"
+              : `${newAssignmentCount} new candidates assigned to you`}
+          </p>
+        </div>
+      )}
+
       <div className="flex gap-1 border-b border-lift-border">
         {(["queue", "all"] as const).map((t) => (
           <button

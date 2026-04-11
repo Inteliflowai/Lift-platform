@@ -56,17 +56,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User already has this role" }, { status: 409 });
   }
 
-  // Assign role
-  const { error: roleErr } = await supabaseAdmin
-    .from("user_tenant_roles")
-    .insert({
-      user_id: targetUserId,
-      tenant_id: tenantId,
-      role,
-      granted_by: user.id,
-    });
+  // Assign both evaluator + interviewer roles automatically
+  const rolesToAssign = (role === "evaluator" || role === "interviewer")
+    ? ["evaluator", "interviewer"]
+    : [role];
 
-  if (roleErr) return NextResponse.json({ error: roleErr.message }, { status: 500 });
+  for (const r of rolesToAssign) {
+    const { data: exists } = await supabaseAdmin
+      .from("user_tenant_roles")
+      .select("id")
+      .eq("user_id", targetUserId)
+      .eq("tenant_id", tenantId)
+      .eq("role", r)
+      .single();
+
+    if (!exists) {
+      await supabaseAdmin.from("user_tenant_roles").insert({
+        user_id: targetUserId,
+        tenant_id: tenantId,
+        role: r,
+        granted_by: user.id,
+      });
+    }
+  }
+
+  const roleErr = null; // roles assigned above
+  if (roleErr) return NextResponse.json({ error: "Failed" }, { status: 500 });
 
   // Generate magic link for login
   const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
