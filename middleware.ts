@@ -58,6 +58,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Force password change for guest-purchased accounts
+  if (
+    user.user_metadata?.must_change_password &&
+    !pathname.startsWith("/settings/account") &&
+    !pathname.startsWith("/api/")
+  ) {
+    return NextResponse.redirect(new URL("/settings/account?change_password=true", request.url));
+  }
+
   // Fetch role from public.users via user_tenant_roles
   const { data: roles } = await supabase
     .from("user_tenant_roles")

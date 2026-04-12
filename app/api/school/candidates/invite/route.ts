@@ -7,8 +7,35 @@ import { sendInviteEmail } from "@/lib/email";
 import { markOnboardingStep } from "@/lib/onboarding";
 import crypto from "crypto";
 
+async function cleanupDemoCandidates(tenantId: string) {
+  try {
+    // Check if any real (non-demo) candidates exist
+    const { count } = await supabaseAdmin
+      .from("candidates")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .not("last_name", "like", "%(Demo)%");
+
+    // If no real candidates yet, this is the first real invite — clean up demos
+    if (count === 0) {
+      await supabaseAdmin
+        .from("candidates")
+        .delete()
+        .eq("tenant_id", tenantId)
+        .like("last_name", "%(Demo)%");
+      console.log(`[demo] Cleaned up demo candidates for tenant ${tenantId}`);
+    }
+  } catch {
+    // Never fail on demo cleanup
+  }
+}
+
 export async function POST(req: NextRequest) {
   const { tenantId, tenant, user } = await getTenantContext();
+
+  // Auto-remove demo candidates on first real invite (non-blocking)
+  cleanupDemoCandidates(tenantId).catch(() => {});
+
   const body = await req.json();
   const {
     first_name,

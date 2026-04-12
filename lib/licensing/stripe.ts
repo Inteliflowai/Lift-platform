@@ -114,6 +114,19 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
     return;
   }
 
+  // Idempotency: check if this checkout session was already processed
+  const { data: existingEvent } = await supabaseAdmin
+    .from("license_events")
+    .select("id")
+    .eq("event_type", "guest_purchase_completed")
+    .contains("payload", { stripe_session_id: session.id })
+    .limit(1);
+
+  if (existingEvent && existingEvent.length > 0) {
+    console.log("[GuestPurchase] Already processed session:", session.id);
+    return;
+  }
+
   // Check if user already exists
   const { data: existingUsers } = await supabaseAdmin
     .from("users")
@@ -282,7 +295,7 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
       event_type: "guest_purchase_completed",
       to_tier: tier,
       to_status: "active",
-      payload: { source: "stripe_guest_checkout", school_name: schoolName },
+      payload: { source: "stripe_guest_checkout", school_name: schoolName, stripe_session_id: session.id },
     });
 
     // Send welcome email with temporary credentials

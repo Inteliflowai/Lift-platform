@@ -82,7 +82,10 @@ export default function AccountSettingsPage() {
       return;
     }
 
-    const { error: updateErr } = await supabase.auth.updateUser({ password: newPw });
+    const { error: updateErr } = await supabase.auth.updateUser({
+      password: newPw,
+      data: { must_change_password: false },
+    });
     setPwLoading(false);
 
     if (updateErr) {

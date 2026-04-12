@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
 import { upsertHLContact, addHLTags, moveHLPipelineStage } from "@/lib/highlevel/client";
 import { sendUpgradeRequestEmail } from "@/lib/email";
 
@@ -10,13 +11,33 @@ function getHLStages(): Record<string, string> {
   }
 }
 
+function verifyRequest(rawBody: string, signature: string | null, secret: string | null): boolean {
+  if (!secret) return false;
+  // Support both HMAC signature and legacy plain secret
+  if (signature) {
+    const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+    return signature === expected;
+  }
+  return false;
+}
+
 export async function POST(req: NextRequest) {
-  const secret = req.headers.get("x-hl-secret");
-  if (secret !== process.env.HL_INBOUND_SECRET) {
+  const secret = process.env.HL_INBOUND_SECRET;
+  const rawBody = await req.text();
+
+  // Accept HMAC signature (preferred) or legacy x-hl-secret header
+  const hmacSig = req.headers.get("x-hl-signature");
+  const legacySecret = req.headers.get("x-hl-secret");
+
+  const isValid = hmacSig
+    ? verifyRequest(rawBody, hmacSig, secret ?? null)
+    : legacySecret === secret;
+
+  if (!isValid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  const body = JSON.parse(rawBody);
   const {
     first_name,
     last_name,

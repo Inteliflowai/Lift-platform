@@ -101,8 +101,28 @@ export async function sendLiftEmail(email: LiftEmail): Promise<void> {
       html: fullHtml,
       bcc: email.bcc,
     });
+
+    // Log successful delivery
+    try {
+      await supabaseAdmin.from("email_logs").insert({
+        tenant_id: email.tenantId || null,
+        recipient: email.to,
+        subject: email.subject,
+        status: "sent",
+      });
+    } catch { /* never fail on logging */ }
   } catch (err) {
     console.error("[Email] Send failed:", err);
-    // Never throw — email failure should not crash calling code
+
+    // Log failed delivery
+    try {
+      await supabaseAdmin.from("email_logs").insert({
+        tenant_id: email.tenantId || null,
+        recipient: email.to,
+        subject: email.subject,
+        status: "failed",
+        error_message: err instanceof Error ? err.message : String(err),
+      });
+    } catch { /* never fail on logging */ }
   }
 }

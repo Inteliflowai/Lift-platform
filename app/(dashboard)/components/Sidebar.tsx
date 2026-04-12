@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -138,9 +139,31 @@ export function Sidebar({
 
   // Flatten for single-role users
   const isMultiRole = sections.length > 1;
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <aside className="sidebar-mesh fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-[#2a2a3a]">
+    <>
+    {/* Mobile hamburger button */}
+    <button
+      onClick={() => setMobileOpen(true)}
+      className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1e1b2e] border border-[#2a2a3a] text-white md:hidden"
+      aria-label="Open menu"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+    </button>
+    {/* Mobile overlay */}
+    {mobileOpen && (
+      <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setMobileOpen(false)} />
+    )}
+    <aside className={`sidebar-mesh fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-[#2a2a3a] transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
+      {/* Mobile close button */}
+      <button
+        onClick={() => setMobileOpen(false)}
+        className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-[#a0a0c0] hover:bg-[#2a2740] hover:text-white md:hidden"
+        aria-label="Close menu"
+      >
+        &times;
+      </button>
       {/* Logo */}
       <div className="flex flex-col items-center justify-center pt-6 pb-3">
         {branding?.logoDarkUrl || branding?.logoUrl ? (
@@ -189,6 +212,7 @@ export function Sidebar({
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setMobileOpen(false)}
                     title={item.desc}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all ${
                       active
@@ -248,5 +272,6 @@ export function Sidebar({
         </button>
       </div>
     </aside>
+    </>
   );
 }

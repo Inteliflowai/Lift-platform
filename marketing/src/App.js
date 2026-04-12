@@ -47,7 +47,7 @@ const BRAND = {
 };
 
 const HL_WEBHOOK_URL = "https://lift.inteliflowai.com/api/integrations/hl-inbound";
-const HL_INBOUND_SECRET = "LiftHL2026!Secret";
+const HL_INBOUND_SECRET = process.env.REACT_APP_HL_INBOUND_SECRET || "LiftHL2026!Secret";
 
 const NAV_ITEMS = [
   { label: "How It Works", href: "#how-it-works" },
