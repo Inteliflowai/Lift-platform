@@ -23,12 +23,89 @@ interface SyncLog {
 }
 
 const PROVIDERS = [
-  { id: "veracross", name: "Veracross", desc: "OAuth 2.0 client credentials", fields: ["client_id", "client_secret", "school_route"] },
-  { id: "blackbaud", name: "Blackbaud", desc: "SKY API with token refresh", fields: ["subscription_key", "access_token", "refresh_token", "school_id"] },
-  { id: "powerschool", name: "PowerSchool", desc: "REST API", fields: ["server_url", "client_id", "client_secret"] },
-  { id: "ravenna", name: "Ravenna", desc: "Ravenna Solutions API", fields: ["api_key", "school_slug"] },
-  { id: "webhook", name: "Webhook", desc: "Generic webhook with HMAC-SHA256", fields: ["url", "secret"] },
-  { id: "csv_manual", name: "CSV Manual", desc: "Export/import CSV files", fields: [] },
+  {
+    id: "veracross",
+    name: "Veracross",
+    desc: "OAuth 2.0 client credentials",
+    fields: ["client_id", "client_secret", "school_route"],
+    setup: [
+      "Log in to your Veracross Axiom portal",
+      "Go to System → API Management → OAuth Applications",
+      "Click \"Create Application\" — set scope to \"Admissions: Write\"",
+      "Copy the Client ID and Client Secret",
+      "Your School Route is the subdomain in your Veracross URL (e.g., \"hillside\" from hillside.veracross.com)",
+    ],
+    docsUrl: "https://community.veracross.com/s/article/API-Getting-Started",
+  },
+  {
+    id: "blackbaud",
+    name: "Blackbaud",
+    desc: "SKY API with token refresh",
+    fields: ["subscription_key", "access_token", "refresh_token", "school_id"],
+    setup: [
+      "Go to developer.sky.blackbaud.com and sign in",
+      "Navigate to My Applications → create or select your app",
+      "Copy your Subscription Key from the app profile",
+      "Under Authorization, generate an Access Token and Refresh Token",
+      "Your School ID is found in Blackbaud Admin → School Info → School ID",
+      "Note: tokens refresh automatically — LIFT handles this for you",
+    ],
+    docsUrl: "https://developer.sky.blackbaud.com/docs/getting-started",
+  },
+  {
+    id: "powerschool",
+    name: "PowerSchool",
+    desc: "REST API",
+    fields: ["server_url", "client_id", "client_secret"],
+    setup: [
+      "In PowerSchool Admin, go to System → System Settings → Plugin Management",
+      "Install or enable the REST API plugin if not already active",
+      "Go to Data Provider Configuration → create a new provider",
+      "Set permissions: Students — Read/Write",
+      "Copy the Client ID and Client Secret",
+      "Server URL is your PowerSchool instance URL (e.g., https://yourschool.powerschool.com)",
+    ],
+    docsUrl: "https://support.powerschool.com/developer/",
+  },
+  {
+    id: "ravenna",
+    name: "Ravenna",
+    desc: "Ravenna Solutions API",
+    fields: ["api_key", "school_slug"],
+    setup: [
+      "Log in to your Ravenna admin dashboard",
+      "Go to Settings → Integrations → API Access",
+      "Click \"Generate API Key\" and copy the key",
+      "Your School Slug is the identifier in your Ravenna URL (e.g., \"hillside-academy\" from hillside-academy.ravenna-hub.com)",
+      "Make sure API access is enabled for Applicant management",
+    ],
+    docsUrl: "https://ravenna-hub.com/support",
+  },
+  {
+    id: "webhook",
+    name: "Webhook",
+    desc: "Generic webhook with HMAC-SHA256",
+    fields: ["url", "secret"],
+    setup: [
+      "Enter the URL where LIFT should send candidate data when they are admitted",
+      "Create a shared secret — LIFT will sign each request with HMAC-SHA256",
+      "The signature is sent in the X-LIFT-Signature header",
+      "Your endpoint should verify the signature and return 200 OK",
+      "Payload includes: candidate info, TRI score, dimensions, and support level",
+    ],
+  },
+  {
+    id: "csv_manual",
+    name: "CSV Manual",
+    desc: "Export/import CSV files",
+    fields: [],
+    setup: [
+      "No configuration needed — use the Export and Import buttons below",
+      "Export generates a CSV of all admitted candidates with LIFT data",
+      "Available formats: Standard, Veracross, Blackbaud",
+      "Import accepts a CSV with an \"email\" column to match existing candidates",
+    ],
+  },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -309,6 +386,27 @@ export function IntegrationsClient() {
               Connect {PROVIDERS.find((p) => p.id === configModal)?.name}
             </h3>
             <p className="mt-1 text-sm text-muted">Enter your credentials. They will be encrypted before storage.</p>
+
+            {/* Setup instructions */}
+            {(() => {
+              const provider = PROVIDERS.find((p) => p.id === configModal);
+              return provider?.setup ? (
+                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                  <p className="mb-2 text-xs font-semibold text-primary">Setup Instructions</p>
+                  <ol className="space-y-1 text-xs text-muted list-decimal list-inside">
+                    {provider.setup.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
+                  {provider.docsUrl && (
+                    <a href={provider.docsUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs font-medium text-primary hover:underline">
+                      View official documentation →
+                    </a>
+                  )}
+                </div>
+              ) : null;
+            })()}
+
             <div className="mt-4 space-y-3">
               {PROVIDERS.find((p) => p.id === configModal)?.fields.map((field) => (
                 <div key={field}>
