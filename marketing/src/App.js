@@ -520,7 +520,7 @@ function StatsBar() {
   const stats = [
     { value: "6", label: "Readiness Dimensions" },
     { value: "3", label: "Grade Band Experiences" },
-    { value: "90+", label: "Learning Signals Captured" },
+    { value: "40+", label: "Learning Signals Captured" },
     { value: "45–75", label: "Minutes Per Session" },
   ];
   return (
@@ -647,7 +647,7 @@ function SignalsSection() {
           9 enriched behavioral signals. Not diagnoses — observations.
         </h2>
         <p style={{ fontSize: 17, color: BRAND.muted, maxWidth: 780, marginBottom: 48, lineHeight: 1.7 }}>
-          LIFT captures 90+ learning signals during each session and distills them into actionable behavioral observations across reading, writing, attention, and self-regulation. Every signal describes what was observed — never what&apos;s &quot;wrong.&quot; Each includes plain-language evidence and a specific recommendation for your team.
+          LIFT captures 40+ learning signals during each session and distills them into actionable behavioral observations across reading, writing, attention, and self-regulation. Every signal describes what was observed — never what&apos;s &quot;wrong.&quot; Each includes plain-language evidence and a specific recommendation for your team.
         </p>
         <div className="lift-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {signals.map((s) => (
