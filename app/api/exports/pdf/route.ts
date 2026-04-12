@@ -214,6 +214,11 @@ ${profile?.tri_summary ? `<p style="margin-top: 16px; font-style: italic; color:
     payload: { export_type: exportType, language },
   });
 
+  // Track trial event (non-blocking)
+  import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
+    trackTrialEvent(candidate.tenant_id, "pdf_downloaded", user.id).catch(() => {})
+  );
+
   return new NextResponse(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",

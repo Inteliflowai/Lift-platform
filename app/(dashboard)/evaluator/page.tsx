@@ -64,6 +64,11 @@ export default async function EvaluatorDashboard() {
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
+  // Track trial event (non-blocking)
+  import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
+    trackTrialEvent(tenantId, "evaluator_workspace_opened", user.id).catch(() => {})
+  );
+
   return (
     <EvaluatorDashboardClient
       reviewCandidates={filteredReview}

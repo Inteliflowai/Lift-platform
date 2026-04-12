@@ -170,8 +170,15 @@ export default async function EvaluatorCandidateDetail({
     .eq("candidate_id", params.id)
     .eq("tenant_id", tenantId);
 
-  const { isPlatformAdmin, primaryRole } = await getTenantContext();
+  const { isPlatformAdmin, primaryRole, user: ctxUser } = await getTenantContext();
   const isAdmin = isPlatformAdmin || primaryRole === "school_admin";
+
+  // Track trial events (non-blocking)
+  if (profile) {
+    import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
+      trackTrialEvent(tenantId, "tri_report_viewed", ctxUser.id).catch(() => {})
+    );
+  }
 
   return (
     <CandidateDetailClient

@@ -55,6 +55,11 @@ export async function POST(req: NextRequest) {
 
   markOnboardingStep(session.tenant_id, "session_completed").catch(() => {});
 
+  // Track trial event (non-blocking)
+  import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
+    trackTrialEvent(session.tenant_id, "first_candidate_completed").catch(() => {})
+  );
+
   // Trigger AI pipeline (fire-and-forget — don't block the candidate)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   fetch(`${baseUrl}/api/pipeline/run`, {

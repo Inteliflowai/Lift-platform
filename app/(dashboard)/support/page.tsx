@@ -5,7 +5,12 @@ import { SupportDashboardClient } from "./support-client";
 export const dynamic = "force-dynamic";
 
 export default async function SupportDashboardPage() {
-  const { tenantId } = await getTenantContext();
+  const { tenantId, user } = await getTenantContext();
+
+  // Track trial event (non-blocking)
+  import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
+    trackTrialEvent(tenantId, "support_plan_viewed", user.id).catch(() => {})
+  );
 
   // Fetch admitted candidates for this tenant
   const { data: candidates } = await supabaseAdmin

@@ -26,6 +26,7 @@ import {
   Target,
   HelpCircle,
   HeartHandshake,
+  Activity,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -36,6 +37,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Tenants", href: "/admin/tenants", icon: Building2 },
     { label: "Licenses", href: "/admin/licenses", icon: CreditCard },
     { label: "All Cycles", href: "/admin/cycles", icon: Calendar },
+    { label: "Trial Health", href: "/admin/trials", icon: Activity },
     { label: "System Reports", href: "/admin/reports", icon: BarChart2 },
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
@@ -111,6 +113,7 @@ export function Sidebar({
     "All Candidates": t("nav.all_candidates"),
     "Reports": t("nav.reports"),
     "My Cases": t("nav.my_cases"),
+    "Trial Health": t("nav.trial_health") || "Trial Health",
     "Tenants": t("nav.tenants"),
     "Licenses": t("nav.licenses"),
     "All Cycles": t("nav.all_cycles"),

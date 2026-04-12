@@ -144,5 +144,10 @@ export async function POST(req: NextRequest) {
 
   markOnboardingStep(tenantId, "candidate_invited").catch(() => {});
 
+  // Track trial event (non-blocking)
+  import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
+    trackTrialEvent(tenantId, "first_candidate_invited", user.id).catch(() => {})
+  );
+
   return NextResponse.json({ candidate, token }, { status: 201 });
 }

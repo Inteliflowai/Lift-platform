@@ -113,6 +113,13 @@ export default async function DashboardLayout({
     } catch {
       // License not found — use defaults (trial)
     }
+
+    // Track trial login event (non-blocking, first-occurrence-only via unique index)
+    if (licenseData.status === "trialing") {
+      import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
+        trackTrialEvent(tenantId, "day1_login", user.id).catch(() => {})
+      );
+    }
   }
 
   return (
