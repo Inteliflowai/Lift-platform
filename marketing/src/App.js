@@ -842,7 +842,7 @@ function PricingSection() {
       <div style={{ textAlign: "center", marginBottom: 48 }}>
         <Label>Pricing</Label>
         <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 12 }}>Simple annual pricing. No per-candidate fees.</h2>
-        <p style={{ fontSize: 17, color: BRAND.muted }}>Start with a 30-day free trial at Professional level. No credit card required.</p>
+        <p style={{ fontSize: 17, color: BRAND.muted }}>Start with a 30-day free trial with all Enterprise features. No credit card required.</p>
       </div>
       <div className="lift-pricing-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 32, alignItems: "start", maxWidth: 900, margin: "0 auto" }}>
         {tiers.map((tier) => (
@@ -893,7 +893,7 @@ function PricingSection() {
       </div>
       <Glass style={{ marginTop: 32, textAlign: "center", padding: "20px 32px", background: "rgba(99,102,241,0.10)", borderLeft: `4px solid ${BRAND.liftIndigo}`, maxWidth: 900, margin: "32px auto 0" }}>
         <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
-          <strong style={{ color: BRAND.white }}>Your 30-day trial includes all Professional features</strong> — full session engine, TRI scoring, evaluator intelligence, PDF reports, and more. No credit card required.
+          <strong style={{ color: BRAND.white }}>Your 30-day trial includes all Enterprise features</strong> — unlimited sessions, full session engine, TRI scoring, evaluator intelligence, SIS integrations, benchmarking, and more. No credit card required.
         </p>
       </Glass>
       <p style={{ textAlign: "center", fontSize: 14, color: BRAND.muted, marginTop: 24 }}>
