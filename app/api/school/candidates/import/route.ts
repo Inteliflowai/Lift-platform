@@ -51,9 +51,11 @@ export async function POST(req: NextRequest) {
   const language = (settings?.default_language as "en" | "pt") ?? "en";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const results: { row: number; status: string; error?: string; name?: string }[] = [];
   let created = 0;
   let skipped = 0;
+  const seenEmails = new Set<string>();
 
   for (let i = 0; i < candidates.length; i++) {
     const row = candidates[i];
@@ -69,6 +71,32 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
+    // Validate email format
+    const email = row.email.trim().toLowerCase();
+    if (!emailRegex.test(email)) {
+      results.push({
+        row: i + 1,
+        status: "error",
+        error: `Invalid email format: ${row.email}`,
+        name: `${row.first_name} ${row.last_name}`,
+      });
+      skipped++;
+      continue;
+    }
+
+    // Check for duplicate email within this batch
+    if (seenEmails.has(email)) {
+      results.push({
+        row: i + 1,
+        status: "skipped",
+        error: `Duplicate email in this import: ${email}`,
+        name: `${row.first_name} ${row.last_name}`,
+      });
+      skipped++;
+      continue;
+    }
+    seenEmails.add(email);
+
     // Validate grade
     const gradeNum = parseInt(String(row.grade_applying_to), 10);
     if (isNaN(gradeNum) || gradeNum < 6 || gradeNum > 11) {
@@ -82,7 +110,14 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    // Check for duplicate email
+    // Check for duplicate — by email OR by name in this tenant
+    const { data: existingByEmail } = await supabaseAdmin
+      .from("invites")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("sent_to_email", email)
+      .limit(1);
+
     const { data: existing } = await supabaseAdmin
       .from("candidates")
       .select("id")
@@ -92,11 +127,11 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .single();
 
-    if (existing) {
+    if (existing || (existingByEmail && existingByEmail.length > 0)) {
       results.push({
         row: i + 1,
         status: "skipped",
-        error: "Candidate already exists",
+        error: existing ? "Candidate with same name already exists" : `Email ${email} already has an invite`,
         name: `${row.first_name} ${row.last_name}`,
       });
       skipped++;

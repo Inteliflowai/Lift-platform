@@ -22,7 +22,8 @@ LIFT (Learning Insight for Transitions) is a non-diagnostic admissions insight p
 - `npx tsx scripts/get-hl-stages.ts` — Fetch HighLevel pipeline/stage IDs
 - `npx tsx scripts/generate-hl-snapshot.ts` — Regenerate HL snapshot JSON
 
-No test framework is configured.
+- `npm test` — Run Vitest test suite
+- `npm run test:watch` — Run tests in watch mode
 
 ## Tech Stack
 
@@ -36,6 +37,8 @@ No test framework is configured.
 - **Nodemailer** — SMTP email delivery (branded HTML templates)
 - **Archiver** — ZIP generation for FERPA data exports
 - **Lucide React** — Icons
+- **Sentry** — Error monitoring and performance tracking (`@sentry/nextjs`)
+- **Vitest** — Unit test framework (26 tests covering encryption, features, TRI, pricing)
 
 ## Architecture
 
@@ -113,9 +116,9 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 ### Licensing & Feature Gating
 
-`lib/licensing/` implements a 3-tier subscription system (Essentials $4,800/yr, Professional $9,600/yr, Enterprise $18,000/yr) + 30-day trial:
+`lib/licensing/` implements a 2-tier subscription system (Professional $12,000/yr, Enterprise $18,000/yr) + 30-day trial (all Enterprise features minus white label):
 
-- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions
+- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model
 - **`gate.ts`** — `checkFeature()`, `requireFeature()`, `checkSessionLimit()`
 - **`resolver.ts`** — License cache (5-min TTL) via `getLicense()` / `isLicenseActive()`
 - **`context.tsx`** — `LicenseProvider` + `useLicense()` hook
@@ -226,7 +229,47 @@ SQL files in `supabase/migrations/` numbered sequentially (001-018). `FULL_MIGRA
 
 ### Demo Mode
 
-New trial registrations get 3 demo candidates and task templates auto-seeded. `scripts/seed-pt-tasks.ts` seeds Portuguese task templates.
+New trial registrations get 3 demo candidates and task templates auto-seeded. Demo candidates auto-removed when school invites their first real candidate. `scripts/seed-pt-tasks.ts` seeds Portuguese task templates.
+
+### Support Plan Generator
+
+`/api/pipeline/support-plan` — When a candidate is admitted (via final_recommendations), LIFT generates a 90-day onboarding plan via Claude API. Plans include: week 1-2 actions, month 1 priorities, month 2-3 checkpoints, recommended resources (mapped to school's configured `support_resources`), academic accommodations, social integration notes, plan narrative, family welcome note. Interactive checklist with completion tracking. Plans can be finalized and shared with grade deans/learning specialists via email.
+
+### Outcome Tracking
+
+`OutcomesTab` on candidate detail — records academic year, term, GPA, standing, support services, retention. Shows LIFT prediction alongside actual outcomes for comparison. DB: `student_outcomes` table.
+
+### SIS Integrations (Enterprise)
+
+`lib/integrations/` — Adapter pattern for 5 SIS providers: Veracross (OAuth 2.0), Blackbaud (SKY API + auto token refresh), PowerSchool (REST), Ravenna (API key), Webhook (HMAC-SHA256). Generic CSV export/import fallback. Credentials encrypted via AES-256-GCM (`lib/crypto/encrypt.ts`, requires `ENCRYPTION_KEY` env var). Auto-syncs on admit decision. Settings UI at `/school/settings/integrations` with setup instructions per provider.
+
+### Trial Intelligence
+
+`lib/trial/` — Tracks trial school engagement events (first-occurrence-only via unique index on `trial_events`). 9 event types tracked: day1_login, first_candidate_invited, first_candidate_completed, evaluator_workspace_opened, tri_report_viewed, pdf_downloaded, support_plan_viewed, cohort_export_downloaded, evaluator_intelligence_opened. `trial_health` DB view computes health_status (healthy/at_risk), feature_depth_score (0-7), days_remaining. Auto-tags HL contacts on risk signals. Admin dashboard at `/admin/trials` with nudge button.
+
+### Enriched Learning Support Signals
+
+`lib/signals/enrichedSignals.ts` — 9 behavioral detectors run after existing boolean flags in pipeline Step 4b: Extended Reading Time, Repeated Passage Re-reading, High Written Expression Revision, Reasoning-Expression Gap, Limited Written Output, Variable Task Pacing, Task Completion Difficulty, Low Support-Seeking Under Challenge, Limited Metacognitive Expression. Each signal has severity (advisory/notable), category, description, evidence, recommendation. Stored as JSONB on `learning_support_signals.enriched_signals`. Therapeutic schools see additional disclaimer.
+
+### Guest Checkout (Direct Purchase)
+
+`/buy?tier=professional` — Public page that collects name/email/school, creates Stripe Checkout session without auth. On payment, webhook (`handleGuestPurchase`) creates: auth user with temp password, tenant, settings, task templates, license (active, not trial), demo candidates. Sends branded email with credentials. `must_change_password` flag in user metadata forces password change on first login (middleware redirect).
+
+### Mobile-Responsive Dashboard
+
+Sidebar is hidden on mobile with hamburger toggle button. Overlay + close button. Nav links close sidebar on tap. Main content uses `md:ml-60` for responsive layout.
+
+### Error Monitoring
+
+Sentry (`@sentry/nextjs`) configured for client, server, and edge. Global error page at `app/global-error.tsx` reports to Sentry. Requires `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT` env vars.
+
+### Email Delivery Logging
+
+`email_logs` table records every email sent via `sendLiftEmail` — recipient, subject, status (sent/failed), error message. Platform admins can query for delivery issues.
+
+### Admin System Audit
+
+`/admin/audit` — Cross-tenant audit log viewer for platform admins. Shows all actions with school name, user, action type, payload. Searchable + filterable by action type.
 
 ## Environment
 
@@ -234,23 +277,29 @@ Required: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_
 
 Voice/TTS: `OPENAI_API_KEY`. Email: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`. Pipeline security: `CRON_SECRET`, `INTERNAL_API_SECRET`.
 
-Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_ESSENTIALS`, `STRIPE_PRICE_ID_PROFESSIONAL`, `STRIPE_PRICE_ID_ENTERPRISE`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PROFESSIONAL`, `STRIPE_PRICE_ID_ENTERPRISE`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
 
 HighLevel: `HL_API_KEY`, `HL_LOCATION_ID`, `HL_PIPELINE_ID`, `HL_STAGE_IDS` (JSON), `HL_INBOUND_SECRET`.
 
 Locale/Branding: `LIFT_LOCALE` (en|pt), `LIFT_BRAND_NAME`, `LIFT_BRAND_TAGLINE`, `LIFT_HIDE_PRICING` (true|false).
 
+Sentry: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`.
+
+Encryption: `ENCRYPTION_KEY` (32-byte hex for AES-256-GCM, used by SIS credential encryption).
+
 Optional: `LIFT_TEAM_EMAIL`, `LIFT_DEV_MODE`.
 
 ## Evaluator Candidate Detail
 
-`app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 5 tabs:
+`app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 7 tabs (some conditional):
 
 - **Overview**: TRI gauge with explanation card, radar chart, dimension scores, briefing card, learning support panel
 - **Responses**: Task-by-task display of candidate's written responses, word counts, revision depth. Joined via `task_instances → response_text → response_features` (nested join — do NOT join response_features directly to task_instances)
 - **Signals**: Behavioral data with descriptions — avg time per task, reading time, hints, focus loss, session duration. Time-per-task bar chart. Session timeline with color-coded events. Info banner explaining what signals are.
 - **Evaluator Review**: AI Recommendation shown FIRST (dimension score bars, placement guidance, confidence). Then evaluator's own notes + tier selection (colored buttons). Override rationale only asked when tier actually differs from AI.
 - **Interview Notes**: Rubric scoring + interview synthesis
+- **Outcomes** (visible when candidate is completed/reviewed/admitted): Record GPA, standing, support services, retention
+- **Support Plan** (visible when candidate is admitted): AI-generated 90-day plan with interactive checklists
 
 The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension scores + `placement_guidance` text (not a structured tier/rationale format). The Review tab renders both formats.
 

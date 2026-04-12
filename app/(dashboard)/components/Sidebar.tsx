@@ -40,6 +40,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "All Cycles", href: "/admin/cycles", icon: Calendar },
     { label: "Trial Health", href: "/admin/trials", icon: Activity },
     { label: "System Reports", href: "/admin/reports", icon: BarChart2 },
+    { label: "System Audit", href: "/admin/audit", icon: ScrollText },
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
   school_admin: [
