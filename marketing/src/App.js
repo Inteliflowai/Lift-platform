@@ -627,6 +627,49 @@ function DimensionsSection() {
   );
 }
 
+/* ─── Enriched Signals Highlight ─── */
+
+function SignalsSection() {
+  const signals = [
+    { name: "Extended Reading Time", category: "Reading", desc: "Detects when a student spends significantly more time than expected on reading passages — may benefit from additional processing time." },
+    { name: "Reasoning–Expression Gap", category: "Writing", desc: "Strong reasoning performance alongside limited written output — the barrier may be expression, not understanding." },
+    { name: "Variable Task Pacing", category: "Attention", desc: "Highly variable time allocation across tasks — rushing some and spending disproportionate time on others." },
+    { name: "Low Support-Seeking", category: "Self-Regulation", desc: "Rarely used available hints when struggling — may benefit from explicit support-seeking strategies." },
+    { name: "Task Completion Difficulty", category: "Attention", desc: "Left multiple tasks incomplete — may reflect difficulty sustaining effort across longer academic experiences." },
+    { name: "Limited Metacognitive Expression", category: "Self-Regulation", desc: "Brief reflection responses that rarely reference the student's own thinking process." },
+  ];
+
+  return (
+    <div style={{ background: "rgba(139,92,246,0.08)", width: "100%" }}>
+      <Section>
+        <Label>Beyond scores</Label>
+        <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>
+          9 enriched behavioral signals. Not diagnoses — observations.
+        </h2>
+        <p style={{ fontSize: 17, color: BRAND.muted, maxWidth: 780, marginBottom: 48, lineHeight: 1.7 }}>
+          LIFT captures 90+ learning signals during each session and distills them into actionable behavioral observations across reading, writing, attention, and self-regulation. Every signal describes what was observed — never what&apos;s &quot;wrong.&quot; Each includes plain-language evidence and a specific recommendation for your team.
+        </p>
+        <div className="lift-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          {signals.map((s) => (
+            <Glass key={s.name} style={{ padding: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 600, background: "rgba(255,255,255,0.12)", color: BRAND.sky }}>{s.category}</span>
+              </div>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{s.name}</h3>
+              <p style={{ fontSize: 14, color: BRAND.muted, lineHeight: 1.6 }}>{s.desc}</p>
+            </Glass>
+          ))}
+        </div>
+        <Glass style={{ marginTop: 32, borderLeft: `4px solid ${BRAND.sky}`, background: "rgba(192,132,252,0.08)" }}>
+          <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
+            <strong style={{ color: BRAND.white }}>Every signal includes:</strong> a severity level (advisory or notable), the evidence from the session, and a specific recommendation — like whether to explore extended time, pre-writing scaffolds, or support-seeking strategies with the family. Included in Professional.
+          </p>
+        </Glass>
+      </Section>
+    </div>
+  );
+}
+
 /* ─── Enterprise Features ─── */
 
 function EnterpriseSection() {
@@ -791,17 +834,15 @@ function PricingSection() {
         "Full session engine — all grade bands 6–11",
         "Voice response + Passage reader TTS",
         "Transition Readiness Index (TRI)",
-        "6 readiness dimensions",
-        "Learning Support Signals panel",
+        "6 readiness dimensions + 9 enriched behavioral signals",
+        "Learning Support Signals panel with recommendations",
         "Evaluator Intelligence — briefings & rubric",
-        "AI-generated insight reports",
-        "PDF reports — internal, family summary, placement",
-        "CSV cohort export & full data export",
-        "Support Plan Generator",
-        "Outcome Tracking",
+        "AI-generated insight reports (internal, family, placement)",
+        "90-day Support Plan Generator for admitted students",
+        "Outcome Tracking — compare predictions vs actual performance",
+        "PDF + CSV export & FERPA-compliant data handling",
         "CORE integration bridge",
-        "Onboarding wizard",
-        "FERPA-compliant data handling",
+        "Guided onboarding wizard",
         "Email support",
       ],
       cta: "Start Free Trial",
@@ -1133,6 +1174,7 @@ export default function LiftLandingPage() {
       <ProblemSection />
       <HowItWorks />
       <DimensionsSection />
+      <SignalsSection />
       <YearRoundSection />
       <EnterpriseSection />
       <AudienceSection />
