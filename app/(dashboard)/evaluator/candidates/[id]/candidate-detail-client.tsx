@@ -25,7 +25,7 @@ export function CandidateDetailClient({
   candidate, profile, sessions, responses, timingSignals, helpEvents,
   interactionSignals, sessionEvents, reviews, interviewNotes, inviteSentAt,
   tenantId, learningSupport, briefing, rubricSubmissions, synthesis, benchmarks,
-  teamMembers, assignments, isAdmin,
+  teamMembers, assignments, isAdmin, schoolType,
 }: {
   candidate: Record<string, unknown>;
   profile: Record<string, unknown> | null;
@@ -47,6 +47,7 @@ export function CandidateDetailClient({
   teamMembers?: unknown[];
   assignments?: unknown[];
   isAdmin?: boolean;
+  schoolType?: string;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
@@ -98,6 +99,7 @@ export function CandidateDetailClient({
           )}
           <SupportPanel
             signal={learningSupport as Parameters<typeof SupportPanel>[0]["signal"]}
+            schoolType={schoolType}
             onView={() => {
               fetch("/api/audit-log", {
                 method: "POST",

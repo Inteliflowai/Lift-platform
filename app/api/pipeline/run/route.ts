@@ -165,6 +165,24 @@ export async function POST(req: NextRequest) {
     pipelineErrors.push({ step: "learning_support", error: err instanceof Error ? err.message : String(err) });
   }
 
+  // Step 4b: Enriched behavioral signals (non-blocking)
+  try {
+    const { computeEnrichedSignals } = await import("@/lib/signals/enrichedSignals");
+    const enrichedSignals = await computeEnrichedSignals(session_id);
+    if (enrichedSignals.length > 0) {
+      await supabaseAdmin
+        .from("learning_support_signals")
+        .update({
+          enriched_signals: enrichedSignals,
+          enriched_signal_count: enrichedSignals.length,
+          has_notable_signals: enrichedSignals.some((s) => s.severity === "notable"),
+        })
+        .eq("session_id", session_id);
+    }
+  } catch (err) {
+    pipelineErrors.push({ step: "enriched_signals", error: err instanceof Error ? err.message : String(err) });
+  }
+
   // Step 5: Evaluator briefing (non-blocking)
   try {
     await fetch(`${baseUrl}/api/pipeline/briefing`, {

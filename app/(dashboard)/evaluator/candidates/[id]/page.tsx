@@ -170,8 +170,9 @@ export default async function EvaluatorCandidateDetail({
     .eq("candidate_id", params.id)
     .eq("tenant_id", tenantId);
 
-  const { isPlatformAdmin, primaryRole, user: ctxUser } = await getTenantContext();
+  const { isPlatformAdmin, primaryRole, user: ctxUser, tenant } = await getTenantContext();
   const isAdmin = isPlatformAdmin || primaryRole === "school_admin";
+  const schoolType = (tenant as Record<string, unknown>)?.school_type as string | undefined;
 
   // Track trial events (non-blocking)
   if (profile) {
@@ -202,6 +203,7 @@ export default async function EvaluatorCandidateDetail({
       teamMembers={teamMembers ?? []}
       assignments={assignments ?? []}
       isAdmin={isAdmin}
+      schoolType={schoolType}
     />
   );
 }
