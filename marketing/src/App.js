@@ -812,7 +812,7 @@ function PricingSection() {
     {
       name: "Enterprise",
       price: "$18,000",
-      monthly: null,
+      monthly: 1500,
       features: [
         "Everything in Professional, plus:",
         "Unlimited candidate sessions",
@@ -861,19 +861,9 @@ function PricingSection() {
             )}
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: BRAND.white, marginBottom: 8 }}>{tier.name}</h3>
             <div style={{ marginBottom: 24 }}>
-              {tier.enterprise ? (
-                <>
-                  <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 40, fontWeight: 700, color: BRAND.white }}>$18,000</span>
-                  <span style={{ fontSize: 16, color: BRAND.muted }}>/year</span>
-                  <div style={{ marginTop: 6, fontSize: 14, color: BRAND.muted }}>Billed annually &middot; Contact us for multi-campus pricing</div>
-                </>
-              ) : (
-                <>
-                  <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 40, fontWeight: 700, color: BRAND.white }}>$1,000</span>
-                  <span style={{ fontSize: 16, color: BRAND.muted }}>/month</span>
-                  <div style={{ marginTop: 6, fontSize: 14, color: BRAND.muted }}>$12,000/year &middot; Billed annually</div>
-                </>
-              )}
+              <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 40, fontWeight: 700, color: BRAND.white }}>${tier.monthly?.toLocaleString()}</span>
+              <span style={{ fontSize: 16, color: BRAND.muted }}>/month</span>
+              <div style={{ marginTop: 6, fontSize: 14, color: BRAND.muted }}>{tier.price}/year &middot; Billed annually</div>
             </div>
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px 0" }}>
               {tier.features.map((f) => {
