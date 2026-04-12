@@ -520,6 +520,7 @@ function StatsBar() {
   const stats = [
     { value: "6", label: "Readiness Dimensions" },
     { value: "3", label: "Grade Band Experiences" },
+    { value: "90+", label: "Learning Signals Captured" },
     { value: "45–75", label: "Minutes Per Session" },
   ];
   return (
