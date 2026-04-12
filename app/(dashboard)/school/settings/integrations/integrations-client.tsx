@@ -26,6 +26,7 @@ const PROVIDERS = [
   { id: "veracross", name: "Veracross", desc: "OAuth 2.0 client credentials", fields: ["client_id", "client_secret", "school_route"] },
   { id: "blackbaud", name: "Blackbaud", desc: "SKY API with token refresh", fields: ["subscription_key", "access_token", "refresh_token", "school_id"] },
   { id: "powerschool", name: "PowerSchool", desc: "REST API", fields: ["server_url", "client_id", "client_secret"] },
+  { id: "ravenna", name: "Ravenna", desc: "Ravenna Solutions API", fields: ["api_key", "school_slug"] },
   { id: "webhook", name: "Webhook", desc: "Generic webhook with HMAC-SHA256", fields: ["url", "secret"] },
   { id: "csv_manual", name: "CSV Manual", desc: "Export/import CSV files", fields: [] },
 ];

@@ -20,4 +20,4 @@ export interface SISAdapter {
   pushCandidate(payload: CandidatePayload): Promise<{ external_id: string }>;
 }
 
-export type ProviderType = "veracross" | "blackbaud" | "powerschool" | "webhook" | "csv_manual";
+export type ProviderType = "veracross" | "blackbaud" | "powerschool" | "ravenna" | "webhook" | "csv_manual";

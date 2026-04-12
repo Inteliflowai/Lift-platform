@@ -3,6 +3,7 @@ import { VeracrossAdapter } from "./veracross";
 import { BlackbaudAdapter } from "./blackbaud";
 import { PowerSchoolAdapter } from "./powerschool";
 import { WebhookAdapter } from "./webhook";
+import { RavennaAdapter } from "./ravenna";
 import { decryptConfig } from "@/lib/crypto/encrypt";
 
 export function createAdapter(provider: ProviderType, encryptedConfig: string): SISAdapter {
@@ -27,6 +28,11 @@ export function createAdapter(provider: ProviderType, encryptedConfig: string): 
         server_url: string;
         client_id: string;
         client_secret: string;
+      });
+    case "ravenna":
+      return new RavennaAdapter(config as {
+        api_key: string;
+        school_slug: string;
       });
     case "webhook":
       return new WebhookAdapter(config as {

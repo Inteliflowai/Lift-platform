@@ -632,7 +632,7 @@ function DimensionsSection() {
 function EnterpriseSection() {
   const features = [
     { title: "White Label & Custom Branding", desc: "Run LIFT on your own domain with your school's logo, colors, and branding throughout. Candidates see your institution's identity — not ours. Emails, reports, and the candidate experience all reflect your brand.", color: BRAND.liftIndigo },
-    { title: "SIS Integrations", desc: "Connect LIFT directly to Veracross, Blackbaud, or PowerSchool. Candidate data flows automatically — no manual exports, no duplicate entry. Your admissions data lives where your team already works.", color: BRAND.orange },
+    { title: "SIS Integrations", desc: "Connect LIFT directly to Veracross, Blackbaud, PowerSchool, or Ravenna. Candidate data flows automatically — no manual exports, no duplicate entry. Your admissions data lives where your team already works.", color: BRAND.orange },
     { title: "Cohort Intelligence Dashboard", desc: "Multi-year trend analysis and year-over-year applicant pool comparison. See how your incoming class composition evolves across readiness dimensions, grade bands, and support needs — and use that intelligence to shape your next cycle.", color: BRAND.liftEmerald },
     { title: "Board-Ready Reporting", desc: "Executive summaries formatted for trustees, heads of school, and enrollment committees. Turn LIFT's session data into the kind of institutional narrative your leadership team can act on.", color: BRAND.sky },
     { title: "Custom Session Configuration", desc: "Add school-specific prompts, tasks, or reflection questions to the candidate experience. Enterprise schools can shape the session to surface signals that matter most to their specific admissions philosophy.", color: BRAND.magenta },
@@ -818,7 +818,7 @@ function PricingSection() {
         "Unlimited candidate sessions",
         "Unlimited evaluator seats",
         "White label — custom domain & full branding",
-        "SIS integrations (Veracross, Blackbaud, PowerSchool)",
+        "SIS integrations (Veracross, Blackbaud, PowerSchool, Ravenna)",
         "Cohort Intelligence Dashboard",
         "Board-ready executive reporting",
         "Custom session configuration",
@@ -948,7 +948,7 @@ function FAQSection() {
     { q: "Which grade levels does LIFT support?", a: "LIFT currently supports Grades 6-11 across three grade band experiences. Each band uses age-appropriate tasks, language, and UX adapted to the developmental stage of the student." },
     { q: "Can candidates complete LIFT on a mobile device?", a: "Yes. LIFT is a progressive web app (PWA) that works on any device with a modern browser. It supports offline mode for areas with unreliable connectivity — responses sync automatically when the connection is restored." },
     { q: "How does LIFT handle student data privacy?", a: "LIFT follows FERPA, COPPA, and GDPR best practices. All data is encrypted in transit and at rest. Each school's data is isolated via per-tenant database policies. Audio recordings from voice responses are deleted after transcription by default." },
-    { q: "Does LIFT integrate with our existing systems?", a: "LIFT includes a CORE integration bridge for post-admissions handoff. Enterprise plans include SIS integrations with Veracross, Blackbaud, and PowerSchool, plus API access for custom integrations. All plans include CSV and PDF export." },
+    { q: "Does LIFT integrate with our existing systems?", a: "LIFT includes a CORE integration bridge for post-admissions handoff. Enterprise plans include SIS integrations with Veracross, Blackbaud, PowerSchool, and Ravenna, plus API access for custom integrations. All plans include CSV and PDF export." },
     { q: "Is white-labeling available?", a: "Yes, on the Enterprise plan. Schools can deploy LIFT on their own domain with full custom branding — logo, colors, and institutional identity throughout the candidate experience, reports, and emails." },
     { q: "What is the difference between Professional and Enterprise?", a: "Professional gives your team everything needed to run a complete admissions cycle — full session engine, TRI scoring, evaluator intelligence, reports, and support planning. Enterprise adds white label, SIS integrations, API access, a dedicated success manager, board-ready reporting, and custom session configuration. Most schools start with Professional." },
   ];
