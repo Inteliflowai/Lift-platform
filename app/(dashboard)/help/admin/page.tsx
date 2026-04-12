@@ -7,6 +7,7 @@ import {
   Shield,
   Trash2,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import {
   HelpSection,
@@ -28,6 +29,7 @@ export default function AdminHelp() {
     { id: "health", label: "License Health Dashboard" },
     { id: "revenue", label: "Revenue Report" },
     { id: "data-reset", label: "Data Reset & Deletion" },
+    { id: "trial-health", label: "Trial Health Intelligence" },
     { id: "upgrade-requests", label: "Handling Upgrade Requests" },
   ];
 
@@ -189,6 +191,50 @@ export default function AdminHelp() {
             <p className="text-xs text-muted">Cascading delete of everything: tenant, users, data, license. Cannot be undone. Cannot delete your own tenant.</p>
           </div>
         </div>
+      </HelpSection>
+
+      {/* Trial Health */}
+      <HelpSection id="trial-health" title="Trial Health Intelligence" icon={Activity}>
+        <WhereToFind path={["Sidebar", "Trial Health"]} />
+        <p className="text-sm text-muted">
+          Monitor the engagement health of all active trial schools in real time. Identify at-risk trials early and intervene before they expire unused.
+        </p>
+
+        <h3 className="text-sm font-semibold">Dashboard Overview</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">Total Trials</span> — Number of schools currently on an active trial.</p>
+          <p><span className="font-medium text-lift-text">Healthy</span> — Schools that have logged in, invited candidates, and are engaging with features.</p>
+          <p><span className="font-medium text-lift-text">At Risk</span> — Schools that haven&apos;t logged in within 24 hours of signup, haven&apos;t completed a session by day 7, or have low feature depth by day 14.</p>
+          <p><span className="font-medium text-lift-text">Avg Feature Depth</span> — Average number of features explored (out of 7) across all trial schools.</p>
+        </div>
+
+        <h3 className="mt-4 text-sm font-semibold">Table Columns</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">Days Left</span> — Days remaining in the trial. Red if under 7, amber if under 14.</p>
+          <p><span className="font-medium text-lift-text">Day 1 Login</span> — Whether the school admin logged in within 24 hours.</p>
+          <p><span className="font-medium text-lift-text">First Session</span> — Whether a candidate completed a session. Shows which day it happened.</p>
+          <p><span className="font-medium text-lift-text">Feature Depth</span> — Progress bar showing how many of 7 key features were explored. Hover to see which ones.</p>
+          <p><span className="font-medium text-lift-text">Candidates Run</span> — Total completed sessions for this school.</p>
+          <p><span className="font-medium text-lift-text">Health</span> — Healthy (green) or At Risk (red) pill badge.</p>
+        </div>
+
+        <h3 className="mt-4 text-sm font-semibold">Send Nudge</h3>
+        <p className="text-xs text-muted">
+          Click &quot;Nudge&quot; on any trial school to trigger a personal check-in email from HighLevel. The school admin receives a message from Marvin offering help and a call booking link.
+        </p>
+
+        <h3 className="mt-4 text-sm font-semibold">Automatic HL Workflows</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p>Trial events automatically tag HL contacts, triggering email workflows:</p>
+          <p><span className="font-medium text-lift-text">No Day 1 Login</span> — &quot;Did something go wrong?&quot; email after 2 hours.</p>
+          <p><span className="font-medium text-lift-text">At Risk (Day 7)</span> — &quot;Your trial needs one thing&quot; email encouraging a test session.</p>
+          <p><span className="font-medium text-lift-text">First Session Complete</span> — &quot;Here&apos;s what to look at next&quot; celebration + next steps.</p>
+          <p><span className="font-medium text-lift-text">Manual Nudge</span> — Personal check-in email from the co-founder.</p>
+        </div>
+
+        <Tip>
+          The best predictor of trial conversion is completing a first candidate session within the first 7 days. Focus your outreach on getting schools to that milestone.
+        </Tip>
       </HelpSection>
 
       {/* Upgrade Requests */}

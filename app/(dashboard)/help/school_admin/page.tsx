@@ -9,6 +9,10 @@ import {
   CreditCard,
   BarChart2,
   BookOpen,
+  HeartHandshake,
+  Target,
+  Plug,
+  Brain,
 } from "lucide-react";
 import {
   HelpSection,
@@ -33,6 +37,11 @@ export default function SchoolAdminHelp() {
     { id: "reports", label: t("help.settings.title") },
     { id: "settings", label: t("help.settings.title") },
     { id: "subscription", label: t("help.subscription.title") },
+    { id: "support-plans", label: "Support Plans" },
+    { id: "outcome-tracking", label: "Outcome Tracking" },
+    { id: "sis-integrations", label: "SIS Integrations" },
+    { id: "support-resources", label: "Support Resources" },
+    { id: "enriched-signals", label: "Enriched Learning Signals" },
     { id: "stats", label: t("help.stats.title") },
   ];
 
@@ -237,9 +246,8 @@ export default function SchoolAdminHelp() {
 
         <h3 className="text-sm font-semibold">Plans</h3>
         <div className="space-y-1.5 text-xs text-muted">
-          <p><span className="font-medium text-lift-text">Essentials ($4,800/yr)</span> — 150 sessions, 2 evaluator seats, core features.</p>
-          <p><span className="font-medium text-lift-text">Professional ($9,600/yr)</span> — 400 sessions, 5 seats, TRI scoring, Learning Support Signals, Evaluator Intelligence, Portuguese reports, voice features.</p>
-          <p><span className="font-medium text-lift-text">Enterprise ($18,000/yr)</span> — Unlimited sessions and seats, benchmarking network, outcome tracking, SIS integrations, white label, dedicated CSM.</p>
+          <p><span className="font-medium text-lift-text">Professional ($12,000/yr)</span> — 500 sessions, 5 evaluator seats, full session engine, TRI, Learning Support Signals, Evaluator Intelligence, support plans, outcome tracking, voice features.</p>
+          <p><span className="font-medium text-lift-text">Enterprise ($18,000/yr)</span> — Unlimited sessions and seats, white label, SIS integrations, cohort intelligence, board reporting, API access, dedicated CSM.</p>
           <p><span className="font-medium text-lift-text">Trial (30 days)</span> — All Enterprise features, capped at 25 sessions and 3 evaluator seats. No credit card required.</p>
         </div>
 
@@ -256,6 +264,169 @@ export default function SchoolAdminHelp() {
         <p className="text-sm text-muted">
           If you have an active subscription, click <strong>Manage Billing</strong> on the subscription page to access the Stripe Customer Portal where you can update payment methods, view invoices, or cancel.
         </p>
+      </HelpSection>
+
+      {/* Support Plans */}
+      <HelpSection id="support-plans" title="Support Plans" icon={HeartHandshake}>
+        <WhereToFind path={["Sidebar", "Support Plans"]} />
+        <p className="text-sm text-muted">
+          When a candidate is admitted, LIFT automatically generates a 90-day onboarding support plan tailored to their assessment profile and your school&apos;s available support resources.
+        </p>
+
+        <h3 className="text-sm font-semibold">How Plans Are Generated</h3>
+        <Steps steps={[
+          "A candidate receives an \"admit\" decision via the Evaluator Review tab.",
+          "LIFT's AI reads the candidate's insight profile, learning support signals, and your school's configured support resources.",
+          "A structured 90-day plan is generated with three phases: Week 1-2 Actions, Month 1 Priorities, and Month 2-3 Checkpoints.",
+          "The plan appears on the candidate's \"Support Plan\" tab in draft status.",
+        ]} />
+
+        <h3 className="mt-4 text-sm font-semibold">Using the Plan</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">Interactive Checklist</span> — Week 1-2 and Month 1 items are checkboxes. Check them off as your team completes each action.</p>
+          <p><span className="font-medium text-lift-text">Finalize Plan</span> — Click &quot;Finalize Plan&quot; when you&apos;re satisfied. This locks the plan for sharing.</p>
+          <p><span className="font-medium text-lift-text">Share with Team</span> — Share the plan with grade deans or learning specialists. They receive an email notification and can view the plan from their dashboard.</p>
+          <p><span className="font-medium text-lift-text">Support Level</span> — Each plan has a level: Independent, Standard, Enhanced, or Intensive. This is determined by the AI based on the candidate&apos;s profile.</p>
+        </div>
+
+        <h3 className="mt-4 text-sm font-semibold">Plan Sections</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">Recommended Resources</span> — Mapped to your school&apos;s configured support resources with priority levels.</p>
+          <p><span className="font-medium text-lift-text">Academic Accommodations</span> — Suggestions to consider (not automatic). Shown in an amber callout.</p>
+          <p><span className="font-medium text-lift-text">Social Integration Notes</span> — Guidance for the student&apos;s social transition.</p>
+          <p><span className="font-medium text-lift-text">Plan Narrative</span> — A written summary for the grade dean about this student&apos;s transition needs.</p>
+          <p><span className="font-medium text-lift-text">Family Welcome Note</span> — A warm paragraph for the family about onboarding support.</p>
+        </div>
+
+        <Warning>
+          Support plans are AI-generated recommendations. They should be reviewed and customized by your team before sharing with families. The &quot;Flag for Early Review&quot; banner means the AI suggests checking in before the standard 30-day mark.
+        </Warning>
+      </HelpSection>
+
+      {/* Outcome Tracking */}
+      <HelpSection id="outcome-tracking" title="Outcome Tracking" icon={Target}>
+        <WhereToFind path={["Candidate Detail", "Outcomes tab"]} />
+        <p className="text-sm text-muted">
+          Track how admitted students actually perform after enrollment. Record GPA, academic standing, support needs, and retention data — then compare against LIFT&apos;s original predictions.
+        </p>
+
+        <h3 className="text-sm font-semibold">Recording Outcomes</h3>
+        <Steps steps={[
+          "Open a candidate's detail page and navigate to the \"Outcomes\" tab.",
+          "The tab appears for candidates with status: completed, reviewed, admitted, waitlisted, or offered.",
+          "Fill in the outcome form: academic year, term, GPA, academic standing, support services used, and advisor notes.",
+          "Click \"Save Outcome\" — you can record multiple outcomes across different terms.",
+        ]} />
+
+        <h3 className="mt-4 text-sm font-semibold">What to Record</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">GPA & Scale</span> — Enter the GPA and select the scale (4.0, 5.0, or 100).</p>
+          <p><span className="font-medium text-lift-text">Academic Standing</span> — Excellent, Good, Satisfactory, Needs Support, or Probation.</p>
+          <p><span className="font-medium text-lift-text">Social Adjustment</span> — Well Integrated, Developing, or Struggling.</p>
+          <p><span className="font-medium text-lift-text">Support Services</span> — Tutoring sessions/week, counseling engaged, learning support plan active, extracurricular engagement.</p>
+          <p><span className="font-medium text-lift-text">Retention</span> — Whether the student was retained or withdrew (with optional reason).</p>
+        </div>
+
+        <Tip>
+          The Outcomes tab also shows the candidate&apos;s original LIFT prediction (TRI score and label) alongside recorded outcomes so you can visually compare predicted readiness against actual performance.
+        </Tip>
+      </HelpSection>
+
+      {/* SIS Integrations */}
+      <HelpSection id="sis-integrations" title="SIS Integrations" icon={Plug}>
+        <WhereToFind path={["Sidebar", "Settings", "Integrations"]} />
+        <p className="text-sm text-muted">
+          Connect LIFT to your Student Information System. When a candidate is admitted, their record is automatically pushed to your SIS — no manual export needed. Available on the Enterprise plan.
+        </p>
+
+        <h3 className="text-sm font-semibold">Supported Systems</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">Veracross</span> — OAuth 2.0. You&apos;ll need your Client ID, Client Secret, and School Route from the Veracross Axiom portal.</p>
+          <p><span className="font-medium text-lift-text">Blackbaud</span> — SKY API. Requires Subscription Key, Access Token, Refresh Token, and School ID from developer.sky.blackbaud.com.</p>
+          <p><span className="font-medium text-lift-text">PowerSchool</span> — REST API. Requires Server URL, Client ID, and Client Secret from your PowerSchool admin panel.</p>
+          <p><span className="font-medium text-lift-text">Ravenna</span> — API Key and School Slug from Ravenna admin Settings → API Access.</p>
+          <p><span className="font-medium text-lift-text">Webhook</span> — Send candidate data to any URL with HMAC-SHA256 signature verification.</p>
+          <p><span className="font-medium text-lift-text">CSV Manual</span> — Export admitted candidates as CSV in Standard, Veracross, or Blackbaud format.</p>
+        </div>
+
+        <h3 className="mt-4 text-sm font-semibold">Connecting a Provider</h3>
+        <Steps steps={[
+          "Go to Settings → Integrations and click \"Connect\" on your SIS provider.",
+          "Follow the step-by-step setup instructions shown in the configuration modal.",
+          "Enter your credentials — they are encrypted before storage (AES-256-GCM).",
+          "Click \"Save & Connect\" then use \"Test\" to verify the connection works.",
+          "Once tested, the integration status changes to \"Active\" and will auto-sync on admissions.",
+        ]} />
+
+        <h3 className="mt-4 text-sm font-semibold">What Gets Synced</h3>
+        <p className="text-xs text-muted">
+          When a candidate is admitted, LIFT pushes: name, email, grade, gender, language preference, TRI score, readiness dimensions, support indicator level, and a link to their LIFT report.
+        </p>
+
+        <Tip>
+          If a sync fails, the school admin receives an email notification. You can retry failed syncs from the &quot;Retry Failed&quot; button in the sync log section.
+        </Tip>
+      </HelpSection>
+
+      {/* Support Resources */}
+      <HelpSection id="support-resources" title="Support Resources Configuration" icon={BookOpen}>
+        <WhereToFind path={["Sidebar", "Settings", "Resources"]} />
+        <p className="text-sm text-muted">
+          Configure the support resources available at your school. These are used when LIFT generates AI support plans for admitted candidates — the AI maps recommended support to your actual resources.
+        </p>
+
+        <h3 className="text-sm font-semibold">Setting Up Resources</h3>
+        <Steps steps={[
+          "Go to Settings → Resources. If this is your first time, you'll see starter suggestions (tutoring, learning specialist, peer mentor, counselor).",
+          "Click a suggestion to add it instantly, or click \"Add Resource\" to create your own.",
+          "For each resource, set: Name, Type (academic, social, counseling, learning support, enrichment, other), Description, and applicable grade levels.",
+          "Leave grade levels empty if the resource is available to all grades.",
+          "Toggle resources active/inactive as availability changes throughout the year.",
+        ]} />
+
+        <h3 className="mt-4 text-sm font-semibold">Resource Types</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">Academic</span> — Tutoring, academic coaching, study skills programs.</p>
+          <p><span className="font-medium text-lift-text">Social</span> — Peer mentoring, buddy programs, social groups.</p>
+          <p><span className="font-medium text-lift-text">Counseling</span> — School counselor, transition support, adjustment services.</p>
+          <p><span className="font-medium text-lift-text">Learning Support</span> — Learning specialists, reading specialists, assistive technology.</p>
+          <p><span className="font-medium text-lift-text">Enrichment</span> — Advanced programs, leadership opportunities, clubs.</p>
+        </div>
+
+        <Tip>
+          The more specific your resource descriptions, the better the AI can match them to candidate needs in support plans. &quot;Weekly 1:1 math tutoring with Mrs. Chen&quot; is more useful than &quot;math help.&quot;
+        </Tip>
+      </HelpSection>
+
+      {/* Enriched Learning Signals */}
+      <HelpSection id="enriched-signals" title="Enriched Learning Support Signals" icon={Brain}>
+        <WhereToFind path={["Candidate Detail", "Overview tab", "Learning Support Signals panel"]} />
+        <p className="text-sm text-muted">
+          LIFT now detects 9 nuanced behavioral patterns during candidate sessions. These are <strong>behavioral observations</strong>, not diagnoses — they describe what was observed during the session and recommend follow-up conversations.
+        </p>
+
+        <h3 className="text-sm font-semibold">Signal Categories</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-lift-text">Reading</span> — Extended reading time, repeated passage re-reading.</p>
+          <p><span className="font-medium text-lift-text">Writing</span> — High revision depth, reasoning-expression gap, limited written output.</p>
+          <p><span className="font-medium text-lift-text">Attention</span> — Variable task pacing, task completion difficulty.</p>
+          <p><span className="font-medium text-lift-text">Self-Regulation</span> — Low support-seeking under challenge, limited metacognitive expression.</p>
+        </div>
+
+        <h3 className="mt-4 text-sm font-semibold">Severity Levels</h3>
+        <div className="space-y-1.5 text-xs text-muted">
+          <p><span className="font-medium text-[#fbbf24]">Advisory</span> — Worth noting. A pattern was observed but may not require action. Could reflect a student&apos;s style rather than a need.</p>
+          <p><span className="font-medium text-[#f59e0b]">Notable</span> — Worth a conversation. The pattern was consistent enough to warrant follow-up with the family or a learning support professional.</p>
+        </div>
+
+        <h3 className="mt-4 text-sm font-semibold">How to Read the Panel</h3>
+        <p className="text-xs text-muted">
+          Each signal includes a plain-language description, the evidence observed (in italics), and a specific recommendation. The recommendation always suggests what to explore — never what to conclude.
+        </p>
+
+        <Warning>
+          LIFT does not diagnose learning disabilities or clinical conditions. These signals should be reviewed by a qualified learning support professional before any decisions are made. They are one input among many. For therapeutic schools, an additional disclaimer is displayed.
+        </Warning>
       </HelpSection>
 
       {/* Stats Explained */}
