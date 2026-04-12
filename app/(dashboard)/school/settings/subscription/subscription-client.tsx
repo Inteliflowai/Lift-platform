@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, Crown, Zap, Building2, Sparkles, ArrowRight } from "lucide-react";
+import { Check, Crown, Building2, Sparkles, ArrowRight } from "lucide-react";
 import { TIER_LIMITS, TIER_PRICING } from "@/lib/licensing/features";
 
 type Props = {
@@ -16,12 +16,12 @@ type Props = {
   hasStripeSubscription: boolean;
 };
 
-const TIER_ORDER = ["essentials", "professional", "enterprise"] as const;
+const TIER_ORDER = ["professional", "enterprise"] as const;
 
 const TIER_META: Record<
   string,
   {
-    icon: typeof Zap;
+    icon: typeof Crown;
     color: string;
     gradient: string;
     btnClass: string;
@@ -29,13 +29,6 @@ const TIER_META: Record<
     tagline: string;
   }
 > = {
-  essentials: {
-    icon: Zap,
-    color: "text-[#6366f1]",
-    gradient: "from-[#6366f1]/10 to-[#6366f1]/5",
-    btnClass: "bg-[#6366f1] hover:bg-[#4f46e5] text-white",
-    tagline: "For schools just getting started",
-  },
   professional: {
     icon: Crown,
     color: "text-[#f59e0b]",
@@ -54,38 +47,33 @@ const TIER_META: Record<
 };
 
 const PLAN_FEATURES: Record<string, string[]> = {
-  essentials: [
-    "150 sessions per year",
-    "2 evaluator seats",
-    "AI-powered insight profiles",
-    "Family summary reports",
-    "Placement guidance",
-    "Audit log",
+  professional: [
+    "500 candidate sessions per year",
+    "5 evaluator seats",
+    "Full session engine — all grade bands",
+    "Voice response & passage reader",
+    "TRI Score & Learning Support Signals",
+    "Evaluator Intelligence briefings & rubric",
+    "AI-generated insight reports (internal, family, placement)",
+    "Support Plan Generator",
+    "Outcome Tracking",
+    "CSV & PDF data export",
+    "CORE integration bridge",
+    "FERPA-compliant data handling",
     "Email support",
   ],
-  professional: [
-    "400 sessions per year",
-    "5 evaluator seats",
-    "Everything in Essentials, plus:",
-    "TRI Score & Learning Support Signals",
-    "Voice response & passage reader",
-    "Evaluator Intelligence briefings",
-    "English + Portuguese reports",
-    "CORE Integration",
-    "Priority email support",
-  ],
   enterprise: [
-    "Unlimited sessions",
-    "Unlimited seats",
     "Everything in Professional, plus:",
-    "Waitlist intelligence",
-    "Re-application intelligence",
-    "Outcome tracking & prediction accuracy",
-    "Support plan generator",
-    "Benchmarking network",
-    "SIS integrations",
-    "White label & custom branding",
-    "Dedicated CSM",
+    "Unlimited sessions & seats",
+    "White label — custom domain & branding",
+    "SIS integrations (Veracross, Blackbaud, PowerSchool)",
+    "Cohort Intelligence Dashboard",
+    "Board-ready executive reporting",
+    "Custom session configuration",
+    "API access",
+    "Cross-school benchmarking network",
+    "Re-application & waitlist intelligence",
+    "Dedicated Success Manager & SLA",
   ],
 };
 

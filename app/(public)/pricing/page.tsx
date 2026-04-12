@@ -1,29 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Check, Crown, Zap, Building2, ArrowRight } from "lucide-react";
+import { Check, Crown, Building2, ArrowRight } from "lucide-react";
 
 const TIERS = [
-  {
-    key: "essentials",
-    label: "Essentials",
-    icon: Zap,
-    color: "text-[#6366f1]",
-    gradient: "from-[#6366f1]/10 to-[#6366f1]/5",
-    border: "border-lift-border",
-    btnClass: "bg-[#6366f1] hover:bg-[#4f46e5] text-white",
-    tagline: "For schools just getting started",
-    price: 4800,
-    features: [
-      "150 sessions per year",
-      "2 evaluator seats",
-      "AI-powered insight profiles",
-      "Family summary reports",
-      "Placement guidance",
-      "Audit log",
-      "Email support",
-    ],
-  },
   {
     key: "professional",
     label: "Professional",
@@ -34,17 +14,21 @@ const TIERS = [
     btnClass: "bg-[#f59e0b] hover:bg-[#d97706] text-white",
     badge: "Most Popular",
     tagline: "Full platform with AI-powered insights",
-    price: 9600,
+    price: 12000,
     features: [
-      "400 sessions per year",
+      "500 candidate sessions per year",
       "5 evaluator seats",
-      "Everything in Essentials, plus:",
-      "TRI Score & Learning Support Signals",
+      "Full session engine — all grade bands",
       "Voice response & passage reader",
-      "Evaluator Intelligence briefings",
-      "English + Portuguese reports",
-      "CORE Integration",
-      "Priority email support",
+      "TRI Score & Learning Support Signals",
+      "Evaluator Intelligence briefings & rubric",
+      "AI-generated insight reports",
+      "Support Plan Generator",
+      "Outcome Tracking",
+      "CSV & PDF data export",
+      "CORE integration bridge",
+      "FERPA-compliant data handling",
+      "Email support",
     ],
   },
   {
@@ -58,15 +42,17 @@ const TIERS = [
     tagline: "For large schools and networks",
     price: 18000,
     features: [
-      "Unlimited sessions",
-      "Unlimited seats",
       "Everything in Professional, plus:",
-      "Benchmarking network",
-      "Outcome tracking",
-      "Waitlist intelligence",
-      "SIS integrations",
+      "Unlimited sessions & seats",
       "White label & custom branding",
-      "Dedicated CSM",
+      "SIS integrations",
+      "Cohort Intelligence Dashboard",
+      "Board-ready reporting",
+      "Custom session configuration",
+      "API access",
+      "Cross-school benchmarking network",
+      "Re-application & waitlist intelligence",
+      "Dedicated Success Manager & SLA",
     ],
   },
 ];
@@ -97,7 +83,7 @@ export default function PricingPage() {
       </p>
 
       {/* Plan Cards */}
-      <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 max-w-3xl mx-auto">
         {TIERS.map((t) => {
           const Icon = t.icon;
           return (

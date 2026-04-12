@@ -74,7 +74,6 @@ function buildMailtoUrl(formData, formType) {
 }
 
 async function submitToHL(formData, formType) {
-  // If webhook not configured yet, fall back to mailto
   if (!HL_WEBHOOK_URL || HL_WEBHOOK_URL.startsWith("REPLACE")) {
     window.open(buildMailtoUrl(formData, formType), "_blank");
     return true;
@@ -101,8 +100,6 @@ async function submitToHL(formData, formType) {
 /* ─── Global CSS injection ─── */
 
 function usePageStyles() {
-  /* Walk up the DOM from .lift-app and force every ancestor to full width.
-     This is the only reliable way to break out of arbitrary WP theme containers. */
   useEffect(() => {
     const app = document.querySelector(".lift-app");
     if (!app) return;
@@ -143,7 +140,6 @@ function usePageStyles() {
         background: ${BRAND.bg} !important;
       }
 
-      /* Hide WP header/footer/sidebar when LIFT is rendered */
       body:has(.lift-app) .site-header,
       body:has(.lift-app) .site-footer,
       body:has(.lift-app) .ast-above-header,
@@ -182,17 +178,12 @@ function usePageStyles() {
       .lift-app p { margin: 0; }
       .lift-app select option { color: #1a1a2e; background: #fff; }
 
-      /* Ensure all direct children of .lift-app stretch full width */
-      .lift-app > * {
-        width: 100%;
-      }
-      /* Sections center via margin auto — protect from WP overrides */
+      .lift-app > * { width: 100%; }
       .lift-app .lift-section {
         margin-left: auto !important;
         margin-right: auto !important;
       }
 
-      /* Keyframes */
       @keyframes lift-floatY {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-14px); }
@@ -214,7 +205,6 @@ function usePageStyles() {
         to { transform: translateX(100%); }
       }
 
-      /* Hover effects */
       .lift-card-hover {
         transition: transform 0.25s ease, box-shadow 0.25s ease;
       }
@@ -223,7 +213,6 @@ function usePageStyles() {
         box-shadow: 0 20px 60px rgba(18,8,43,0.35);
       }
 
-      /* Responsive */
       @media (max-width: 1024px) {
         .lift-hero-grid { grid-template-columns: 1fr !important; }
         .lift-hero-image-wrap { display: none !important; }
@@ -258,11 +247,7 @@ function usePageStyles() {
 
 function Section({ id, children, style, outerStyle }) {
   return (
-    <section
-      id={id}
-      className="lift-section"
-      style={{ width: "100%", ...outerStyle }}
-    >
+    <section id={id} className="lift-section" style={{ width: "100%", ...outerStyle }}>
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 40px", ...style }}>
         {children}
       </div>
@@ -386,9 +371,7 @@ function Header({ onOpen }) {
     <header
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
+        top: 0, left: 0, right: 0,
         zIndex: 1000,
         padding: "0 40px",
         height: 72,
@@ -447,16 +430,10 @@ function Header({ onOpen }) {
           className="lift-mobile-btn"
           onClick={onOpen}
           style={{
-            display: "none",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 44, height: 44,
-            background: BRAND.card,
-            border: `1px solid ${BRAND.line}`,
-            borderRadius: 10,
-            color: BRAND.white,
-            fontSize: 22,
-            cursor: "pointer",
+            display: "none", alignItems: "center", justifyContent: "center",
+            width: 44, height: 44, background: BRAND.card,
+            border: `1px solid ${BRAND.line}`, borderRadius: 10,
+            color: BRAND.white, fontSize: 22, cursor: "pointer",
           }}
           aria-label="Open menu"
         >
@@ -473,60 +450,27 @@ function MobileMenu({ open, onClose }) {
   return (
     <>
       {open && (
-        <div
-          onClick={onClose}
-          style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-            zIndex: 1100, transition: "opacity 0.3s",
-          }}
-        />
+        <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1100, transition: "opacity 0.3s" }} />
       )}
       <div
         style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: 300,
-          background: BRAND.bg,
-          zIndex: 1200,
+          position: "fixed", top: 0, right: 0, bottom: 0, width: 300,
+          background: BRAND.bg, zIndex: 1200,
           transform: open ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
-          display: "flex",
-          flexDirection: "column",
-          padding: 32,
+          display: "flex", flexDirection: "column", padding: 32,
           borderLeft: `1px solid ${BRAND.line}`,
         }}
       >
-        <button
-          onClick={onClose}
-          style={{
-            alignSelf: "flex-end", background: "none", border: "none",
-            color: BRAND.white, fontSize: 28, cursor: "pointer", marginBottom: 32,
-          }}
-          aria-label="Close menu"
-        >
-          &times;
-        </button>
+        <button onClick={onClose} style={{ alignSelf: "flex-end", background: "none", border: "none", color: BRAND.white, fontSize: 28, cursor: "pointer", marginBottom: 32 }} aria-label="Close menu">&times;</button>
         {NAV_ITEMS.map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            onClick={onClose}
-            target={item.external ? "_blank" : undefined}
-            rel={item.external ? "noopener noreferrer" : undefined}
-            style={{
-              color: BRAND.text, fontSize: 18, fontWeight: 500,
-              padding: "14px 0", borderBottom: `1px solid ${BRAND.line}`,
-            }}
-          >
+          <a key={item.label} href={item.href} onClick={onClose} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined}
+            style={{ color: BRAND.text, fontSize: 18, fontWeight: 500, padding: "14px 0", borderBottom: `1px solid ${BRAND.line}` }}>
             {item.label}{item.external ? " \u2197" : ""}
           </a>
         ))}
         <div style={{ marginTop: 32 }}>
-          <GradientButton href="https://lift.inteliflowai.com/register" style={{ width: "100%", textAlign: "center" }}>
-            Start Free Trial
-          </GradientButton>
+          <GradientButton href="https://lift.inteliflowai.com/register" style={{ width: "100%", textAlign: "center" }}>Start Free Trial</GradientButton>
         </div>
       </div>
     </>
@@ -540,71 +484,29 @@ function Hero() {
     <section style={{ position: "relative", overflow: "hidden", paddingTop: 72, width: "100%" }}>
       <Glow left={-120} top={-80} size={600} from={BRAND.sky} to={BRAND.magenta} />
       <Glow right={-100} top={-60} size={500} from={BRAND.orange} to={BRAND.purple} />
-
-      <div
-        className="lift-hero-grid"
-        style={{
-          maxWidth: 1280,
-          marginLeft: "auto",
-          marginRight: "auto",
-          padding: "100px 40px 80px",
-          display: "grid",
-          gridTemplateColumns: "1.02fr 0.98fr",
-          gap: 64,
-          alignItems: "center",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        {/* Left */}
+      <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "100px 40px 80px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
         <div>
           <Label>Admissions Intelligence for K-12 Schools</Label>
-          <h1
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 76,
-              lineHeight: 0.95,
-              letterSpacing: -2.8,
-              color: BRAND.white,
-              marginBottom: 28,
-              marginTop: 12,
-            }}
-          >
+          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 28, marginTop: 12 }}>
             See How Students Learn Before They Arrive.
           </h1>
           <p style={{ fontSize: 22, color: BRAND.text, marginBottom: 16, lineHeight: 1.5 }}>
-            LIFT is an AI-powered admissions insight platform for Grades 6–11. Reveal each
-            applicant's readiness patterns, learning behaviors, and transition signals — in a
-            single adaptive experience.
+            LIFT is an AI-powered admissions insight platform for Grades 6–11. Reveal each applicant's readiness patterns, learning behaviors, and transition signals — in a single adaptive experience.
           </p>
           <p style={{ fontSize: 18, color: BRAND.muted, marginBottom: 36, lineHeight: 1.6 }}>
-            From invitation to insight in under 75 minutes. Used by independent, boarding, and
-            therapeutic schools to make better admissions decisions, stronger placements, and more
-            confident transitions.
+            From invitation to insight in under 75 minutes. Used by independent, boarding, and therapeutic schools to make better admissions decisions, stronger placements, and more confident transitions.
           </p>
-
           <div className="lift-hero-buttons" style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
             <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
             <GlassButton href="#contact">Request a Demo</GlassButton>
           </div>
-
           <p style={{ fontSize: 13, color: BRAND.muted, lineHeight: 1.7 }}>
             30-day free trial &middot; No credit card required &middot; Non-diagnostic &middot; FERPA aligned &middot; COPPA aware
           </p>
         </div>
-
-        {/* Right */}
         <div className="lift-hero-image-wrap" style={{ display: "flex", justifyContent: "center" }}>
-          <Glass style={{
-            padding: 0, overflow: "hidden", borderRadius: 18,
-            animation: "lift-floatY 5s ease-in-out infinite",
-            boxShadow: BRAND.shadow,
-          }}>
-            <img
-              src={IMAGES.heroImage1}
-              alt="LIFT admissions insight"
-              style={{ width: "100%", display: "block", borderRadius: 18 }}
-            />
+          <Glass style={{ padding: 0, overflow: "hidden", borderRadius: 18, animation: "lift-floatY 5s ease-in-out infinite", boxShadow: BRAND.shadow }}>
+            <img src={IMAGES.heroImage1} alt="LIFT admissions insight" style={{ width: "100%", display: "block", borderRadius: 18 }} />
           </Glass>
         </div>
       </div>
@@ -618,22 +520,14 @@ function StatsBar() {
   const stats = [
     { value: "6", label: "Readiness Dimensions" },
     { value: "3", label: "Grade Band Experiences" },
-    { value: "EN + PT", label: "Languages Supported" },
+    { value: "45–75", label: "Minutes Per Session" },
   ];
   return (
     <div style={{ background: "rgba(255,255,255,0.08)", borderTop: `1px solid ${BRAND.line}`, borderBottom: `1px solid ${BRAND.line}`, width: "100%" }}>
-      <div
-        className="lift-stats-row"
-        style={{
-          maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "28px 40px",
-          display: "flex", justifyContent: "center", gap: 64, alignItems: "center",
-        }}
-      >
+      <div className="lift-stats-row" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "28px 40px", display: "flex", justifyContent: "center", gap: 64, alignItems: "center" }}>
         {stats.map((s, i) => (
           <div key={i} style={{ textAlign: "center" }}>
-            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 32, fontWeight: 700, color: BRAND.white }}>
-              {s.value}
-            </span>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 32, fontWeight: 700, color: BRAND.white }}>{s.value}</span>
             <span style={{ display: "block", fontSize: 14, color: BRAND.muted, marginTop: 4 }}>{s.label}</span>
           </div>
         ))}
@@ -658,9 +552,7 @@ function ProblemSection() {
       </h2>
       <div className="lift-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
         {cards.map((text, i) => (
-          <Glass key={i}>
-            <p style={{ fontSize: 16, color: BRAND.muted, lineHeight: 1.7 }}>{text}</p>
-          </Glass>
+          <Glass key={i}><p style={{ fontSize: 16, color: BRAND.muted, lineHeight: 1.7 }}>{text}</p></Glass>
         ))}
       </div>
     </Section>
@@ -673,34 +565,21 @@ function HowItWorks() {
   const steps = [
     { num: "1", title: "Invite", desc: "Send candidates a secure link. They complete LIFT's adaptive experience on any device — no download needed. Sessions take 45-75 minutes." },
     { num: "2", title: "Experience", desc: "LIFT serves age-appropriate reading, writing, reasoning, and reflection tasks. It captures not just answers — but how students approach them." },
-    { num: "3", title: "Insight", desc: "AI generates a Transition Readiness Index (TRI), scores across 6 readiness dimensions, and plain-language reports in English and Portuguese." },
+    { num: "3", title: "Insight", desc: "AI generates a Transition Readiness Index (TRI), scores across 6 readiness dimensions, and plain-language reports for your admissions team." },
     { num: "4", title: "Decide", desc: "Your team reviews with confidence. Pre-interview briefings, structured rubrics, and cohort comparisons make every decision more informed." },
   ];
   return (
     <div style={{ background: "rgba(99,102,241,0.08)", width: "100%" }}>
       <Section id="how-it-works">
         <Label>How it works</Label>
-        <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 48 }}>
-          From invitation to insight in four steps.
-        </h2>
+        <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 48 }}>From invitation to insight in four steps.</h2>
         <div className="lift-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
           {steps.map((step) => (
             <Glass key={step.num}>
               <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-                <div
-                  style={{
-                    width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
-                    background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "'Geist Mono', monospace", fontWeight: 700, fontSize: 20, color: BRAND.white,
-                  }}
-                >
-                  {step.num}
-                </div>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", flexShrink: 0, background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Geist Mono', monospace", fontWeight: 700, fontSize: 20, color: BRAND.white }}>{step.num}</div>
                 <div>
-                  <h3 style={{ fontSize: 22, fontWeight: 700, color: BRAND.white, marginBottom: 8, fontFamily: "'Playfair Display', serif" }}>
-                    {step.title}
-                  </h3>
+                  <h3 style={{ fontSize: 22, fontWeight: 700, color: BRAND.white, marginBottom: 8, fontFamily: "'Playfair Display', serif" }}>{step.title}</h3>
                   <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{step.desc}</p>
                 </div>
               </div>
@@ -726,33 +605,21 @@ function DimensionsSection() {
   return (
     <Section id="features">
       <Label>What LIFT measures</Label>
-      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>
-        Six dimensions of learning readiness.
-      </h2>
+      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>Six dimensions of learning readiness.</h2>
       <p style={{ fontSize: 17, color: BRAND.muted, maxWidth: 720, marginBottom: 48, lineHeight: 1.7 }}>
-        LIFT does not diagnose. It reveals how a student approaches academic tasks — the signals
-        that predict who will thrive with the right support.
+        LIFT does not diagnose. It reveals how a student approaches academic tasks — the signals that predict who will thrive with the right support.
       </p>
-
-      <div
-        className="lift-dimensions-grid"
-        style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 36 }}
-      >
+      <div className="lift-dimensions-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 36 }}>
         {dims.map((d) => (
           <Glass key={d.name} style={{ borderLeft: `4px solid ${d.color}` }}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>
-              {d.name}
-            </h3>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{d.name}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{d.desc}</p>
           </Glass>
         ))}
       </div>
-
       <Glass style={{ borderLeft: `4px solid ${BRAND.liftIndigo}`, background: "rgba(99,102,241,0.10)" }}>
         <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
-          <strong style={{ color: BRAND.white }}>LIFT is not a diagnostic tool.</strong> It does not
-          assess learning disabilities, clinical conditions, or protected traits. Results support
-          admissions review and must be interpreted by qualified school staff.
+          <strong style={{ color: BRAND.white }}>LIFT is not a diagnostic tool.</strong> It does not assess learning disabilities, clinical conditions, or protected traits. Results support admissions review and must be interpreted by qualified school staff.
         </p>
       </Glass>
     </Section>
@@ -763,57 +630,24 @@ function DimensionsSection() {
 
 function EnterpriseSection() {
   const features = [
-    {
-      title: "Waitlist Intelligence",
-      desc: "Automatically rank waitlisted candidates by TRI score. When a spot opens, you know exactly who to offer it to. Track offers, acceptances, and declines in real time — no more spreadsheets.",
-      color: BRAND.liftIndigo,
-    },
-    {
-      title: "Re-Application Intelligence",
-      desc: "When a candidate applies for a second time, LIFT automatically compares their current session to their prior one. See exactly what changed — which dimensions improved, which declined, and whether the overall readiness trajectory is positive. Evaluators get this context before the interview.",
-      color: BRAND.liftAmber,
-    },
-    {
-      title: "Outcome Tracking & Prediction Accuracy",
-      desc: "Record how admitted students actually perform after enrollment — GPA, academic standing, support needs, retention. LIFT compares these real outcomes against the TRI predictions it made, computing a prediction accuracy report that proves the platform's value to your board.",
-      color: BRAND.liftEmerald,
-    },
-    {
-      title: "Support Plan Generator",
-      desc: "For students flagged with Learning Support Signals, LIFT generates an onboarding-ready support plan: recommended interventions mapped to the specific patterns observed in their session. Hand this to your learning support team on day one — before the student even arrives on campus.",
-      color: BRAND.sky,
-    },
-    {
-      title: "Benchmarking Network",
-      desc: "Compare your school's admissions data against anonymized benchmarks from similar schools in the LIFT network. See how your applicant pool's readiness compares regionally and by school type.",
-      color: BRAND.magenta,
-    },
-    {
-      title: "White Label & Custom Branding",
-      desc: "Run LIFT on your own domain with your school's logo, colors, and branding throughout. Candidates see your institution's identity — not ours. Emails, reports, and the dashboard all reflect your brand.",
-      color: BRAND.orange,
-    },
+    { title: "White Label & Custom Branding", desc: "Run LIFT on your own domain with your school's logo, colors, and branding throughout. Candidates see your institution's identity — not ours. Emails, reports, and the candidate experience all reflect your brand.", color: BRAND.liftIndigo },
+    { title: "SIS Integrations", desc: "Connect LIFT directly to Veracross, Blackbaud, or PowerSchool. Candidate data flows automatically — no manual exports, no duplicate entry. Your admissions data lives where your team already works.", color: BRAND.orange },
+    { title: "Cohort Intelligence Dashboard", desc: "Multi-year trend analysis and year-over-year applicant pool comparison. See how your incoming class composition evolves across readiness dimensions, grade bands, and support needs — and use that intelligence to shape your next cycle.", color: BRAND.liftEmerald },
+    { title: "Board-Ready Reporting", desc: "Executive summaries formatted for trustees, heads of school, and enrollment committees. Turn LIFT's session data into the kind of institutional narrative your leadership team can act on.", color: BRAND.sky },
+    { title: "Custom Session Configuration", desc: "Add school-specific prompts, tasks, or reflection questions to the candidate experience. Enterprise schools can shape the session to surface signals that matter most to their specific admissions philosophy.", color: BRAND.magenta },
+    { title: "API Access & Dedicated Success Manager", desc: "Full API access for schools with their own tech teams. Plus a dedicated Inteliflow success manager who knows your school, your cycle, and your goals — with guaranteed SLA response times and priority support throughout the year.", color: BRAND.mint },
   ];
-
   return (
     <Section>
       <Label>Enterprise</Label>
-      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>
-        Advanced tools for data-driven admissions.
-      </h2>
+      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>The complete admissions intelligence platform.</h2>
       <p style={{ fontSize: 17, color: BRAND.muted, maxWidth: 720, marginBottom: 48, lineHeight: 1.7 }}>
-        Enterprise features give your admissions team intelligence that goes beyond the initial assessment — from waitlist management to post-enrollment outcome tracking.
+        Enterprise is for institutions that want LIFT to feel like their own — and to go deeper than any other admissions tool on the market.
       </p>
-
-      <div
-        className="lift-grid-2"
-        style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}
-      >
+      <div className="lift-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
         {features.map((f) => (
           <Glass key={f.title} style={{ borderLeft: `4px solid ${f.color}` }}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>
-              {f.title}
-            </h3>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{f.title}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{f.desc}</p>
           </Glass>
         ))}
@@ -834,30 +668,12 @@ function YearRoundSection() {
   return (
     <Section>
       <Label>More than admissions season</Label>
-      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 48 }}>
-        A platform your team uses all year.
-      </h2>
+      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 48 }}>A platform your team uses all year.</h2>
       <div className="lift-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
         {seasons.map((s) => (
           <Glass key={s.title}>
-            <span
-              style={{
-                display: "inline-block",
-                padding: "4px 14px",
-                borderRadius: 20,
-                background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`,
-                color: BRAND.white,
-                fontSize: 12,
-                fontWeight: 700,
-                marginBottom: 14,
-                letterSpacing: 0.5,
-              }}
-            >
-              {s.period}
-            </span>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>
-              {s.title}
-            </h3>
+            <span style={{ display: "inline-block", padding: "4px 14px", borderRadius: 20, background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`, color: BRAND.white, fontSize: 12, fontWeight: 700, marginBottom: 14, letterSpacing: 0.5 }}>{s.period}</span>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>{s.title}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{s.desc}</p>
           </Glass>
         ))}
@@ -878,15 +694,11 @@ function AudienceSection() {
   return (
     <Section>
       <Label>Who this is for</Label>
-      <h2 style={{ fontSize: 40, color: BRAND.white, marginBottom: 48 }}>
-        Built for schools that want to understand their candidates, not just rank them.
-      </h2>
+      <h2 style={{ fontSize: 40, color: BRAND.white, marginBottom: 48 }}>Built for schools that want to understand their candidates, not just rank them.</h2>
       <div className="lift-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
         {audiences.map((a) => (
           <Glass key={a.title}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 10 }}>
-              {a.title}
-            </h3>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 10 }}>{a.title}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{a.desc}</p>
           </Glass>
         ))}
@@ -910,12 +722,9 @@ function TransformationSection() {
       <div className="lift-transform-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 56, alignItems: "center" }}>
         <div>
           <Label>The shift</Label>
-          <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>
-            From guesswork &rarr; confidence
-          </h2>
+          <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>From guesswork &rarr; confidence</h2>
           <p style={{ fontSize: 16, color: BRAND.muted, lineHeight: 1.7 }}>
-            LIFT replaces fragmented admissions data with a structured, AI-assisted insight layer
-            that follows each candidate from application through onboarding.
+            LIFT replaces fragmented admissions data with a structured, AI-assisted insight layer that follows each candidate from application through onboarding.
           </p>
         </div>
         <Glass style={{ padding: 0, overflow: "hidden" }}>
@@ -947,40 +756,19 @@ function FoundersSection() {
       </div>
       <div className="lift-founders-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 32 }}>
         <Glass style={{ textAlign: "center" }}>
-          <img
-            src={IMAGES.barbaraImg}
-            alt="Barbara Leventhal"
-            style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }}
-          />
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>
-            Barbara Leventhal
-          </h3>
-          <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
-            Co-Founder &amp; Chief Learning Officer
-          </p>
+          <img src={IMAGES.barbaraImg} alt="Barbara Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }} />
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Barbara Leventhal</h3>
+          <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Co-Founder &amp; Chief Learning Officer</p>
           <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
-            With over 25 years in education across three countries, Barbara brings deep expertise
-            in curriculum design, student assessment, and learning support. Barbara leads LIFT's
-            pedagogical framework ensuring every dimension is grounded in decades of real
-            classroom insight.
+            With over 25 years in education across three countries, Barbara brings deep expertise in curriculum design, student assessment, and learning support. Barbara leads LIFT's pedagogical framework ensuring every dimension is grounded in decades of real classroom insight.
           </p>
         </Glass>
         <Glass style={{ textAlign: "center" }}>
-          <img
-            src={IMAGES.marvinImg}
-            alt="Marvin Leventhal"
-            style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }}
-          />
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>
-            Marvin Leventhal
-          </h3>
-          <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
-            Co-Founder &amp; CEO
-          </p>
+          <img src={IMAGES.marvinImg} alt="Marvin Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }} />
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Marvin Leventhal</h3>
+          <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Co-Founder &amp; CEO</p>
           <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
-            A technologist and entrepreneur with two decades of experience building platforms that
-            bridge complex systems. Marvin leads product strategy and engineering, ensuring LIFT
-            delivers real insight — not just data — to every school it serves.
+            A technologist and entrepreneur with two decades of experience building platforms that bridge complex systems. Marvin leads product strategy and engineering, ensuring LIFT delivers real insight — not just data — to every school it serves.
           </p>
         </Glass>
       </div>
@@ -993,57 +781,53 @@ function FoundersSection() {
 function PricingSection() {
   const tiers = [
     {
-      name: "Essentials",
-      price: "$4,800",
-      monthly: 400,
+      name: "Professional",
+      price: "$12,000",
+      monthly: 1000,
       features: [
-        "150 candidate sessions",
-        "2 evaluator seats",
+        "Up to 500 candidate sessions/year",
+        "5 evaluator seats",
+        "Full session engine — all grade bands 6–11",
+        "Voice response + Passage reader TTS",
+        "Transition Readiness Index (TRI)",
         "6 readiness dimensions",
-        "English reports",
+        "Learning Support Signals panel",
+        "Evaluator Intelligence — briefings & rubric",
+        "AI-generated insight reports",
+        "PDF reports — internal, family summary, placement",
+        "CSV cohort export & full data export",
+        "Support Plan Generator",
+        "Outcome Tracking",
+        "CORE integration bridge",
+        "Onboarding wizard",
+        "FERPA-compliant data handling",
         "Email support",
       ],
       cta: "Start Free Trial",
-      href: "https://lift.inteliflowai.com/register?tier=essentials",
-      popular: false,
-      enterprise: false,
-    },
-    {
-      name: "Professional",
-      price: "$9,600",
-      monthly: 800,
-      features: [
-        "Everything in Essentials, plus:",
-        "400 candidate sessions",
-        "5 evaluator seats",
-        "English + Portuguese reports",
-        "Transition Readiness Index (TRI)",
-        "Learning Support signals",
-        "Voice response + Passage reader",
-        "Evaluator Intelligence layer",
-        "CORE integration",
-        "Priority support",
-      ],
-      cta: "Start Free Trial",
-      href: "https://lift.inteliflowai.com/register?tier=professional",
+      href: "https://lift.inteliflowai.com/register",
       popular: true,
       enterprise: false,
     },
     {
       name: "Enterprise",
-      price: null,
+      price: "$18,000",
+      monthly: null,
       features: [
-        "Unlimited sessions",
-        "Unlimited evaluator seats",
         "Everything in Professional, plus:",
-        "Cohort benchmarking network",
-        "Outcome tracking & prediction accuracy",
-        "Waitlist intelligence",
+        "Unlimited candidate sessions",
+        "Unlimited evaluator seats",
+        "White label — custom domain & full branding",
+        "SIS integrations (Veracross, Blackbaud, PowerSchool)",
+        "Cohort Intelligence Dashboard",
+        "Board-ready executive reporting",
+        "Custom session configuration",
+        "API access",
+        "Dedicated Success Manager",
+        "SLA — guaranteed response times",
+        "Priority onboarding & training",
+        "Cross-school benchmarking network",
         "Re-application intelligence",
-        "Support plan generator",
-        "SIS integrations",
-        "White-label & custom branding",
-        "Dedicated Customer Success Manager",
+        "Waitlist intelligence",
       ],
       cta: "Contact Us",
       href: "mailto:lift@inteliflowai.com?subject=LIFT%20Enterprise%20Inquiry",
@@ -1056,69 +840,40 @@ function PricingSection() {
     <Section id="pricing">
       <div style={{ textAlign: "center", marginBottom: 48 }}>
         <Label>Pricing</Label>
-        <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 12 }}>
-          Simple annual pricing. No per-candidate fees.
-        </h2>
-        <p style={{ fontSize: 17, color: BRAND.muted }}>
-          Start with a 30-day free trial at Professional level. No credit card required.
-        </p>
+        <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 12 }}>Simple annual pricing. No per-candidate fees.</h2>
+        <p style={{ fontSize: 17, color: BRAND.muted }}>Start with a 30-day free trial at Professional level. No credit card required.</p>
       </div>
-
-      <div
-        className="lift-pricing-grid"
-        style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, alignItems: "start" }}
-      >
+      <div className="lift-pricing-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 32, alignItems: "start", maxWidth: 900, margin: "0 auto" }}>
         {tiers.map((tier) => (
-          <Glass
-            key={tier.name}
-            style={{
-              transform: tier.popular ? "scale(1.02)" : "none",
-              border: tier.popular ? `1px solid ${BRAND.liftIndigo}` : `1px solid ${BRAND.line}`,
-              background: tier.popular ? BRAND.cardStrong : BRAND.card,
-              boxShadow: tier.popular ? `0 0 40px rgba(99,102,241,0.2)` : "none",
-              position: "relative",
-            }}
-          >
+          <Glass key={tier.name} style={{
+            transform: tier.popular ? "scale(1.02)" : "none",
+            border: tier.popular ? `1px solid ${BRAND.liftIndigo}` : `1px solid ${BRAND.line}`,
+            background: tier.popular ? BRAND.cardStrong : BRAND.card,
+            boxShadow: tier.popular ? `0 0 40px rgba(99,102,241,0.2)` : "none",
+            position: "relative",
+          }}>
             {tier.popular && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: -12,
-                  right: 24,
-                  background: BRAND.mint,
-                  color: BRAND.bg,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: "4px 14px",
-                  borderRadius: 20,
-                }}
-              >
-                Most Popular
-              </span>
+              <span style={{ position: "absolute", top: -12, right: 24, background: BRAND.mint, color: BRAND.bg, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20 }}>Most Popular</span>
             )}
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: BRAND.white, marginBottom: 8 }}>
-              {tier.name}
-            </h3>
-
-            {/* Price display */}
+            {tier.enterprise && (
+              <span style={{ position: "absolute", top: -12, right: 24, background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`, color: BRAND.white, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20 }}>Full Platform</span>
+            )}
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: BRAND.white, marginBottom: 8 }}>{tier.name}</h3>
             <div style={{ marginBottom: 24 }}>
               {tier.enterprise ? (
-                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 700, color: BRAND.white }}>
-                  Call Us!
-                </span>
+                <>
+                  <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 40, fontWeight: 700, color: BRAND.white }}>$18,000</span>
+                  <span style={{ fontSize: 16, color: BRAND.muted }}>/year</span>
+                  <div style={{ marginTop: 6, fontSize: 14, color: BRAND.muted }}>Billed annually &middot; Contact us for multi-campus pricing</div>
+                </>
               ) : (
                 <>
-                  <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 40, fontWeight: 700, color: BRAND.white }}>
-                    ${tier.monthly}
-                  </span>
+                  <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 40, fontWeight: 700, color: BRAND.white }}>$1,000</span>
                   <span style={{ fontSize: 16, color: BRAND.muted }}>/month</span>
-                  <div style={{ marginTop: 6, fontSize: 14, color: BRAND.muted }}>
-                    {tier.price}/year &middot; billed annually
-                  </div>
+                  <div style={{ marginTop: 6, fontSize: 14, color: BRAND.muted }}>$12,000/year &middot; Billed annually</div>
                 </>
               )}
             </div>
-
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px 0" }}>
               {tier.features.map((f) => {
                 const isHeader = f.endsWith(":");
@@ -1132,22 +887,12 @@ function PricingSection() {
             </ul>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {tier.popular ? (
-                <GradientButton href={tier.href} style={{ width: "100%", textAlign: "center" }}>
-                  {tier.cta}
-                </GradientButton>
+                <GradientButton href={tier.href} style={{ width: "100%", textAlign: "center" }}>{tier.cta}</GradientButton>
               ) : (
-                <GlassButton href={tier.href} style={{ width: "100%", textAlign: "center" }}>
-                  {tier.cta}
-                </GlassButton>
+                <GlassButton href={tier.href} style={{ width: "100%", textAlign: "center" }}>{tier.cta}</GlassButton>
               )}
-              {!tier.enterprise && (
-                <a
-                  href={`https://lift.inteliflowai.com/buy?tier=${tier.name.toLowerCase()}`}
-                  style={{
-                    textAlign: "center", fontSize: 13, color: BRAND.sky,
-                    fontWeight: 500, fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
+              {tier.popular && (
+                <a href="https://lift.inteliflowai.com/buy?tier=professional" style={{ textAlign: "center", fontSize: 13, color: BRAND.sky, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>
                   or Buy Now &rarr;
                 </a>
               )}
@@ -1155,15 +900,13 @@ function PricingSection() {
           </Glass>
         ))}
       </div>
-
-      <Glass style={{ marginTop: 32, textAlign: "center", padding: "20px 32px", background: "rgba(99,102,241,0.10)", borderLeft: `4px solid ${BRAND.liftIndigo}` }}>
+      <Glass style={{ marginTop: 32, textAlign: "center", padding: "20px 32px", background: "rgba(99,102,241,0.10)", borderLeft: `4px solid ${BRAND.liftIndigo}`, maxWidth: 900, margin: "32px auto 0" }}>
         <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
-          <strong style={{ color: BRAND.white }}>Your 30-day trial includes all Enterprise features</strong> — unlimited sessions, benchmarking, outcome tracking, and more. No credit card required. Choose your plan when you're ready.
+          <strong style={{ color: BRAND.white }}>Your 30-day trial includes all Professional features</strong> — full session engine, TRI scoring, evaluator intelligence, PDF reports, and more. No credit card required.
         </p>
       </Glass>
-
       <p style={{ textAlign: "center", fontSize: 14, color: BRAND.muted, marginTop: 24 }}>
-        30-day trial &middot; Annual contracts
+        30-day free trial &middot; Annual contracts &middot; September billing alignment available
       </p>
     </Section>
   );
@@ -1184,22 +927,14 @@ function ComplianceSection() {
         <Glow right={-100} bottom={-100} size={350} from={BRAND.sky} to="transparent" />
         <div style={{ position: "relative", zIndex: 1 }}>
           <Label>Trust &amp; Compliance</Label>
-          <h2 style={{ fontSize: 36, color: BRAND.white, marginBottom: 12 }}>
-            Built with student privacy at the center.
-          </h2>
+          <h2 style={{ fontSize: 36, color: BRAND.white, marginBottom: 12 }}>Built with student privacy at the center.</h2>
           <p style={{ fontSize: 16, color: BRAND.muted, maxWidth: 600, margin: "0 auto 40px", lineHeight: 1.7 }}>
-            LIFT follows best practices for student data protection. All data is encrypted in
-            transit and at rest, with role-based access controls and per-tenant isolation.
+            LIFT follows best practices for student data protection. All data is encrypted in transit and at rest, with role-based access controls and per-tenant isolation.
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
             {badges.map((b) => (
               <div key={b.alt} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    width: 100, height: 100, borderRadius: 16, background: BRAND.white,
-                    display: "flex", alignItems: "center", justifyContent: "center", padding: 12,
-                  }}
-                >
+                <div style={{ width: 100, height: 100, borderRadius: 16, background: BRAND.white, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
                   <img src={b.src} alt={b.alt} style={{ maxWidth: 72, maxHeight: 72, objectFit: "contain" }} />
                 </div>
                 <span style={{ fontSize: 14, fontWeight: 600, color: BRAND.text }}>{b.label}</span>
@@ -1217,38 +952,14 @@ function ComplianceSection() {
 function FAQSection() {
   const [openIndex, setOpenIndex] = useState(null);
   const faqs = [
-    {
-      q: "Is LIFT a diagnostic assessment?",
-      a: "No. LIFT is explicitly non-diagnostic. It does not assess learning disabilities, clinical conditions, or protected characteristics. It reveals learning behaviors and readiness patterns to inform admissions review — not to diagnose or label students.",
-    },
-    {
-      q: "How long does a LIFT session take?",
-      a: "Most candidates complete the experience in 45-75 minutes. Sessions are self-paced and can be paused and resumed. The platform adapts task complexity by grade band (6-7, 8, 9-11).",
-    },
-    {
-      q: "Which grade levels does LIFT support?",
-      a: "LIFT currently supports Grades 6-11 across three grade band experiences. Each band uses age-appropriate tasks, language, and UX adapted to the developmental stage of the student.",
-    },
-    {
-      q: "Can candidates complete LIFT on a mobile device?",
-      a: "Yes. LIFT is a progressive web app (PWA) that works on any device with a modern browser. It supports offline mode for areas with unreliable connectivity — responses sync automatically when the connection is restored.",
-    },
-    {
-      q: "How does LIFT handle student data privacy?",
-      a: "LIFT follows FERPA, COPPA, and GDPR best practices. All data is encrypted in transit and at rest. Each school's data is isolated via per-tenant database policies. Audio recordings from voice responses are deleted after transcription by default.",
-    },
-    {
-      q: "Does LIFT integrate with our existing systems?",
-      a: "LIFT includes a CORE integration bridge for post-admissions handoff. Enterprise plans support SIS integrations and custom data exports. All plans include CSV and PDF export capabilities.",
-    },
-    {
-      q: "Is white-labeling available?",
-      a: "Yes, on the Enterprise plan. Schools can customize branding, colors, and domain to match their institutional identity.",
-    },
-    {
-      q: "What languages are supported?",
-      a: "LIFT currently supports English and Portuguese (Brazilian). All AI-generated reports, narratives, and family-facing communications can be produced in both languages.",
-    },
+    { q: "Is LIFT a diagnostic assessment?", a: "No. LIFT is explicitly non-diagnostic. It does not assess learning disabilities, clinical conditions, or protected characteristics. It reveals learning behaviors and readiness patterns to inform admissions review — not to diagnose or label students." },
+    { q: "How long does a LIFT session take?", a: "Most candidates complete the experience in 45-75 minutes. Sessions are self-paced and can be paused and resumed. The platform adapts task complexity by grade band (6-7, 8, 9-11)." },
+    { q: "Which grade levels does LIFT support?", a: "LIFT currently supports Grades 6-11 across three grade band experiences. Each band uses age-appropriate tasks, language, and UX adapted to the developmental stage of the student." },
+    { q: "Can candidates complete LIFT on a mobile device?", a: "Yes. LIFT is a progressive web app (PWA) that works on any device with a modern browser. It supports offline mode for areas with unreliable connectivity — responses sync automatically when the connection is restored." },
+    { q: "How does LIFT handle student data privacy?", a: "LIFT follows FERPA, COPPA, and GDPR best practices. All data is encrypted in transit and at rest. Each school's data is isolated via per-tenant database policies. Audio recordings from voice responses are deleted after transcription by default." },
+    { q: "Does LIFT integrate with our existing systems?", a: "LIFT includes a CORE integration bridge for post-admissions handoff. Enterprise plans include SIS integrations with Veracross, Blackbaud, and PowerSchool, plus API access for custom integrations. All plans include CSV and PDF export." },
+    { q: "Is white-labeling available?", a: "Yes, on the Enterprise plan. Schools can deploy LIFT on their own domain with full custom branding — logo, colors, and institutional identity throughout the candidate experience, reports, and emails." },
+    { q: "What is the difference between Professional and Enterprise?", a: "Professional gives your team everything needed to run a complete admissions cycle — full session engine, TRI scoring, evaluator intelligence, reports, and support planning. Enterprise adds white label, SIS integrations, API access, a dedicated success manager, board-ready reporting, and custom session configuration. Most schools start with Professional." },
   ];
 
   return (
@@ -1259,34 +970,12 @@ function FAQSection() {
       </div>
       <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
         {faqs.map((faq, i) => (
-          <Glass
-            key={i}
-            className=""
-            style={{ cursor: "pointer", padding: "20px 24px" }}
-            onClick={() => setOpenIndex(openIndex === i ? null : i)}
-          >
+          <Glass key={i} className="" style={{ cursor: "pointer", padding: "20px 24px" }} onClick={() => setOpenIndex(openIndex === i ? null : i)}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 600, color: BRAND.white, margin: 0 }}>
-                {faq.q}
-              </h3>
-              <span
-                style={{
-                  fontSize: 22,
-                  color: BRAND.muted,
-                  transform: openIndex === i ? "rotate(45deg)" : "none",
-                  transition: "transform 0.25s ease",
-                  flexShrink: 0,
-                  marginLeft: 16,
-                }}
-              >
-                +
-              </span>
+              <h3 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 600, color: BRAND.white, margin: 0 }}>{faq.q}</h3>
+              <span style={{ fontSize: 22, color: BRAND.muted, transform: openIndex === i ? "rotate(45deg)" : "none", transition: "transform 0.25s ease", flexShrink: 0, marginLeft: 16 }}>+</span>
             </div>
-            {openIndex === i && (
-              <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7, marginTop: 14 }}>
-                {faq.a}
-              </p>
-            )}
+            {openIndex === i && <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7, marginTop: 14 }}>{faq.a}</p>}
           </Glass>
         ))}
       </div>
@@ -1298,10 +987,8 @@ function FAQSection() {
 
 function InquiryForm({ formType }) {
   const [form, setForm] = useState({ full_name: "", school_name: "", email: "", role: "", school_type: "", message: "" });
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
-
+  const [status, setStatus] = useState("idle");
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("loading");
@@ -1309,63 +996,29 @@ function InquiryForm({ formType }) {
       await submitToHL(form, formType);
       setStatus("success");
       setForm({ full_name: "", school_name: "", email: "", role: "", school_type: "", message: "" });
-    } catch {
-      setStatus("error");
-    }
+    } catch { setStatus("error"); }
   };
-
-  const inputStyle = {
-    width: "100%",
-    padding: "12px 16px",
-    background: "rgba(255,255,255,0.06)",
-    border: `1px solid ${BRAND.line}`,
-    borderRadius: 10,
-    color: BRAND.white,
-    fontSize: 15,
-    fontFamily: "'DM Sans', sans-serif",
-    outline: "none",
-    transition: "border-color 0.2s",
-  };
+  const inputStyle = { width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${BRAND.line}`, borderRadius: 10, color: BRAND.white, fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", transition: "border-color 0.2s" };
   const labelStyle = { fontSize: 13, color: BRAND.muted, fontWeight: 600, marginBottom: 6, display: "block" };
 
   if (status === "success") {
     return (
       <Glass style={{ textAlign: "center", padding: 40 }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>&#10003;</div>
-        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>
-          Thank you!
-        </h3>
-        <p style={{ color: BRAND.muted, fontSize: 15 }}>
-          We'll be in touch within 1 business day.
-        </p>
-        <button
-          onClick={() => setStatus("idle")}
-          style={{ marginTop: 20, background: "none", border: "none", color: BRAND.sky, cursor: "pointer", fontSize: 14, fontFamily: "'DM Sans', sans-serif" }}
-        >
-          Submit another inquiry
-        </button>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>Thank you!</h3>
+        <p style={{ color: BRAND.muted, fontSize: 15 }}>We'll be in touch within 1 business day.</p>
+        <button onClick={() => setStatus("idle")} style={{ marginTop: 20, background: "none", border: "none", color: BRAND.sky, cursor: "pointer", fontSize: 14, fontFamily: "'DM Sans', sans-serif" }}>Submit another inquiry</button>
       </Glass>
     );
   }
 
   return (
     <Glass>
-      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 20 }}>
-        {formType}
-      </h3>
+      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 20 }}>{formType}</h3>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div>
-          <label style={labelStyle}>Full Name *</label>
-          <input name="full_name" value={form.full_name} onChange={handleChange} required style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>School Name *</label>
-          <input name="school_name" value={form.school_name} onChange={handleChange} required style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Work Email *</label>
-          <input name="email" type="email" value={form.email} onChange={handleChange} required style={inputStyle} />
-        </div>
+        <div><label style={labelStyle}>Full Name *</label><input name="full_name" value={form.full_name} onChange={handleChange} required style={inputStyle} /></div>
+        <div><label style={labelStyle}>School Name *</label><input name="school_name" value={form.school_name} onChange={handleChange} required style={inputStyle} /></div>
+        <div><label style={labelStyle}>Work Email *</label><input name="email" type="email" value={form.email} onChange={handleChange} required style={inputStyle} /></div>
         <div>
           <label style={labelStyle}>Role</label>
           <select name="role" value={form.role} onChange={handleChange} style={{ ...inputStyle, cursor: "pointer" }}>
@@ -1390,44 +1043,15 @@ function InquiryForm({ formType }) {
             <option value="Other">Other</option>
           </select>
         </div>
-        <div>
-          <label style={labelStyle}>Message</label>
-          <textarea
-            name="message"
-            value={form.message}
-            onChange={handleChange}
-            rows={3}
-            style={{ ...inputStyle, resize: "vertical" }}
-          />
-        </div>
-
+        <div><label style={labelStyle}>Message</label><textarea name="message" value={form.message} onChange={handleChange} rows={3} style={{ ...inputStyle, resize: "vertical" }} /></div>
         {status === "error" && (
           <p style={{ fontSize: 14, color: BRAND.liftRose }}>
             Something went wrong. Please{" "}
-            <a
-              href={`mailto:lift@inteliflowai.com?subject=${encodeURIComponent(formType)}&body=${encodeURIComponent(
-                `Name: ${form.full_name}\nSchool: ${form.school_name}\nEmail: ${form.email}\nRole: ${form.role}\nType: ${form.school_type}\nMessage: ${form.message}`
-              )}`}
-              style={{ color: BRAND.sky, textDecoration: "underline" }}
-            >
-              email us directly
-            </a>{" "}
-            instead.
+            <a href={`mailto:lift@inteliflowai.com?subject=${encodeURIComponent(formType)}&body=${encodeURIComponent(`Name: ${form.full_name}\nSchool: ${form.school_name}\nEmail: ${form.email}\nRole: ${form.role}\nType: ${form.school_type}\nMessage: ${form.message}`)}`} style={{ color: BRAND.sky, textDecoration: "underline" }}>email us directly</a>{" "}instead.
           </p>
         )}
-
-        <GradientButton
-          onClick={undefined}
-          style={{ width: "100%", textAlign: "center", opacity: status === "loading" ? 0.7 : 1, pointerEvents: status === "loading" ? "none" : "auto" }}
-        >
-          <button
-            type="submit"
-            disabled={status === "loading"}
-            style={{
-              background: "none", border: "none", color: "inherit", font: "inherit",
-              fontWeight: 700, cursor: "pointer", width: "100%",
-            }}
-          >
+        <GradientButton onClick={undefined} style={{ width: "100%", textAlign: "center", opacity: status === "loading" ? 0.7 : 1, pointerEvents: status === "loading" ? "none" : "auto" }}>
+          <button type="submit" disabled={status === "loading"} style={{ background: "none", border: "none", color: "inherit", font: "inherit", fontWeight: 700, cursor: "pointer", width: "100%" }}>
             {status === "loading" ? "Sending..." : "Send Inquiry"}
           </button>
         </GradientButton>
@@ -1442,9 +1066,7 @@ function FormsSection() {
   return (
     <Section id="contact">
       <Label>Get in Touch</Label>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, textAlign: "center", marginBottom: 40 }}>
-        Ready to see LIFT in action?
-      </h2>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, textAlign: "center", marginBottom: 40 }}>Ready to see LIFT in action?</h2>
       <div className="lift-forms-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, maxWidth: 900, margin: "0 auto" }}>
         <InquiryForm formType="Request a Demo" />
         <InquiryForm formType="Talk With Our Team" />
@@ -1462,9 +1084,7 @@ function CTASection() {
         <Glow left={-80} top={-80} size={400} from={BRAND.magenta} to="transparent" />
         <Glow right={-80} bottom={-80} size={400} from={BRAND.sky} to="transparent" />
         <div style={{ position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, marginBottom: 20 }}>
-            See your next class more clearly.
-          </h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, marginBottom: 20 }}>See your next class more clearly.</h2>
           <div className="lift-cta-buttons" style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
             <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
             <GlassButton href="#contact">Request a Demo</GlassButton>
@@ -1480,30 +1100,11 @@ function CTASection() {
 
 function Footer() {
   return (
-    <footer
-      style={{
-        borderTop: `1px solid ${BRAND.line}`,
-        padding: "40px 40px 32px",
-        background: "rgba(0,0,0,0.15)",
-        width: "100%",
-      }}
-    >
-      <div
-        className="lift-footer-inner"
-        style={{
-          maxWidth: 1280,
-          marginLeft: "auto",
-          marginRight: "auto",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
+    <footer style={{ borderTop: `1px solid ${BRAND.line}`, padding: "40px 40px 32px", background: "rgba(0,0,0,0.15)", width: "100%" }}>
+      <div className="lift-footer-inner" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 40, marginBottom: 12, filter: "brightness(2.5)" }} />
-          <p style={{ fontSize: 14, color: BRAND.muted, maxWidth: 300, lineHeight: 1.6 }}>
-            AI-powered admissions insight for K-12 schools. From invitation to insight in under 75 minutes.
-          </p>
+          <p style={{ fontSize: 14, color: BRAND.muted, maxWidth: 300, lineHeight: 1.6 }}>AI-powered admissions insight for K-12 schools. From invitation to insight in under 75 minutes.</p>
         </div>
         <div className="lift-footer-right" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1511,19 +1112,11 @@ function Footer() {
             <img src={IMAGES.inteliflowLogo} alt="Inteliflow" style={{ height: 24 }} />
           </div>
           <div style={{ display: "flex", gap: 20, fontSize: 13 }}>
-            <a href="https://inteliflowai.com/privacy-policy" style={{ color: BRAND.muted }} target="_blank" rel="noopener noreferrer">
-              Privacy Policy
-            </a>
-            <a href="https://inteliflowai.com/terms-of-service" style={{ color: BRAND.muted }} target="_blank" rel="noopener noreferrer">
-              Terms of Service
-            </a>
-            <a href="mailto:lift@inteliflowai.com" style={{ color: BRAND.muted }}>
-              lift@inteliflowai.com
-            </a>
+            <a href="https://inteliflowai.com/privacy-policy" style={{ color: BRAND.muted }} target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+            <a href="https://inteliflowai.com/terms-of-service" style={{ color: BRAND.muted }} target="_blank" rel="noopener noreferrer">Terms of Service</a>
+            <a href="mailto:lift@inteliflowai.com" style={{ color: BRAND.muted }}>lift@inteliflowai.com</a>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
-            &copy; 2026 Inteliflow AI &middot; LIFT is a non-diagnostic admissions insight tool
-          </p>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>&copy; 2026 Inteliflow AI &middot; LIFT is a non-diagnostic admissions insight tool</p>
         </div>
       </div>
     </footer>
@@ -1541,15 +1134,7 @@ export default function LiftLandingPage() {
   }, []);
 
   return (
-    <div
-      className="lift-app"
-      style={{
-        background: `radial-gradient(ellipse at 20% 0%, ${BRAND.bg3} 0%, ${BRAND.bg2} 30%, ${BRAND.bg} 70%)`,
-        minHeight: "100vh",
-        width: "100%",
-        position: "relative",
-      }}
-    >
+    <div className="lift-app" style={{ background: `radial-gradient(ellipse at 20% 0%, ${BRAND.bg3} 0%, ${BRAND.bg2} 30%, ${BRAND.bg} 70%)`, minHeight: "100vh", width: "100%", position: "relative" }}>
       <Header onOpen={() => setMobileOpen(true)} />
       <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <Hero />

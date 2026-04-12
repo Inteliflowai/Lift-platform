@@ -32,17 +32,13 @@ export const FEATURES = {
 
 export type Feature = (typeof FEATURES)[keyof typeof FEATURES];
 
-const ESSENTIALS_FEATURES: Feature[] = [
+const PROFESSIONAL_FEATURES: Feature[] = [
   FEATURES.CANDIDATE_SESSIONS,
   FEATURES.EVALUATOR_WORKSPACE,
   FEATURES.INTERNAL_REPORT,
   FEATURES.FAMILY_SUMMARY,
   FEATURES.PLACEMENT_GUIDANCE,
   FEATURES.AUDIT_LOG,
-];
-
-const PROFESSIONAL_FEATURES: Feature[] = [
-  ...ESSENTIALS_FEATURES,
   FEATURES.PORTUGUESE_REPORTS,
   FEATURES.TRI_SCORE,
   FEATURES.LEARNING_SUPPORT_SIGNALS,
@@ -50,7 +46,7 @@ const PROFESSIONAL_FEATURES: Feature[] = [
   FEATURES.EVALUATOR_INTELLIGENCE,
   FEATURES.CORE_INTEGRATION,
   FEATURES.PLACEMENT_SUPPORT_PLAN,
-  FEATURES.REAPPLICATION_INTELLIGENCE,
+  FEATURES.OUTCOME_TRACKING,
   FEATURES.DEMO_MODE,
 ];
 
@@ -74,20 +70,17 @@ const TRIAL_FEATURES: Feature[] = ENTERPRISE_FEATURES.filter(
 
 export const TIER_FEATURES: Record<string, Feature[]> = {
   trial: TRIAL_FEATURES,
-  essentials: ESSENTIALS_FEATURES,
   professional: PROFESSIONAL_FEATURES,
   enterprise: ENTERPRISE_FEATURES,
 };
 
 export const TIER_LIMITS = {
   trial:        { sessions_per_year: 25,   evaluator_seats: 3,    admin_seats: 1 },
-  essentials:   { sessions_per_year: 150,  evaluator_seats: 2,    admin_seats: 1 },
-  professional: { sessions_per_year: 400,  evaluator_seats: 5,    admin_seats: 2 },
+  professional: { sessions_per_year: 500,  evaluator_seats: 5,    admin_seats: 2 },
   enterprise:   { sessions_per_year: null, evaluator_seats: null, admin_seats: null },
 } as const;
 
 export const TIER_PRICING = {
-  essentials:   { annual: 4800,  label: 'Essentials' },
-  professional: { annual: 9600,  label: 'Professional' },
+  professional: { annual: 12000, label: 'Professional' },
   enterprise:   { annual: 18000, label: 'Enterprise' },
 } as const;

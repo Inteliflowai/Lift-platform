@@ -40,7 +40,6 @@ export default async function AdminDashboard() {
 
   // Calculate MRR/ARR from active licenses
   const tierPricing: Record<string, number> = {
-    essentials: TIER_PRICING.essentials.annual,
     professional: TIER_PRICING.professional.annual,
     enterprise: TIER_PRICING.enterprise.annual,
   };
