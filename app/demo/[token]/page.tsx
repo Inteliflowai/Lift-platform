@@ -26,16 +26,34 @@ export default async function DemoPage({ params }: { params: { token: string } }
 
   const tenantId = await getDemoTenantId();
 
-  // Load demo candidates with profiles and signals
-  const { data: candidates, error: candErr } = await supabaseAdmin
+  // Load demo candidates - simple query first, then enrich
+  const { data: rawCandidates, error: candErr } = await supabaseAdmin
     .from("candidates")
-    .select("id, first_name, last_name, grade_band, status, insight_profiles(tri_score, tri_label, tri_confidence, reading_score, writing_score, reasoning_score, reflection_score, persistence_score, support_seeking_score, overall_confidence, internal_narrative, placement_guidance), learning_support_signals(support_indicator_level, enriched_signals, enriched_signal_count, has_notable_signals)")
+    .select("id, first_name, last_name, grade_band, status")
     .eq("tenant_id", tenantId)
     .eq("status", "completed")
     .order("created_at", { ascending: false });
 
   if (candErr) console.error("[demo] candidates query error:", candErr);
-  console.log("[demo] candidates found:", candidates?.length ?? 0);
+  console.log("[demo] raw candidates found:", rawCandidates?.length ?? 0);
+
+  // Enrich with profiles and signals
+  const candidates = [];
+  for (const c of rawCandidates ?? []) {
+    const { data: profiles } = await supabaseAdmin
+      .from("insight_profiles")
+      .select("tri_score, tri_label, tri_confidence, reading_score, writing_score, reasoning_score, reflection_score, persistence_score, support_seeking_score, overall_confidence, internal_narrative, placement_guidance")
+      .eq("candidate_id", c.id);
+
+    const { data: signals } = await supabaseAdmin
+      .from("learning_support_signals")
+      .select("support_indicator_level, enriched_signals, enriched_signal_count, has_notable_signals")
+      .eq("candidate_id", c.id);
+
+    candidates.push({ ...c, insight_profiles: profiles ?? [], learning_support_signals: signals ?? [] });
+  }
+
+  console.log("[demo] enriched candidates:", candidates.length);
 
   return <DemoWorkspace token={params.token} expiresAt={session.expires_at} candidates={candidates ?? []} />;
 }
