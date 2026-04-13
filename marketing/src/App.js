@@ -477,6 +477,198 @@ function MobileMenu({ open, onClose }) {
   );
 }
 
+/* ─── Animated Product Demo ─── */
+
+function AnimatedDemo() {
+  const [screen, setScreen] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [triValue, setTriValue] = useState(0);
+  const [barValues, setBarValues] = useState([0,0,0,0,0,0]);
+
+  const SCREENS = 4;
+  const SCREEN_DURATION = 3000;
+  const FADE_DURATION = 400;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimating(true);
+      setTimeout(() => {
+        setScreen(s => (s + 1) % SCREENS);
+        setAnimating(false);
+      }, FADE_DURATION);
+    }, SCREEN_DURATION);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (screen !== 0) { setTriValue(0); return; }
+    let start = 0;
+    const target = 74;
+    const step = target / (1500 / 16);
+    const timer = setInterval(() => {
+      start = Math.min(start + step, target);
+      setTriValue(Math.round(start));
+      if (start >= target) clearInterval(timer);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [screen]);
+
+  const BAR_TARGETS = [81, 68, 74, 62, 78, 71];
+  useEffect(() => {
+    if (screen !== 1) { setBarValues([0,0,0,0,0,0]); return; }
+    BAR_TARGETS.forEach((target, i) => {
+      setTimeout(() => {
+        let val = 0;
+        const timer = setInterval(() => {
+          val = Math.min(val + 2, target);
+          setBarValues(prev => { const next = [...prev]; next[i] = val; return next; });
+          if (val >= target) clearInterval(timer);
+        }, 16);
+      }, i * 100);
+    });
+  }, [screen]);
+
+  const triArc = (() => {
+    const r = 52, cx = 70, cy = 70;
+    const startAngle = -210, endAngle = 30;
+    const totalDeg = endAngle - startAngle;
+    const pct = triValue / 100;
+    const angle = startAngle + totalDeg * pct;
+    const toRad = (d) => (d * Math.PI) / 180;
+    const x1 = cx + r * Math.cos(toRad(startAngle));
+    const y1 = cy + r * Math.sin(toRad(startAngle));
+    const x2 = cx + r * Math.cos(toRad(angle));
+    const y2 = cy + r * Math.sin(toRad(angle));
+    const large = totalDeg * pct > 180 ? 1 : 0;
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+  })();
+
+  const getBarColor = (v) => v >= 75 ? '#10b981' : v >= 60 ? '#6366f1' : '#f59e0b';
+  const DIMS = ['Reading Interpretation', 'Written Expression', 'Reasoning & Problems', 'Reflection & Metacog.', 'Task Persistence', 'Self-Advocacy'];
+  const mono = { fontFamily: "'Geist Mono', monospace" };
+
+  const cardStyle = {
+    background: 'rgba(15,15,25,0.85)', border: '1px solid rgba(99,102,241,0.25)',
+    borderRadius: 16, padding: '22px 24px', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+    opacity: animating ? 0 : 1, transition: `opacity ${FADE_DURATION}ms ease`, minHeight: 320, width: '100%',
+  };
+
+  const dots = Array.from({ length: SCREENS }, (_, i) => (
+    <div key={i} style={{ width: i === screen ? 20 : 6, height: 6, borderRadius: 3, background: i === screen ? '#6366f1' : 'rgba(255,255,255,0.2)', transition: 'all 0.4s ease' }} />
+  ));
+
+  return (
+    <div style={{ width: '100%', maxWidth: 420, position: 'relative' }}>
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 14 }}>{dots}</div>
+      <div style={{ textAlign: 'center', marginBottom: 10 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: '#6366f1', fontFamily: "'DM Sans', sans-serif" }}>
+          {['Candidate Profile', 'Readiness Dimensions', 'Evaluator Intelligence', 'Reports Ready'][screen]}
+        </span>
+      </div>
+
+      {screen === 0 && (
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #2b1460, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#fff', flexShrink: 0 }}>JR</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#e2e8f0', marginBottom: 3 }}>Jamie Rivera</div>
+              <div style={{ fontSize: 12, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>Grade 8 · Boarding School</div>
+            </div>
+            <span style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', color: '#10b981', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, fontFamily: "'DM Sans', sans-serif" }}>✓ Complete</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+            <div style={{ position: 'relative', width: 140, height: 140 }}>
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <path d="M 18 100 A 52 52 0 1 1 122 100" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" strokeLinecap="round" />
+                <path d={triArc} fill="none" stroke="url(#triGrad)" strokeWidth="8" strokeLinecap="round" />
+                <defs><linearGradient id="triGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor="#ec4899" /></linearGradient></defs>
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 8 }}>
+                <span style={{ ...mono, fontSize: 34, fontWeight: 700, color: '#e2e8f0', lineHeight: 1 }}>{triValue}</span>
+                <span style={{ fontSize: 11, color: '#64748b', fontFamily: "'DM Sans', sans-serif" }}>/ 100</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc', fontFamily: "'DM Sans', sans-serif", marginBottom: 4 }}>Transition</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc', fontFamily: "'DM Sans', sans-serif", marginBottom: 4 }}>Readiness</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc', fontFamily: "'DM Sans', sans-serif", marginBottom: 12 }}>Index</div>
+              <div style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>Solid readiness<br/>signals overall</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {screen === 1 && (
+        <div style={cardStyle}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 18 }}>6 Readiness Dimensions</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+            {DIMS.map((dim, i) => { const val = barValues[i]; const color = getBarColor(BAR_TARGETS[i]); return (
+              <div key={dim}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>{dim}</span>
+                  </div>
+                  <span style={{ ...mono, fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>{val}</span>
+                </div>
+                <div style={{ height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${val}%`, background: color, borderRadius: 3, transition: 'width 0.05s linear', boxShadow: `0 0 8px ${color}60` }} />
+                </div>
+              </div>
+            ); })}
+          </div>
+        </div>
+      )}
+
+      {screen === 2 && (
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ color: '#f59e0b', fontSize: 14 }}>✦</span>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0' }}>Pre-Interview Briefing</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#6366f1', marginBottom: 14, fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>Generated for Jamie Rivera</div>
+          {['Strong evidence use — revisited key reading passages before answering on 4 of 5 tasks.', 'Reasoning–expression gap: reasoning 74, writing output 68 — ideas present, expression developing.', 'Low hint usage on hard tasks despite errors — may not seek support proactively.'].map((obs, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10, animation: `lift-fadeUp 0.4s ease ${i * 150}ms both` }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#6366f1', flexShrink: 0, marginTop: 6 }} />
+              <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{obs}</p>
+            </div>
+          ))}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '12px 0', paddingTop: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'DM Sans', sans-serif", marginBottom: 8 }}>Suggested Questions</div>
+            {['"Walk me through how you approached the hardest task."', '"What would you do differently if you could redo one task?"'].map((q, i) => (
+              <div key={i} style={{ background: 'rgba(99,102,241,0.08)', borderRadius: 6, padding: '7px 10px', marginBottom: 6, fontSize: 12, color: '#a5b4fc', lineHeight: 1.5, fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', animation: `lift-fadeUp 0.4s ease ${300 + i * 150}ms both` }}>{q}</div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {screen === 3 && (
+        <div style={cardStyle}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 16 }}>Reports Ready</div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+            {[{ label: '📋 Internal', color: '#6366f1', fill: false }, { label: '👨‍👩‍👧 Family', color: '#10b981', fill: true }, { label: '📍 Placement', color: '#8b5cf6', fill: false }].map(b => (
+              <div key={b.label} style={{ flex: 1, padding: '8px 4px', textAlign: 'center', background: b.fill ? b.color : 'transparent', border: `1px solid ${b.color}${b.fill ? '' : '60'}`, borderRadius: 8, fontSize: 11, fontWeight: 700, color: b.fill ? '#fff' : b.color, fontFamily: "'DM Sans', sans-serif", cursor: 'default' }}>{b.label}</div>
+            ))}
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 14px', marginBottom: 14, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{ width: 24, height: 24, borderRadius: 4, background: 'linear-gradient(135deg, #2b1460, #6366f1)', flexShrink: 0 }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>Hillside Academy · Family Report</span>
+            </div>
+            <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.65, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>"Dear Rivera family, Jamie approached today's experience with genuine curiosity and showed real strength in how they..."</p>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, background: 'linear-gradient(transparent, rgba(15,15,25,0.85))' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+            {['School-branded', 'AI-written', 'Print-ready'].map(t => (
+              <span key={t} style={{ fontSize: 11, color: '#64748b', fontFamily: "'DM Sans', sans-serif" }}>✓ {t}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Hero ─── */
 
 function Hero() {
@@ -504,10 +696,8 @@ function Hero() {
             30-day free trial &middot; No credit card required &middot; Non-diagnostic &middot; FERPA aligned &middot; COPPA aware
           </p>
         </div>
-        <div className="lift-hero-image-wrap" style={{ display: "flex", justifyContent: "center" }}>
-          <Glass style={{ padding: 0, overflow: "hidden", borderRadius: 18, animation: "lift-floatY 5s ease-in-out infinite", boxShadow: BRAND.shadow }}>
-            <img src={IMAGES.heroImage1} alt="LIFT admissions insight" style={{ width: "100%", display: "block", borderRadius: 18 }} />
-          </Glass>
+        <div className="lift-hero-image-wrap" style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+          <AnimatedDemo />
         </div>
       </div>
     </section>
