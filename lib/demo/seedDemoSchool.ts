@@ -81,6 +81,7 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
         first_name: c.first_name,
         last_name: c.last_name,
         grade_band: c.grade_band,
+        grade_applying_to: c.grade_band === "6-7" ? "7" : c.grade_band === "9-11" ? "9" : "8",
         status: "completed",
       })
       .select("id")
