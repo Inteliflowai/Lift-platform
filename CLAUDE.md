@@ -67,8 +67,11 @@ Candidates never authenticate via Supabase Auth — they use invite tokens. Dash
 - `/interviewer/*` → `interviewer` or `platform_admin`
 
 Middleware also:
+- `/support/*` → `grade_dean`, `learning_specialist`, `school_admin`, or `platform_admin`
+- Forces password change: redirects to `/settings/account` when `must_change_password` user metadata is set
 - Checks license status — suspended/cancelled tenants redirected to `/suspended`
 - Blocks `/register` and `/pricing` when `LIFT_HIDE_PRICING=true` (Portuguese deployment)
+- Public routes (no auth): `/session`, `/invite`, `/consent`, `/register`, `/buy`
 
 **Important**: All API routes that use `getTenantContext()` or `createClient` from supabase/server must have `export const dynamic = "force-dynamic"` to prevent Vercel build-time crashes.
 
@@ -109,6 +112,7 @@ Orchestrated by `POST /api/pipeline/run`, with graceful failure chain (per-step 
 3. **TRI** (`lib/signals/tri.ts`) — Transition Readiness Index: weighted average with confidence adjustments
 4. **Narrative** (`/api/pipeline/narrative`) — Generate internal_narrative and family_narrative (fallback text on failure)
 5. **Learning Support** (`lib/signals/learningSupport.ts`) — 8 boolean flags. Levels: none / watch / recommend_screening
+5b. **Enriched Signals** (`lib/signals/enrichedSignals.ts`) — 9 behavioral detectors saved as JSONB
 6. **Briefing** (`/api/pipeline/briefing`) — Evaluator-facing summary
 7. **Benchmarks** (`/api/pipeline/benchmarks`) — Cohort percentile placement
 
@@ -144,7 +148,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 ### Registration & Trial Flow
 
-1. School registers at `/register` (or `/register?plan=essentials` for direct purchase)
+1. School registers at `/register` (or buys directly via `/buy?tier=professional`)
 2. Registration API creates: auth user, tenant, roles, settings, trial license (DB trigger), task templates, 3 demo candidates
 3. HL contact synced with `lift-trial` tag
 4. Welcome email sent, redirects to `/school/welcome`
@@ -225,7 +229,11 @@ Steps auto-complete from API routes. Progress bar, celebration on completion. Fu
 
 ### Database Migrations
 
-SQL files in `supabase/migrations/` numbered sequentially (001-018). `FULL_MIGRATION_PT.sql` contains all migrations concatenated for new Supabase instances.
+SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additions beyond 018:
+- 019: gender column, 020: waitlist/reapplication, 021: outcomes, 022: assignments
+- 023: support_plans + support_resources, 024: SIS integrations, 025: trial intelligence
+- 026: Ravenna SIS provider, 027: enriched signals, 028: email_logs
+`FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
 
 ### Demo Mode
 
@@ -283,7 +291,7 @@ HighLevel: `HL_API_KEY`, `HL_LOCATION_ID`, `HL_PIPELINE_ID`, `HL_STAGE_IDS` (JSO
 
 Locale/Branding: `LIFT_LOCALE` (en|pt), `LIFT_BRAND_NAME`, `LIFT_BRAND_TAGLINE`, `LIFT_HIDE_PRICING` (true|false).
 
-Sentry: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`.
+Sentry: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`.
 
 Encryption: `ENCRYPTION_KEY` (32-byte hex for AES-256-GCM, used by SIS credential encryption).
 
@@ -312,6 +320,12 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **TTS (PassageReader)**: NOT shown on `reading_passage` tasks (reading comprehension — candidate must read). IS shown on `scenario` and `quantitative_reasoning`.
 - **Hydration errors** (#418/#423): Console-only warnings from `LocaleProvider` wrapping server-rendered content. Don't break functionality.
 - **Task templates**: Must have full content (passage text, scenario text). Original seed script had broken templates with empty content for some grade bands. Use `lib/seed-task-templates.ts` or `scripts/seed-existing-tenants.ts` for proper seeding.
+- **Sidebar feature gating**: Nav items with a `feature` property are filtered by `useLicense().hasFeature()`. Enterprise-only features (waitlist, re-app, etc.) hidden for Professional users.
+- **Candidate assignments**: School admins can assign candidates to evaluators/interviewers via `candidate_assignments` table. Evaluators see assigned candidates in their queue.
+- **Final recommendations**: When decision is "admit", automatically triggers: CORE handoff, support plan generation, SIS sync (all fire-and-forget).
+- **Guest purchase idempotency**: Stripe webhook checks `license_events` for existing `stripe_session_id` to prevent duplicate tenant creation on webhook retry.
+- **Demo candidate cleanup**: Auto-removes Sofia/James/Amara demo candidates when school invites their first real candidate.
+- **Sentry auth token**: `SENTRY_AUTH_TOKEN` env var needed for source map uploads (readable stack traces).
 
 ## Design Tokens
 
