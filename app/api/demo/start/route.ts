@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = await getDemoTenantId();
+    console.log("[demo] Found tenant:", tenantId);
     await ensureDemoCandidates(tenantId);
+    console.log("[demo] Candidates ensured");
 
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
     const { data: session, error } = await supabaseAdmin

@@ -66,12 +66,15 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
   if ((count ?? 0) >= 3) return;
 
   // Clear any existing candidates without profiles for this tenant
-  await supabaseAdmin.from("candidates").delete().eq("tenant_id", tenantId);
+  const { error: delErr } = await supabaseAdmin.from("candidates").delete().eq("tenant_id", tenantId);
+  if (delErr) console.error("[demo] delete candidates error:", delErr);
+
+  console.log("[demo] Seeding demo candidates for tenant:", tenantId);
 
   // Seed demo candidates with full profiles
   for (const c of DEMO_CANDIDATES) {
     // Create candidate
-    const { data: candidate } = await supabaseAdmin
+    const { data: candidate, error: candErr } = await supabaseAdmin
       .from("candidates")
       .insert({
         tenant_id: tenantId,
@@ -83,11 +86,13 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
       .select("id")
       .single();
 
-    if (!candidate) continue;
+    if (candErr) { console.error("[demo] candidate insert error:", c.first_name, candErr); continue; }
+    if (!candidate) { console.error("[demo] candidate insert returned null:", c.first_name); continue; }
+    console.log("[demo] Created candidate:", c.first_name, candidate.id);
 
     // Create session
     const completedAt = new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: session } = await supabaseAdmin
+    const { data: session, error: sessErr } = await supabaseAdmin
       .from("sessions")
       .insert({
         candidate_id: candidate.id,
@@ -101,7 +106,9 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
       .select("id")
       .single();
 
-    if (!session) continue;
+    if (sessErr) { console.error("[demo] session insert error:", c.first_name, sessErr); continue; }
+    if (!session) { console.error("[demo] session insert returned null:", c.first_name); continue; }
+    console.log("[demo] Created session:", c.first_name, session.id);
 
     // Create insight profile
     const { data: profile } = await supabaseAdmin
