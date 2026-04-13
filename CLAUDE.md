@@ -71,7 +71,7 @@ Middleware also:
 - Forces password change: redirects to `/settings/account` when `must_change_password` user metadata is set
 - Checks license status — suspended/cancelled tenants redirected to `/suspended`
 - Blocks `/register` and `/pricing` when `LIFT_HIDE_PRICING=true` (Portuguese deployment)
-- Public routes (no auth): `/session`, `/invite`, `/consent`, `/register`, `/buy`
+- Public routes (no auth): `/session`, `/invite`, `/consent`, `/register`, `/buy`, `/demo`
 
 **Important**: All API routes that use `getTenantContext()` or `createClient` from supabase/server must have `export const dynamic = "force-dynamic"` to prevent Vercel build-time crashes.
 
@@ -233,6 +233,7 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 019: gender column, 020: waitlist/reapplication, 021: outcomes, 022: assignments
 - 023: support_plans + support_resources, 024: SIS integrations, 025: trial intelligence
 - 026: Ravenna SIS provider, 027: enriched signals, 028: email_logs
+- 029: tooltip_dismissals, 030: demo_sessions
 `FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
 
 ### Demo Mode
@@ -278,6 +279,28 @@ Sentry (`@sentry/nextjs`) configured for client, server, and edge. Global error 
 ### Admin System Audit
 
 `/admin/audit` — Cross-tenant audit log viewer for platform admins. Shows all actions with school name, user, action type, payload. Searchable + filterable by action type.
+
+### One-Click Live Demo
+
+`/demo/new` creates a 30-minute demo session and redirects to `/demo/[token]`. No registration needed. `demo_sessions` table tracks token, expiry, UTM params, conversion. `lib/demo/seedDemoSchool.ts` ensures 3 synthetic candidates exist (Jamie Rivera TRI 74, Alex Chen TRI 61 with signals, Sofia Okafor TRI 88) with full insight profiles and learning support signals for the `lift-demo` tenant. Demo workspace shows real evaluator experience: candidate list, dimension scores, evaluator intelligence (dynamic briefing based on TRI), learning support signals, and reports tab (locked with trial CTA). Floating countdown timer, upgrade prompt at 5 min, expired modal at 0:00. Conversion tracked via `demo_token` query param on `/register`. Rate limited: 20 demos/IP/hour.
+
+**Important**: Demo queries use **separate queries** (not Supabase nested joins) because PostgREST schema cache can cause joins to return empty results silently. The `lift-demo` tenant must exist with `slug = 'lift-demo'`.
+
+### Contextual Tooltip System
+
+`lib/tooltips/content.ts` — 25+ centralized tooltip definitions covering TRI, dimensions, signals, evaluator intelligence, rubric, cycles, session tokens, grade bands, support plans, outcome tracking, and 3 trial-specific banners. `components/ui/Tooltip.tsx` — 3 modes: icon (hover popover), inline (dotted underline), banner (dismissible bar). DB-backed dismissals via `tooltip_dismissals` table + `/api/tooltips/dismiss` route + `useTooltips()` hook. Role-aware filtering.
+
+### Guided Tours & Feature Discovery
+
+`components/ui/GuidedTour.tsx` — Step-by-step tour engine with element targeting via CSS selectors, highlight ring overlay, progress dots, localStorage persistence. `components/tours/SchoolAdminTour.tsx` — 7-step welcome tour. `components/tours/EvaluatorTour.tsx` — 7-step tour. `components/ui/FeatureBadge.tsx` — "New" pulsing dot on sidebar items (Support Plans, Prediction Accuracy, Trial Health), auto-dismisses on click via localStorage. Trial banner tooltips (`components/tooltips/TrialBannerTooltips.tsx`) show on school dashboard for trial accounts.
+
+### Animated Product Demo (Marketing)
+
+`AnimatedDemo` component in `marketing/src/App.js` — 4-screen looping animation in the hero section (replaces static image). Screen 1: candidate profile with animated TRI gauge (0→74). Screen 2: 6 dimension bars animating staggered. Screen 3: evaluator intelligence briefing with fade-up observations. Screen 4: report buttons + family report preview. 12-second loop, fade transitions, screen indicator dots.
+
+### Remotion Video Export
+
+Standalone project at `C:\Users\Inteliflow\lift-demo-video\`. Renders the animated demo as MP4 video for social ads. Two compositions: square (1080x1080 for Instagram/Facebook) and landscape (1920x1080 for LinkedIn/YouTube). 12 seconds, 30fps, H.264. Render: `cd lift-demo-video && node render.mjs`. Output in `out/`.
 
 ## Environment
 
@@ -326,6 +349,9 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **Guest purchase idempotency**: Stripe webhook checks `license_events` for existing `stripe_session_id` to prevent duplicate tenant creation on webhook retry.
 - **Demo candidate cleanup**: Auto-removes Sofia/James/Amara demo candidates when school invites their first real candidate.
 - **Sentry auth token**: `SENTRY_AUTH_TOKEN` env var needed for source map uploads (readable stack traces).
+- **Supabase nested joins unreliable**: PostgREST schema cache can cause `.select("table(columns)")` joins to return empty silently. Use separate queries for critical paths (see demo page implementation).
+- **Demo tenant**: Must exist with `slug = 'lift-demo'`. Seed creates candidates on first demo session. If candidates exist without profiles, delete all demo tenant data and let seed recreate.
+- **Tooltip dismissals**: DB-backed (not localStorage) — persist across devices. Tours and feature badges use localStorage (per-browser only).
 
 ## Design Tokens
 
