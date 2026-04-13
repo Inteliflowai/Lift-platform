@@ -27,7 +27,7 @@ export function DemoTimer({ expiresAt, onExpire }: { expiresAt: string; onExpire
       <span className="text-sm">{urgent ? "⚠️" : "⏱"}</span>
       <div>
         <div className={`font-mono text-lg font-bold leading-none ${urgent ? "text-red-400" : "text-primary/80"}`}>{remaining}</div>
-        <div className="text-[10px] text-white/40">Demo remaining</div>
+        <div className="text-[10px] text-white/60">Demo remaining</div>
       </div>
     </div>
   );

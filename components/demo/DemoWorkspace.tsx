@@ -72,7 +72,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                   <span className="text-sm font-semibold text-white/90">{c.first_name} {c.last_name}</span>
                   <span className="font-mono text-sm font-bold" style={{ color: tc }}>{t}</span>
                 </div>
-                <div className="mt-0.5 text-xs text-white/30">Grade {c.grade_band} · {t >= 80 ? "Thriving" : t >= 60 ? "Ready" : "Developing"}</div>
+                <div className="mt-0.5 text-xs text-white/60">Grade {c.grade_band} · {t >= 80 ? "Thriving" : t >= 60 ? "Ready" : "Developing"}</div>
               </div>
             );
           })}
@@ -88,7 +88,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#2b1460] to-primary font-[family-name:var(--font-display)] text-lg font-bold text-white">{selected.first_name[0]}{selected.last_name[0]}</div>
                   <div>
                     <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-white/90">{name}</h2>
-                    <span className="text-xs text-white/30">Grade {selected.grade_band} · Session Complete</span>
+                    <span className="text-xs text-white/60">Grade {selected.grade_band} · Session Complete</span>
                   </div>
                 </div>
                 <div className="text-center">
@@ -100,7 +100,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
               {/* Tabs */}
               <div className="mb-4 flex gap-1">
                 {(["overview", "intelligence", "signals", "reports"] as const).map((t) => (
-                  <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-4 py-2 text-xs font-semibold capitalize transition-all ${tab === t ? "bg-primary text-white" : "border border-[#2d2d3d] text-white/50"}`}>
+                  <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-4 py-2 text-xs font-semibold capitalize transition-all ${tab === t ? "bg-primary text-white" : "border border-[#2d2d3d] text-white/70"}`}>
                     {t === "intelligence" ? "Evaluator Intelligence" : t === "signals" ? "Learning Support" : t}
                   </button>
                 ))}
@@ -117,7 +117,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                           <div className="mb-1.5 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="h-2 w-2 rounded-full" style={{ background: getColor(d.score) }} />
-                              <span className="text-sm text-white/50">{d.label}</span>
+                              <span className="text-sm text-white/70">{d.label}</span>
                             </div>
                             <div className="flex items-center gap-2.5">
                               <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: `${getColor(d.score)}20`, color: getColor(d.score) }}>{getLabel(d.score)}</span>
@@ -150,12 +150,12 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                       `Reflection responses were brief — metacognitive development may benefit from explicit instruction.`,
                       `Low hint usage despite errors may indicate difficulty recognizing when to seek support.`,
                     ]).map((obs, i) => (
-                      <div key={i} className="mb-3 flex gap-3"><div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" /><p className="text-sm leading-relaxed text-white/50">{obs}</p></div>
+                      <div key={i} className="mb-3 flex gap-3"><div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" /><p className="text-sm leading-relaxed text-white/70">{obs}</p></div>
                     ))}
                     <div className="mt-5 border-t border-white/5 pt-5">
-                      <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-white/30">Suggested Interview Questions</p>
+                      <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-white/60">Suggested Interview Questions</p>
                       {[`"Walk me through how you approached the hardest task."`, `"What would you do differently if you could redo one task?"`].map((q, i) => (
-                        <div key={i} className="mb-2 rounded-lg border border-primary/15 bg-primary/5 px-3.5 py-2.5 text-sm italic leading-relaxed text-primary/70">{q}</div>
+                        <div key={i} className="mb-2 rounded-lg border border-primary/15 bg-primary/5 px-3.5 py-2.5 text-sm italic leading-relaxed text-[#a5b4fc]">{q}</div>
                       ))}
                     </div>
                     <div className="mt-5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-300/80">
@@ -169,7 +169,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                     <div className="py-8 text-center">
                       <div className="mb-3 text-3xl">✓</div>
                       <p className="text-base font-bold text-[#10b981]">No signals detected</p>
-                      <p className="mx-auto mt-2 max-w-[400px] text-sm text-white/30">No notable behavioral patterns were identified during this session.</p>
+                      <p className="mx-auto mt-2 max-w-[400px] text-sm text-white/60">No notable behavioral patterns were identified during this session.</p>
                     </div>
                   ) : (
                     <div>
@@ -183,8 +183,8 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                             <span className="text-sm font-bold text-white/90">{s.label}</span>
                             <span className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase" style={{ background: s.severity === "notable" ? "rgba(249,115,22,0.15)" : "rgba(245,158,11,0.15)", color: s.severity === "notable" ? "#f97316" : "#f59e0b" }}>{s.severity}</span>
                           </div>
-                          <p className="mb-2 text-xs leading-relaxed text-white/40">{s.description}</p>
-                          <p className="text-xs text-primary/70">💡 {s.recommendation}</p>
+                          <p className="mb-2 text-xs leading-relaxed text-white/70">{s.description}</p>
+                          <p className="text-xs text-[#a5b4fc]">💡 {s.recommendation}</p>
                         </div>
                       ))}
                     </div>
@@ -198,12 +198,12 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                       {[{ label: "Internal Report", color: "#6366f1", desc: "Full evaluator report" }, { label: "Family Report", color: "#10b981", desc: "Parent-facing summary" }, { label: "Placement", color: "#8b5cf6", desc: "Placement recommendation" }].map((r) => (
                         <div key={r.label} className="flex-1 rounded-xl border p-4 text-center" style={{ borderColor: `${r.color}40`, background: `${r.color}10` }}>
                           <div className="mb-1.5 text-sm font-bold" style={{ color: r.color }}>{r.label}</div>
-                          <div className="text-xs text-white/30">{r.desc}</div>
+                          <div className="text-xs text-white/60">{r.desc}</div>
                         </div>
                       ))}
                     </div>
                     <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                      <p className="text-sm leading-relaxed text-primary/70">🔒 Report generation is available on your free trial. Start your trial to download all three report types for {name}.</p>
+                      <p className="text-sm leading-relaxed text-[#a5b4fc]">🔒 Report generation is available on your free trial. Start your trial to download all three report types for {name}.</p>
                       <a href={`/register?demo_token=${token}`} className="mt-3 inline-block rounded-lg bg-gradient-to-r from-primary to-[#8b5cf6] px-6 py-2.5 text-sm font-bold text-white">Start Free Trial — No Credit Card →</a>
                     </div>
                   </div>
