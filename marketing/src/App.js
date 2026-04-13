@@ -317,16 +317,18 @@ function GradientButton({ children, href, onClick, style: extraStyle }) {
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    padding: "16px 36px",
+    padding: "14px 32px",
     background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`,
     color: BRAND.white,
     fontWeight: 700,
-    fontSize: 16,
+    fontSize: 15,
     border: "none",
-    borderRadius: 12,
+    borderRadius: 10,
     cursor: "pointer",
     fontFamily: "'DM Sans', sans-serif",
     transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    boxShadow: `0 4px 20px rgba(236,72,153,0.35)`,
+    letterSpacing: 0.3,
     ...extraStyle,
   };
   if (href) return <a href={href} style={s} target={href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">{children}</a>;
@@ -339,13 +341,13 @@ function GlassButton({ children, onClick, href, style: extraStyle }) {
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    padding: "16px 36px",
-    background: BRAND.card,
+    padding: "14px 32px",
+    background: "rgba(255,255,255,0.08)",
     color: BRAND.white,
     fontWeight: 600,
-    fontSize: 16,
-    border: `1px solid ${BRAND.line}`,
-    borderRadius: 12,
+    fontSize: 15,
+    border: `1px solid rgba(255,255,255,0.2)`,
+    borderRadius: 10,
     cursor: "pointer",
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
@@ -385,21 +387,21 @@ function Header({ onOpen }) {
         transition: "all 0.3s ease",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         <a
           href="https://inteliflowai.com"
           title="Back to Inteliflow"
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",
-            width: 36, height: 36, borderRadius: 8,
+            width: 28, height: 28, borderRadius: 6,
             background: BRAND.card, border: `1px solid ${BRAND.line}`,
-            color: BRAND.white, fontSize: 18, textDecoration: "none",
+            color: BRAND.muted, fontSize: 13, textDecoration: "none",
             transition: "background 0.2s ease",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.cardStrong)}
           onMouseLeave={(e) => (e.currentTarget.style.background = BRAND.card)}
         >
-          &#8592;
+          &#8249;
         </a>
         <a href="#top" style={{ display: "flex", alignItems: "center" }}>
           <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 44, filter: "brightness(2.5)" }} />
@@ -676,7 +678,7 @@ function Hero() {
     <section style={{ position: "relative", overflow: "hidden", paddingTop: 72, width: "100%" }}>
       <Glow left={-120} top={-80} size={600} from={BRAND.sky} to={BRAND.magenta} />
       <Glow right={-100} top={-60} size={500} from={BRAND.orange} to={BRAND.purple} />
-      <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "100px 40px 80px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
+      <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "56px 40px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
         <div>
           <Label>Admissions Intelligence for K-12 Schools</Label>
           <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 28, marginTop: 12 }}>
@@ -689,7 +691,7 @@ function Hero() {
             From invitation to insight in under 75 minutes. Used by independent, boarding, and therapeutic schools to make better admissions decisions, stronger placements, and more confident transitions.
           </p>
           <div className="lift-hero-buttons" style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
-            <GradientButton href="https://lift.inteliflowai.com/demo/new">&#9654; Try Live Demo</GradientButton>
+            <GradientButton href="https://lift.inteliflowai.com/demo/new">Try Live Demo</GradientButton>
             <GlassButton href="https://lift.inteliflowai.com/register">Start Free Trial</GlassButton>
           </div>
           <p style={{ fontSize: 13, color: BRAND.muted, lineHeight: 1.7 }}>
@@ -1308,7 +1310,7 @@ function CTASection() {
         <div style={{ position: "relative", zIndex: 1 }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, marginBottom: 20 }}>See your next class more clearly.</h2>
           <div className="lift-cta-buttons" style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-            <GradientButton href="https://lift.inteliflowai.com/demo/new">&#9654; Try Live Demo</GradientButton>
+            <GradientButton href="https://lift.inteliflowai.com/demo/new">Try Live Demo</GradientButton>
             <GlassButton href="https://lift.inteliflowai.com/register">Start Free Trial</GlassButton>
             <GlassButton href="#contact">Talk With Our Team</GlassButton>
           </div>
