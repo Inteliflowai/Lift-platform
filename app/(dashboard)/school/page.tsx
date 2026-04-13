@@ -4,6 +4,7 @@ import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
 import { SchoolAdminTour } from "@/components/tours/SchoolAdminTour";
+import { TrialBannerTooltips } from "@/components/tooltips/TrialBannerTooltips";
 import { t } from "@/lib/i18n/useLocale";
 
 export default async function SchoolDashboard() {
@@ -166,6 +167,7 @@ export default async function SchoolDashboard() {
   return (
     <div className="space-y-6">
       <SchoolAdminTour />
+      <TrialBannerTooltips />
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold">

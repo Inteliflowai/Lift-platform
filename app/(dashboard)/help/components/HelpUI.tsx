@@ -162,10 +162,18 @@ export function TableOfContents({
   items: { id: string; label: string }[];
 }) {
   return (
-    <div className="rounded-xl border border-lift-border bg-surface p-4">
-      <p className="mb-2 text-xs font-semibold text-muted uppercase tracking-wider">
-        On this page
-      </p>
+    <div className="rounded-xl border border-lift-border bg-surface p-4 print:hidden">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-semibold text-muted uppercase tracking-wider">
+          On this page
+        </p>
+        <button
+          onClick={() => window.print()}
+          className="text-[10px] font-medium text-primary hover:underline"
+        >
+          Print / PDF
+        </button>
+      </div>
       <div className="space-y-1">
         {items.map((item) => (
           <a
