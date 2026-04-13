@@ -80,7 +80,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
 
         {/* Detail */}
         <div className="flex-1">
-          {selected && p && (
+          {selected && (
             <>
               {/* Header */}
               <div className="mb-4 flex items-center justify-between rounded-xl border border-[#2d2d3d] bg-[#1a1a24] px-6 py-5">
@@ -143,7 +143,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                       `No hint usage across reasoning tasks — worked through challenges independently.`,
                     ] : tri >= 65 ? [
                       `${selected.first_name} showed solid reading comprehension but revisited passages frequently.`,
-                      `Reasoning performance (${p.reasoning_score}) is notably higher than written expression (${p.writing_score}) — ideas are there, expression developing.`,
+                      `Reasoning performance (${p?.reasoning_score ?? "—"}) is notably higher than written expression (${p?.writing_score ?? "—"}) — ideas are there, expression developing.`,
                       `Hint usage was moderate — engaged with support tools when challenged.`,
                     ] : [
                       `${selected.first_name}'s session showed variable engagement — stronger on reasoning, weaker on sustained reading.`,

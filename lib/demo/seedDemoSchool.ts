@@ -57,13 +57,16 @@ export async function getDemoTenantId(): Promise<string> {
 }
 
 export async function ensureDemoCandidates(tenantId: string): Promise<void> {
-  // Check if demo candidates exist
+  // Check if demo candidates with profiles exist
   const { count } = await supabaseAdmin
-    .from("candidates")
+    .from("insight_profiles")
     .select("id", { count: "exact", head: true })
     .eq("tenant_id", tenantId);
 
   if ((count ?? 0) >= 3) return;
+
+  // Clear any existing candidates without profiles for this tenant
+  await supabaseAdmin.from("candidates").delete().eq("tenant_id", tenantId);
 
   // Seed demo candidates with full profiles
   for (const c of DEMO_CANDIDATES) {
