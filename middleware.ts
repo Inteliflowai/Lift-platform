@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PROTECTED_PREFIXES = ["/admin", "/school", "/evaluator", "/interviewer", "/support"];
-const PUBLIC_PREFIXES = ["/session", "/invite", "/consent", "/register", "/buy"];
+const PUBLIC_PREFIXES = ["/session", "/invite", "/consent", "/register", "/buy", "/demo"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

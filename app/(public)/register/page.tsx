@@ -92,6 +92,16 @@ function RegisterForm() {
         return;
       }
 
+      // Track demo conversion if coming from live demo
+      const demoToken = searchParams.get("demo_token");
+      if (demoToken) {
+        fetch("/api/demo/convert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: demoToken }),
+        }).catch(() => {});
+      }
+
       // If a plan was pre-selected, redirect to checkout after login
       const redirect = selectedPlan
         ? `/school/settings/subscription?auto_checkout=${selectedPlan}`

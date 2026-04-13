@@ -689,8 +689,8 @@ function Hero() {
             From invitation to insight in under 75 minutes. Used by independent, boarding, and therapeutic schools to make better admissions decisions, stronger placements, and more confident transitions.
           </p>
           <div className="lift-hero-buttons" style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
-            <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
-            <GlassButton href="#contact">Request a Demo</GlassButton>
+            <GradientButton href="https://lift.inteliflowai.com/demo/new">&#9654; Try Live Demo</GradientButton>
+            <GlassButton href="https://lift.inteliflowai.com/register">Start Free Trial</GlassButton>
           </div>
           <p style={{ fontSize: 13, color: BRAND.muted, lineHeight: 1.7 }}>
             30-day free trial &middot; No credit card required &middot; Non-diagnostic &middot; FERPA aligned &middot; COPPA aware
@@ -1308,8 +1308,8 @@ function CTASection() {
         <div style={{ position: "relative", zIndex: 1 }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, marginBottom: 20 }}>See your next class more clearly.</h2>
           <div className="lift-cta-buttons" style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-            <GradientButton href="https://lift.inteliflowai.com/register">Start Free Trial</GradientButton>
-            <GlassButton href="#contact">Request a Demo</GlassButton>
+            <GradientButton href="https://lift.inteliflowai.com/demo/new">&#9654; Try Live Demo</GradientButton>
+            <GlassButton href="https://lift.inteliflowai.com/register">Start Free Trial</GlassButton>
             <GlassButton href="#contact">Talk With Our Team</GlassButton>
           </div>
         </div>
