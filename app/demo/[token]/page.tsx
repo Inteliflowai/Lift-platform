@@ -27,12 +27,15 @@ export default async function DemoPage({ params }: { params: { token: string } }
   const tenantId = await getDemoTenantId();
 
   // Load demo candidates with profiles and signals
-  const { data: candidates } = await supabaseAdmin
+  const { data: candidates, error: candErr } = await supabaseAdmin
     .from("candidates")
     .select("id, first_name, last_name, grade_band, status, insight_profiles(tri_score, tri_label, tri_confidence, reading_score, writing_score, reasoning_score, reflection_score, persistence_score, support_seeking_score, overall_confidence, internal_narrative, placement_guidance), learning_support_signals(support_indicator_level, enriched_signals, enriched_signal_count, has_notable_signals)")
     .eq("tenant_id", tenantId)
     .eq("status", "completed")
     .order("created_at", { ascending: false });
+
+  if (candErr) console.error("[demo] candidates query error:", candErr);
+  console.log("[demo] candidates found:", candidates?.length ?? 0);
 
   return <DemoWorkspace token={params.token} expiresAt={session.expires_at} candidates={candidates ?? []} />;
 }
