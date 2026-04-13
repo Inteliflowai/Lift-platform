@@ -294,8 +294,9 @@ export function SubscriptionClient({
 
       {/* Pricing Cards */}
       <div id="plans" className="scroll-mt-8">
-        <h2 className="mb-6 text-center text-lg font-bold">Choose Your Plan</h2>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <h2 className="mb-2 text-center text-lg font-bold">Choose Your Plan</h2>
+        <p className="mb-6 text-center text-xs text-muted">Professional includes all core features. Enterprise adds unlimited capacity, white label, SIS integrations, and dedicated support.</p>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {TIER_ORDER.map((t) => {
             const meta = TIER_META[t];
             const Icon = meta.icon;

@@ -9,10 +9,20 @@ import { BriefingCard } from "@/components/evaluator/BriefingCard";
 import { SynthesisPanel } from "@/components/evaluator/SynthesisPanel";
 import { RubricForm } from "@/components/interviewer/RubricForm";
 import { RadarChart } from "@/components/RadarChart";
+import { InfoTooltip } from "@/app/(dashboard)/components/InfoTooltip";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "outcomes" | "support_plan";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
 const DIMENSIONS = ["reading", "writing", "reasoning", "reflection", "persistence", "support_seeking"] as const;
+
+const DIMENSION_TIPS: Record<string, string> = {
+  reading: "How the student engages with text — comprehension strategies, evidence use, and ability to extract meaning from passages.",
+  writing: "Clarity, structure, and voice in written output. Captures revision behavior and how ideas develop across drafts.",
+  reasoning: "How the student approaches unfamiliar problems — identifying patterns, organizing information, building logical solutions.",
+  reflection: "Awareness of one's own learning process — evaluating own work, naming challenges, planning next steps.",
+  persistence: "Sustained engagement under challenge — revision depth, time on task, willingness to return to difficult items.",
+  support_seeking: "How the student seeks support — using hints, asking for clarification, leveraging available tools when stuck.",
+};
 
 function scoreColor(score: number | null): string {
   if (score == null) return "bg-muted/20";
@@ -190,7 +200,10 @@ function OverviewTab({ candidate, profile, inviteSentAt, sessions, benchmarks }:
               const diffColor = diff != null ? (diff > 0 ? "text-[#10b981]" : diff < -15 ? "text-[#f43f5e]" : "text-[#f59e0b]") : "";
               return (
                 <div key={dim} className="flex items-center gap-3">
-                  <span className="w-32 text-sm capitalize">{dim.replace("_", " ")}</span>
+                  <span className="w-32 text-sm capitalize flex items-center gap-1">
+                    {dim.replace("_", " ")}
+                    <InfoTooltip text={DIMENSION_TIPS[dim] ?? ""} />
+                  </span>
                   <div className="relative flex-1 h-4 rounded-full bg-lift-border overflow-hidden">
                     <div className={`h-full rounded-full ${scoreColor(val)}`} style={{ width: `${val ?? 0}%` }} />
                     {bmVal != null && (
@@ -1406,7 +1419,7 @@ function SupportPlanTab({ candidateId, candidateName }: { candidateId: string; c
 
       {/* Week 1-2 Actions (interactive checklist) */}
       <div className="rounded-lg border border-lift-border bg-surface p-4">
-        <h3 className="mb-3 text-sm font-semibold text-lift-text">Week 1-2 Actions</h3>
+        <h3 className="mb-3 text-sm font-semibold text-lift-text flex items-center gap-1.5">Week 1-2 Actions <InfoTooltip text="Immediate actions for the student's first two weeks. Check items off as your team completes them." /></h3>
         <div className="space-y-2">
           {week12Items.length > 0 ? week12Items.map((item) => (
             <label key={item.id} className="flex items-start gap-3 cursor-pointer group">
@@ -1428,7 +1441,7 @@ function SupportPlanTab({ candidateId, candidateName }: { candidateId: string; c
 
       {/* Month 1 Priorities (interactive checklist) */}
       <div className="rounded-lg border border-lift-border bg-surface p-4">
-        <h3 className="mb-3 text-sm font-semibold text-lift-text">Month 1 Priorities</h3>
+        <h3 className="mb-3 text-sm font-semibold text-lift-text flex items-center gap-1.5">Month 1 Priorities <InfoTooltip text="Key goals for the first month. These build on the Week 1-2 actions and help establish the student's support rhythm." /></h3>
         <div className="space-y-2">
           {month1Items.length > 0 ? month1Items.map((item) => (
             <label key={item.id} className="flex items-start gap-3 cursor-pointer group">
@@ -1450,7 +1463,7 @@ function SupportPlanTab({ candidateId, candidateName }: { candidateId: string; c
 
       {/* Month 2-3 Checkpoints */}
       <div className="rounded-lg border border-lift-border bg-surface p-4">
-        <h3 className="mb-3 text-sm font-semibold text-lift-text">Month 2-3 Checkpoints</h3>
+        <h3 className="mb-3 text-sm font-semibold text-lift-text flex items-center gap-1.5">Month 2-3 Checkpoints <InfoTooltip text="Milestones to check at the 60-90 day mark. These assess whether the student's transition support is working or needs adjustment." /></h3>
         <div className="space-y-2">
           {(plan.month_2_3_checkpoints ?? []).map((cp, i) => (
             <div key={i} className="flex items-start gap-2">
@@ -1464,7 +1477,7 @@ function SupportPlanTab({ candidateId, candidateName }: { candidateId: string; c
       {/* Recommended Resources */}
       {(plan.recommended_resources ?? []).length > 0 && (
         <div className="rounded-lg border border-lift-border bg-surface p-4">
-          <h3 className="mb-3 text-sm font-semibold text-lift-text">Recommended Resources</h3>
+          <h3 className="mb-3 text-sm font-semibold text-lift-text flex items-center gap-1.5">Recommended Resources <InfoTooltip text="Mapped to your school's configured support resources. Priority indicates urgency: high = start immediately, medium = within first month, low = monitor and consider." /></h3>
           <div className="grid gap-3 sm:grid-cols-2">
             {(plan.recommended_resources as RecommendedResource[]).map((r, i) => (
               <div key={i} className="rounded-lg border border-lift-border p-3">

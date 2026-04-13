@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { NewDot } from "@/components/ui/FeatureBadge";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
@@ -31,14 +32,14 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type NavItem = { label: string; href: string; icon: LucideIcon; desc?: string; feature?: string };
+type NavItem = { label: string; href: string; icon: LucideIcon; desc?: string; feature?: string; isNew?: boolean };
 
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
   platform_admin: [
     { label: "Tenants", href: "/admin/tenants", icon: Building2 },
     { label: "Licenses", href: "/admin/licenses", icon: CreditCard },
     { label: "All Cycles", href: "/admin/cycles", icon: Calendar },
-    { label: "Trial Health", href: "/admin/trials", icon: Activity },
+    { label: "Trial Health", href: "/admin/trials", icon: Activity, isNew: true },
     { label: "System Reports", href: "/admin/reports", icon: BarChart2 },
     { label: "System Audit", href: "/admin/audit", icon: ScrollText },
     { label: "Settings", href: "/admin/settings", icon: Settings },
@@ -51,8 +52,8 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
     { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score", feature: FEATURES.WAITLIST_INTELLIGENCE },
     { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison", feature: FEATURES.REAPPLICATION_INTELLIGENCE },
-    { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes", feature: FEATURES.OUTCOME_TRACKING },
-    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates", feature: FEATURES.PLACEMENT_SUPPORT_PLAN },
+    { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes", feature: FEATURES.OUTCOME_TRACKING, isNew: true },
+    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates", feature: FEATURES.PLACEMENT_SUPPORT_PLAN, isNew: true },
     { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
     { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
@@ -194,7 +195,7 @@ export function Sidebar({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3">
+      <nav data-tour="sidebar-nav" className="flex-1 overflow-y-auto px-3 py-3">
         {sections.map((section, sIdx) => (
           <div key={section.role} className={sIdx > 0 ? "mt-4" : ""}>
             {isMultiRole && (
@@ -223,6 +224,7 @@ export function Sidebar({
                   >
                     <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
                     {navT[item.label] ?? item.label}
+                    {item.isNew && <NewDot featureId={`nav_${item.href}`} />}
                   </Link>
                 );
               })}

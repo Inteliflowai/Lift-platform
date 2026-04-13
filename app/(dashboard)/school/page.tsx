@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
+import { SchoolAdminTour } from "@/components/tours/SchoolAdminTour";
 import { t } from "@/lib/i18n/useLocale";
 
 export default async function SchoolDashboard() {
@@ -164,6 +165,7 @@ export default async function SchoolDashboard() {
 
   return (
     <div className="space-y-6">
+      <SchoolAdminTour />
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold">
@@ -180,7 +182,7 @@ export default async function SchoolDashboard() {
       <OnboardingBanner />
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div data-tour="stat-cards" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((s) => (
           <div
             key={s.label}
@@ -236,6 +238,7 @@ export default async function SchoolDashboard() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Review Queue */}
+        <div data-tour="review-queue"></div>
         <div className="rounded-lg border border-lift-border bg-surface p-5">
           <div className="flex items-center gap-1.5">
             <h2 className="text-lg font-semibold">Review Queue</h2>

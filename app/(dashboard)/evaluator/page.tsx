@@ -1,6 +1,7 @@
 import { getTenantContext } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { EvaluatorDashboardClient } from "./evaluator-dashboard-client";
+import { EvaluatorTour } from "@/components/tours/EvaluatorTour";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +71,14 @@ export default async function EvaluatorDashboard() {
   );
 
   return (
+    <>
+    <EvaluatorTour />
     <EvaluatorDashboardClient
       reviewCandidates={filteredReview}
       myReviewCandidateIds={Array.from(myReviewCandidateIds)}
       allCandidates={allCandidates ?? []}
       newAssignmentCount={newAssignments}
     />
+    </>
   );
 }
