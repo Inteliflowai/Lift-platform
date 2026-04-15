@@ -101,7 +101,18 @@ export function CandidateDetailClient({
       {tab === "overview" && (
         <div className="space-y-6">
           <OverviewTab candidate={candidate} profile={profile} inviteSentAt={inviteSentAt} sessions={sessions} benchmarks={benchmarks} />
-          <BriefingCard briefing={briefing as Parameters<typeof BriefingCard>[0]["briefing"]} />
+          <BriefingCard
+            briefing={briefing as Parameters<typeof BriefingCard>[0]["briefing"]}
+            profileFinalized={profile?.is_final === true}
+            onRegenerate={async () => {
+              await fetch("/api/pipeline/briefing/regenerate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ candidate_id: candidate.id }),
+              });
+              window.location.reload();
+            }}
+          />
           {rubricSubmissions.length > 0 && (
             <SynthesisPanel
               synthesis={synthesis as Parameters<typeof SynthesisPanel>[0]["synthesis"]}
@@ -698,7 +709,11 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
       <div className="rounded-xl border border-lift-border bg-surface p-5 space-y-4">
         <div>
           <p className="text-xs font-semibold text-lift-text uppercase tracking-wider">Your Evaluation</p>
-          <p className="mt-0.5 text-[10px] text-muted">Review the AI recommendation above, then provide your own assessment.</p>
+          <p className="mt-0.5 text-[10px] text-muted">
+            {aiSnapshot && Object.keys(aiSnapshot).length > 0
+              ? "Review the AI recommendation above, then provide your own assessment."
+              : "Provide your assessment of this candidate."}
+          </p>
         </div>
 
         <div>

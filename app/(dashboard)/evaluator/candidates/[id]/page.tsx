@@ -156,12 +156,30 @@ export default async function EvaluatorCandidateDetail({
     benchmarks = data;
   }
 
-  // Team members for assignment dropdown
-  const { data: teamMembers } = await supabaseAdmin
+  // Team members for assignment dropdown (separate queries — nested joins can fail silently)
+  const { data: roleRows } = await supabaseAdmin
     .from("user_tenant_roles")
-    .select("user_id, role, users(id, full_name, email)")
+    .select("user_id, role")
     .eq("tenant_id", tenantId)
     .in("role", ["evaluator", "interviewer", "school_admin"]);
+
+  let teamMembers: { user_id: string; role: string; users: { id: string; full_name: string | null; email: string } }[] = [];
+  if (roleRows && roleRows.length > 0) {
+    const userIds = Array.from(new Set(roleRows.map((r) => r.user_id)));
+    const { data: userRows } = await supabaseAdmin
+      .from("users")
+      .select("id, full_name, email")
+      .in("id", userIds);
+
+    const userMap = new Map((userRows ?? []).map((u) => [u.id, u]));
+    teamMembers = roleRows
+      .filter((r) => userMap.has(r.user_id))
+      .map((r) => ({
+        user_id: r.user_id,
+        role: r.role,
+        users: userMap.get(r.user_id)!,
+      }));
+  }
 
   // Current assignments for this candidate
   const { data: assignments } = await supabaseAdmin

@@ -185,13 +185,19 @@ export async function POST(req: NextRequest) {
 
   // Step 5: Evaluator briefing (non-blocking)
   try {
-    await fetch(`${baseUrl}/api/pipeline/briefing`, {
+    const briefingRes = await fetch(`${baseUrl}/api/pipeline/briefing`, {
       method: "POST",
       headers,
       body: JSON.stringify({ candidate_id: session.candidate_id, session_id }),
     });
-  } catch {
-    // Silent — briefing is optional
+    if (!briefingRes.ok) {
+      const briefingErr = await briefingRes.json().catch(() => ({}));
+      console.error("[Pipeline] Briefing failed:", briefingRes.status, briefingErr);
+      pipelineErrors.push({ step: "briefing", error: `${briefingRes.status}: ${briefingErr?.error ?? "unknown"}` });
+    }
+  } catch (err) {
+    console.error("[Pipeline] Briefing request failed:", err);
+    pipelineErrors.push({ step: "briefing", error: err instanceof Error ? err.message : String(err) });
   }
 
   // Step 6: Cohort benchmarks (non-blocking)

@@ -15,15 +15,36 @@ type Briefing = {
 
 export function BriefingCard({
   briefing,
+  profileFinalized,
   onRegenerate,
 }: {
   briefing: Briefing | null;
+  profileFinalized?: boolean;
   onRegenerate?: () => void;
 }) {
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
   const [copied, setCopied] = useState<number | null>(null);
+  const [regenerating, setRegenrating] = useState(false);
 
   if (!briefing) {
+    // Profile is finalized but no briefing was generated — show retry option
+    if (profileFinalized) {
+      return (
+        <div className="rounded-lg border-l-4 border-[#6366f1] bg-[#6366f1]/5 p-5">
+          <p className="text-sm text-muted">Interview briefing was not generated.</p>
+          {onRegenerate && (
+            <button
+              onClick={() => { setRegenrating(true); onRegenerate(); }}
+              disabled={regenerating}
+              className="mt-2 rounded-md bg-[#6366f1] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {regenerating ? "Generating..." : "Generate Briefing"}
+            </button>
+          )}
+        </div>
+      );
+    }
+    // Still processing
     return (
       <div className="rounded-lg border-l-4 border-[#6366f1] bg-[#6366f1]/5 p-5">
         <div className="flex items-center gap-2">
