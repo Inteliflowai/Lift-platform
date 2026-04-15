@@ -38,7 +38,7 @@ LIFT (Learning Insight for Transitions) is a non-diagnostic admissions insight p
 - **Archiver** — ZIP generation for FERPA data exports
 - **Lucide React** — Icons
 - **Sentry** — Error monitoring and performance tracking (`@sentry/nextjs`)
-- **Vitest** — Unit test framework (26 tests covering encryption, features, TRI, pricing)
+- **Vitest** — Unit test framework (79 tests covering encryption, features, TRI, pricing, Stripe webhooks, licensing gate, rate limiting, token resolution, HL webhooks, trial intelligence)
 
 ## Architecture
 
@@ -178,7 +178,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 - **Rate limiting**: `lib/rateLimit/middleware.ts` — in-memory sliding window on transcribe (10/hr), TTS (20/hr), signals (200/hr), register (5/IP/hr)
 - **Database resilience**: `lib/db/withDb.ts` — non-critical DB wrapper with fallback
 - **Health check**: `/api/health` — checks DB, AI keys, email config
-- **Vercel config**: `vercel.json` — 60s timeout for AI routes, 30s for voice
+- **Vercel config**: `vercel.json` — `buildCommand: "npm test && npm run build"` (tests gate every deploy), 60s timeout for AI routes, 30s for voice
 
 ### School Analytics
 
@@ -215,7 +215,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 `components/onboarding/OnboardingBanner.tsx` — 5-step guided checklist:
 1. Create cycle → 2. Invite evaluator → 3. Invite candidate → 4. Complete session → 5. Review report
-Steps auto-complete from API routes. Progress bar, celebration on completion. Fully translated.
+Steps auto-complete from API routes. Progress bar, celebration on completion. Fully translated. Banner refetches progress on `pathname` change and window focus (not just mount), so navigation away and back always shows current state.
 
 ### Candidate Session Flow
 
@@ -223,7 +223,7 @@ Steps auto-complete from API routes. Progress bar, celebration on completion. Fu
 2. Invite email sent with token link → `/invite/{token}`
 3. Consent collected → `/consent/{token}` (guardian consent if COPPA)
 4. Session starts → `/session/{token}` — loads `SessionClient`
-5. Tasks served sequentially (8 task types across 3 grade bands)
+5. Tasks served sequentially (8 task types across 3 grades: 6-7, 8, 9-11)
 6. Signals captured: keystroke/backspace counts, focus events, timing, hints, voice usage
 7. On completion → pipeline runs → insight_profiles created → evaluator notified if flagged
 
@@ -288,11 +288,24 @@ Sentry (`@sentry/nextjs`) configured for client, server, and edge. Global error 
 
 ### Contextual Tooltip System
 
-`lib/tooltips/content.ts` — 25+ centralized tooltip definitions covering TRI, dimensions, signals, evaluator intelligence, rubric, cycles, session tokens, grade bands, support plans, outcome tracking, and 3 trial-specific banners. `components/ui/Tooltip.tsx` — 3 modes: icon (hover popover), inline (dotted underline), banner (dismissible bar). DB-backed dismissals via `tooltip_dismissals` table + `/api/tooltips/dismiss` route + `useTooltips()` hook. Role-aware filtering.
+`lib/tooltips/content.ts` — 25+ centralized tooltip definitions covering TRI, dimensions, signals, evaluator intelligence, rubric, cycles, session tokens, grades, support plans, outcome tracking, and 3 trial-specific banners. `components/ui/Tooltip.tsx` — 3 modes: icon (hover popover with auto-flip positioning), inline (dotted underline), banner (dismissible bar). DB-backed dismissals via `tooltip_dismissals` table + `/api/tooltips/dismiss` route + `useTooltips()` hook. Role-aware filtering.
 
 ### Guided Tours & Feature Discovery
 
 `components/ui/GuidedTour.tsx` — Step-by-step tour engine with element targeting via CSS selectors, highlight ring overlay, progress dots, localStorage persistence. `components/tours/SchoolAdminTour.tsx` — 7-step welcome tour. `components/tours/EvaluatorTour.tsx` — 7-step tour. `components/ui/FeatureBadge.tsx` — "New" pulsing dot on sidebar items (Support Plans, Prediction Accuracy, Trial Health), auto-dismisses on click via localStorage. Trial banner tooltips (`components/tooltips/TrialBannerTooltips.tsx`) show on school dashboard for trial accounts.
+
+### Marketing Site
+
+`marketing/` is a separate CRA React app (not part of the Next.js platform). Deployed via ReactPress on the Inteliflow WordPress site (SiteGround).
+
+- **Build**: `cd marketing && npm run build` — outputs to `marketing/build/`
+- **Deploy**: Upload `marketing/build/` to `/wp-content/reactpress/apps/lift-admissions/build/` on SiteGround
+- **Structure**: Single `src/App.js` (~1500 lines), inline styles only (no Tailwind), React-only (no other deps)
+- **WordPress integration**: `usePageStyles()` injects CSS + DOM-walks all ancestors to force full-width rendering regardless of WP theme containers
+- **Images**: All in `marketing/public/`, served via `process.env.PUBLIC_URL`
+- **Lead capture**: "Request a Demo" / "Talk With Our Team" buttons open mailto to `lift@inteliflowai.com`. HighLevel webhook (`HL_WEBHOOK_URL` constant) ready — replace placeholder when available
+- **Pricing**: Annual-only (Professional $9,600/yr, Enterprise "Call Us!"), 30-day trial with all Enterprise features. "Buy Now" links to `lift.inteliflowai.com/pricing`
+- **Brand palette**: `BRAND` constant matches Inteliflow site (deep purple `#2b1460` background, `lift-app` CSS class prefix to avoid conflicts)
 
 ### Animated Product Demo (Marketing)
 
@@ -327,7 +340,7 @@ Optional: `LIFT_TEAM_EMAIL`, `LIFT_DEV_MODE`.
 - **Overview**: TRI gauge with explanation card, radar chart, dimension scores, briefing card, learning support panel
 - **Responses**: Task-by-task display of candidate's written responses, word counts, revision depth. Joined via `task_instances → response_text → response_features` (nested join — do NOT join response_features directly to task_instances)
 - **Signals**: Behavioral data with descriptions — avg time per task, reading time, hints, focus loss, session duration. Time-per-task bar chart. Session timeline with color-coded events. Info banner explaining what signals are.
-- **Evaluator Review**: AI Recommendation shown FIRST (dimension score bars, placement guidance, confidence). Then evaluator's own notes + tier selection (colored buttons). Override rationale only asked when tier actually differs from AI.
+- **Evaluator Review**: AI Recommendation shown FIRST (dimension score bars, placement guidance, confidence) — only if `ai_recommendation_snapshot` is non-empty. Then evaluator's own notes + tier selection (colored buttons). Text adapts: "Review the AI recommendation above" when AI exists, "Provide your assessment" when it doesn't. Override rationale only asked when tier actually differs from AI.
 - **Interview Notes**: Rubric scoring + interview synthesis
 - **Outcomes** (visible when candidate is completed/reviewed/admitted): Record GPA, standing, support services, retention
 - **Support Plan** (visible when candidate is admitted): AI-generated 90-day plan with interactive checklists
@@ -339,9 +352,10 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **All API routes using `getTenantContext()` or `createClient` from supabase/server MUST have `export const dynamic = "force-dynamic"`** — otherwise Vercel build crashes on `cookies()` access during data collection
 - **`response_text` has no unique constraint on `task_instance_id`** — use simple `insert`, NOT `upsert` with `onConflict`
 - **`response_features` references `response_text_id`**, not `task_instance_id` — Supabase joins must go through `response_text`
-- **Pipeline timeout**: orchestrator (`/api/pipeline/run`) set to 120s in `vercel.json`. Still tight for 6 sequential Claude API calls. Requires Vercel Pro plan.
+- **Pipeline timeout**: orchestrator (`/api/pipeline/run`) set to 120s in `vercel.json`. Still tight for 6 sequential Claude API calls. Requires Vercel Pro plan. Briefing step errors are logged and recorded in `pipeline_errors`. If briefing fails, evaluator sees a "Generate Briefing" button instead of infinite spinner.
+- **Briefing regeneration**: `/api/pipeline/briefing/regenerate` allows evaluators to manually trigger briefing generation from the candidate detail page when the pipeline didn't create one.
 - **TTS (PassageReader)**: NOT shown on `reading_passage` tasks (reading comprehension — candidate must read). IS shown on `scenario` and `quantitative_reasoning`.
-- **Hydration errors** (#418/#423): Console-only warnings from `LocaleProvider` wrapping server-rendered content. Don't break functionality.
+- **Hydration errors** (#418/#423/#425): Console-only warnings from `LocaleProvider` wrapping server-rendered content. Don't break functionality. Do NOT use raw `<head>` tags in nested layouts — use Next.js `metadata`/`viewport` exports instead (raw `<head>` causes #329 scheduler crash).
 - **Task templates**: Must have full content (passage text, scenario text). Original seed script had broken templates with empty content for some grade bands. Use `lib/seed-task-templates.ts` or `scripts/seed-existing-tenants.ts` for proper seeding.
 - **Sidebar feature gating**: Nav items with a `feature` property are filtered by `useLicense().hasFeature()`. Enterprise-only features (waitlist, re-app, etc.) hidden for Professional users.
 - **Candidate assignments**: School admins can assign candidates to evaluators/interviewers via `candidate_assignments` table. Evaluators see assigned candidates in their queue.
@@ -349,9 +363,13 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **Guest purchase idempotency**: Stripe webhook checks `license_events` for existing `stripe_session_id` to prevent duplicate tenant creation on webhook retry.
 - **Demo candidate cleanup**: Auto-removes Sofia/James/Amara demo candidates when school invites their first real candidate.
 - **Sentry auth token**: `SENTRY_AUTH_TOKEN` env var needed for source map uploads (readable stack traces).
-- **Supabase nested joins unreliable**: PostgREST schema cache can cause `.select("table(columns)")` joins to return empty silently. Use separate queries for critical paths (see demo page implementation).
+- **Supabase nested joins unreliable**: PostgREST schema cache can cause `.select("table(columns)")` joins to return empty silently. Use separate queries for critical paths (see demo page, evaluator candidate detail team members).
 - **Demo tenant**: Must exist with `slug = 'lift-demo'`. Seed creates candidates on first demo session. If candidates exist without profiles, delete all demo tenant data and let seed recreate.
 - **Tooltip dismissals**: DB-backed (not localStorage) — persist across devices. Tours and feature badges use localStorage (per-browser only).
+- **Tooltip positioning**: `Tooltip.tsx`, `InfoTooltip.tsx`, and `GuidedTour.tsx` all auto-flip position when near viewport edges. Tooltips detect available space and render above/below accordingly.
+- **Terminology**: User-facing text says "Grade" (not "Grade Band"). Internal code still uses `grade_band` for DB columns, types, and variable names — only display text was changed.
+- **Voice transcription default**: Both page (`voiceEnabled` prop) and API (`/api/session/transcribe`) must agree on the default when `tenant_settings` is null. Both default to enabled (voice allowed). The API only rejects when settings explicitly exist with `voice_mode_enabled = false`.
+- **Candidate layout metadata**: Uses Next.js `metadata`/`viewport` exports for PWA meta tags (manifest, theme-color, apple-web-app). Do NOT use raw `<head>` elements in nested layouts.
 
 ## Design Tokens
 
