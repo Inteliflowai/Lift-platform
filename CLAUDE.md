@@ -126,7 +126,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 `lib/licensing/` implements a 2-tier subscription system (Professional $12,000/yr, Enterprise $18,000/yr) + 30-day trial (all Enterprise features minus white label):
 
-- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes
+- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes, class_builder. Enterprise-only: core_bridge
 - **`gate.ts`** — `checkFeature()`, `requireFeature()`, `checkSessionLimit()`
 - **`resolver.ts`** — License cache (5-min TTL) via `getLicense()` / `isLicenseActive()`
 - **`context.tsx`** — `LicenseProvider` + `useLicense()` hook
@@ -241,6 +241,7 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 031: auto_invite (invitation_log table, auto_invite_on_import + invite_deadline_days on tenant_settings)
 - 032: application_data (candidate_application_data table)
 - 033: observation_notes (interviewer_observation_notes table)
+- 034: class_compositions (class_compositions table for Class Builder)
 `FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
 
 ### Demo Mode
@@ -308,6 +309,35 @@ Structured note-taking linked to LIFT briefing observations and interview questi
 - **Synthesis integration**: `/api/pipeline/synthesize` fetches `interviewer_observation_notes` and formats them in the AI prompt as `RE: "observation..." → CONFIRMS: note text`.
 - API: `GET/POST/PATCH/DELETE /api/school/candidates/observation-notes`.
 - DB: `interviewer_observation_notes` table (migration 033). Distinct from legacy `interviewer_notes` (simple text).
+
+### Class Composition Builder
+
+"Build Class" mode inside the Cohort View (`/school/cohort`). Feature-gated: `class_builder` (Professional). Lets admissions directors select candidates and see live composition stats.
+
+- **Toggle**: "Build Class" button in cohort header appears when feature is enabled + cycle selected + candidates loaded.
+- **Left panel**: Candidate table with checkboxes, initials, TRI score, signal indicator. Click row to toggle. Select-all checkbox.
+- **Right panel** (sticky, live-updating as selection changes):
+  - At a Glance: total students + avg TRI (color-coded)
+  - Readiness Distribution: animated bars for strong/developing/emerging with counts + percentages
+  - By Grade: breakdown when multiple grade bands present
+  - Class Dimension Profile: 6 bars with "STRENGTH" callout on top 2 dimensions
+  - Support Load: amber warning when selected students have learning support signals
+  - CORE Readiness Preview: shows upgrade prompt when `core_bridge` feature not available, or readiness message when it is
+- **Actions**: Save Draft (toast), Export CSV (toast), Confirm Class (modal with confirmation)
+- **Empty state**: "Select candidates on the left" when nothing selected
+- `lib/cohort/computeComposition.ts` — pure function (no DB calls) computing `ClassComposition` from `CohortRowForComposition[]`
+- API: `GET/POST/PATCH /api/school/cohort/composition` — CRUD on `class_compositions` table (draft/confirmed/archived), audit logged
+- DB: `class_compositions` table (migration 034) — `tenant_id`, `cycle_id`, `candidate_ids` (uuid[]), `composition_snapshot` (JSONB), `status`, `confirmed_at`
+
+### LIFT→CORE Bridge
+
+Enriches the existing core-handoff flow with predicted mastery band and learning style. Activates automatically when a school has both LIFT and CORE licenses (`core_integration_enabled` on tenant + `CORE_BRIDGE` feature gate on Enterprise tier).
+
+- **LIFT side** (`app/api/integrations/core-handoff/route.ts`): Maps LIFT dimensions to CORE's actual values:
+  - Band: `reteach` (TRI <50 or weak reading/reasoning), `grade_level` (50-89), `advanced` (90+ with strong dimensions)
+  - Style: `text` (reading/writing dominant), `kinesthetic` (reasoning/persistence), `auditory` (reflection/advocacy), `visual` (default when no clear winner)
+- **CORE side** (`app/api/import/lift-inbound/route.ts`): Stores `predicted_mastery_band` and `predicted_learning_style` in `users.lift_data` JSONB. Teacher student detail page renders LIFT Admissions Profile card (TRI, predicted band, predicted style, signal count) when `lift_data` exists.
+- **No separate toggle needed**: Platform admin enables `core_integration_enabled` on the LIFT tenant. Predictions auto-included in admit handoff. CORE shows the data when present, hides when not.
 
 ### Trial Intelligence
 
@@ -434,6 +464,8 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **Committee report route**: Lives at `/api/exports/committee` (not `/api/reports/`). Uses GET with `?candidate_id=` param, returns HTML (not JSON). Opens in new tab for print.
 - **SIS inbound webhook auth**: Validates via HMAC signature (`x-sis-signature` header) or direct key match (`x-sis-secret` header) against decrypted `sis_integrations.config`. Requires `x-tenant-id` header.
 - **Toast provider**: `ToastProvider` wraps dashboard layout inside `LicenseProvider`. `useToast()` hook available in all dashboard client components. Do NOT wrap candidate/public routes — they don't have it.
+- **Class Builder data flow**: ClassBuilder receives `CohortRowForComposition[]` (same shape as cohort API `sessions` response). The `computeComposition()` function is a pure client-side calculator — no API calls. Compositions are saved to `class_compositions` table via `/api/school/cohort/composition`.
+- **CORE bridge prediction mapping**: LIFT uses `reteach`/`grade_level`/`advanced` (CORE's actual band values, not "On Track"/"Reteach"/"Advanced"). Learning styles map to CORE's 5 styles: `visual`, `auditory`, `kinesthetic`, `text`, `emerging`. The mapping is in `core-handoff/route.ts` — not a shared lib.
 
 ## Design Tokens
 
