@@ -40,6 +40,10 @@ LIFT (Learning Insight for Transitions) is a non-diagnostic admissions insight p
 - **Sentry** — Error monitoring and performance tracking (`@sentry/nextjs`)
 - **Vitest** — Unit test framework (79 tests covering encryption, features, TRI, pricing, Stripe webhooks, licensing gate, rate limiting, token resolution, HL webhooks, trial intelligence)
 
+### Toast Notifications
+
+`components/ui/Toast.tsx` — `ToastProvider` wraps the dashboard layout, `useToast()` hook returns `toast(message, type?)`. Types: `success` (green), `error` (red), `info` (indigo). Auto-dismiss after 3.5s. Used across settings save, invite send, bulk send, committee brief export, application data save, observation note save.
+
 ## Architecture
 
 ### Route Groups
@@ -122,7 +126,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 `lib/licensing/` implements a 2-tier subscription system (Professional $12,000/yr, Enterprise $18,000/yr) + 30-day trial (all Enterprise features minus white label):
 
-- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model
+- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes
 - **`gate.ts`** — `checkFeature()`, `requireFeature()`, `checkSessionLimit()`
 - **`resolver.ts`** — License cache (5-min TTL) via `getLicense()` / `isLicenseActive()`
 - **`context.tsx`** — `LicenseProvider` + `useLicense()` hook
@@ -234,6 +238,9 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 023: support_plans + support_resources, 024: SIS integrations, 025: trial intelligence
 - 026: Ravenna SIS provider, 027: enriched signals, 028: email_logs
 - 029: tooltip_dismissals, 030: demo_sessions
+- 031: auto_invite (invitation_log table, auto_invite_on_import + invite_deadline_days on tenant_settings)
+- 032: application_data (candidate_application_data table)
+- 033: observation_notes (interviewer_observation_notes table)
 `FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
 
 ### Demo Mode
@@ -251,6 +258,56 @@ New trial registrations get 3 demo candidates and task templates auto-seeded. De
 ### SIS Integrations (Enterprise)
 
 `lib/integrations/` — Adapter pattern for 5 SIS providers: Veracross (OAuth 2.0), Blackbaud (SKY API + auto token refresh), PowerSchool (REST), Ravenna (API key), Webhook (HMAC-SHA256). Generic CSV export/import fallback. Credentials encrypted via AES-256-GCM (`lib/crypto/encrypt.ts`, requires `ENCRYPTION_KEY` env var). Auto-syncs on admit decision. Settings UI at `/school/settings/integrations` with setup instructions per provider.
+
+### Cohort Comparison View
+
+`/school/cohort` — Side-by-side candidate comparison across an admissions cycle. Accessible to school_admin and evaluator roles (feature-gated: `cohort_view`).
+
+- **Insight banner** (not stat cards): One actionable sentence like "18 candidates completed — 3 have support signals worth reviewing before your next committee meeting." Secondary line shows avg TRI + distribution breakdown.
+- **Table view**: Candidate name, mini TRI arc gauge with readiness label, 6-bar dimension sparkline, top strength pill, signal badge, completion %, date, "View →" link. TRI/Signals headers have tooltips.
+- **Card view**: 3-column responsive grid with TRI gauge, strength/signal pills, sparkline.
+- **Filters**: Cycle selector (auto-selects active), grade band, sort (5 options), flag filter, name search.
+- API: `GET /api/school/cohort` — fetches `candidates` → `sessions` → `insight_profiles` → `learning_support_signals` via separate queries (not nested joins).
+
+### Automated Invitation Triggers
+
+`lib/invitations/trigger.ts` — `sendCandidateInvite()` sends invites for already-created candidates with unsent invites. Logs to `invitation_log` table.
+
+- **Bulk send**: `POST /api/school/candidates/bulk-send` — sends invites for multiple candidates, 150ms delay between sends.
+- **SIS inbound webhook**: `POST /api/integrations/sis-inbound` — receives candidate data from external SIS, creates candidate + invite, auto-sends if `auto_invite_on_import` enabled. Auth via HMAC signature or direct secret key against `sis_integrations` config. Also populates `candidate_application_data` if `payload.application_data` is present.
+- **Candidate list UI**: Checkbox selection, floating bulk action bar, per-row "Send Invite" button for unsent invites, "Not sent" badge, toast notifications.
+- **Settings**: `tenant_settings.auto_invite_on_import` + `invite_deadline_days` — toggle + deadline selector in `/school/settings`.
+- DB: `invitation_log` table (migration 031), `auto_invite_on_import` + `invite_deadline_days` columns on `tenant_settings`.
+
+### Committee-Ready Report
+
+`/api/exports/committee` — AI-generated one-page printable brief for admissions committee. Feature-gated: `committee_report`.
+
+- `lib/ai/committeeNarrative.ts` — 3-paragraph committee brief (Readiness Summary, Areas for Consideration, Committee Consideration). Uses `getAnthropicClient()` + `AI_MODEL` + `withRetry()`. Incorporates interview synthesis and rubric recommendation when available. Handles re-applicant TRI comparison.
+- HTML report: school branding header, "Confidential — Committee Use Only" bar, candidate section with TRI gauge, two-column layout (dimension bars + strengths/signals/interview score), AI narrative, FERPA/non-diagnostic footer. Print-optimized CSS.
+- Accessed via "Committee Brief" button in evaluator workspace `ExportButtons` component. Opens in new tab, triggers print dialog. Toast confirms generation.
+
+### Application Data Unified View
+
+"Application" tab in evaluator candidate detail — shows school-side application info alongside LIFT session data. Feature-gated: `application_data`.
+
+- **Left panel**: LIFT summary (TRI score, signal count, completion %, grade band, SIS sync status).
+- **Right panel**: Editable form — Academic (GPA, trend, school), Standardized Tests (ISEE/SSAT + other), Recommendations (3 slots with sentiment dropdown + notes, tooltip on sentiment), Interview Notes, Flags (application complete, financial aid). SIS-synced fields are read-only.
+- **Empty state**: Icon + "No application data yet" + "Add Application Data" button when no record exists.
+- API: `GET/POST /api/school/candidates/application-data` — upsert with allowed-fields whitelist, audit logged.
+- DB: `candidate_application_data` table (migration 032), unique on `(candidate_id, cycle_id)`.
+
+### Interviewer Observation Notes
+
+Structured note-taking linked to LIFT briefing observations and interview questions. Renders in the Interview tab below rubric submissions. Feature-gated: `observation_notes`.
+
+- **LIFT Observations section**: Each briefing observation shown with guided prompt "Did the interview confirm this?". Inline sentiment selector ("How did the interview compare?") with 4 options: Confirms / Contradicts / Expands / Unclear — each with tooltip definition. Textarea for note. Saved notes display with sentiment badge, edit/delete.
+- **Interview Questions section**: Each briefing question with dimension + rationale, "+ Response" button.
+- **Free Notes section**: Standalone textarea for general observations.
+- **Empty state**: Shown when no briefing data exists yet (session not completed).
+- **Synthesis integration**: `/api/pipeline/synthesize` fetches `interviewer_observation_notes` and formats them in the AI prompt as `RE: "observation..." → CONFIRMS: note text`.
+- API: `GET/POST/PATCH/DELETE /api/school/candidates/observation-notes`.
+- DB: `interviewer_observation_notes` table (migration 033). Distinct from legacy `interviewer_notes` (simple text).
 
 ### Trial Intelligence
 
@@ -288,7 +345,7 @@ Sentry (`@sentry/nextjs`) configured for client, server, and edge. Global error 
 
 ### Contextual Tooltip System
 
-`lib/tooltips/content.ts` — 25+ centralized tooltip definitions covering TRI, dimensions, signals, evaluator intelligence, rubric, cycles, session tokens, grades, support plans, outcome tracking, and 3 trial-specific banners. `components/ui/Tooltip.tsx` — 3 modes: icon (hover popover with auto-flip positioning), inline (dotted underline), banner (dismissible bar). DB-backed dismissals via `tooltip_dismissals` table + `/api/tooltips/dismiss` route + `useTooltips()` hook. Role-aware filtering.
+`lib/tooltips/content.ts` — 35+ centralized tooltip definitions covering TRI, dimensions, signals, evaluator intelligence, rubric, cycles, session tokens, grades, support plans, outcome tracking, cohort view (avg TRI, signals), observation note sentiments (confirms/contradicts/expands/unclear), application data, recommendation sentiment, committee report, and 3 trial-specific banners. `components/ui/Tooltip.tsx` — 3 modes: icon (hover popover with auto-flip positioning), inline (dotted underline), banner (dismissible bar). DB-backed dismissals via `tooltip_dismissals` table + `/api/tooltips/dismiss` route + `useTooltips()` hook. Role-aware filtering.
 
 ### Guided Tours & Feature Discovery
 
@@ -335,13 +392,14 @@ Optional: `LIFT_TEAM_EMAIL`, `LIFT_DEV_MODE`.
 
 ## Evaluator Candidate Detail
 
-`app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 7 tabs (some conditional):
+`app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 9 tabs (some conditional):
 
 - **Overview**: TRI gauge with explanation card, radar chart, dimension scores, briefing card, learning support panel
 - **Responses**: Task-by-task display of candidate's written responses, word counts, revision depth. Joined via `task_instances → response_text → response_features` (nested join — do NOT join response_features directly to task_instances)
 - **Signals**: Behavioral data with descriptions — avg time per task, reading time, hints, focus loss, session duration. Time-per-task bar chart. Session timeline with color-coded events. Info banner explaining what signals are.
 - **Evaluator Review**: AI Recommendation shown FIRST (dimension score bars, placement guidance, confidence) — only if `ai_recommendation_snapshot` is non-empty. Then evaluator's own notes + tier selection (colored buttons). Text adapts: "Review the AI recommendation above" when AI exists, "Provide your assessment" when it doesn't. Override rationale only asked when tier actually differs from AI.
-- **Interview Notes**: Rubric scoring + interview synthesis
+- **Interview Notes**: Rubric scoring + interview synthesis + observation notes (linked to LIFT briefing observations/questions with sentiment tagging)
+- **Application** (feature-gated: `application_data`): LIFT summary + editable application data form (GPA, test scores, recommendations, interview notes). Empty state when no data exists.
 - **Outcomes** (visible when candidate is completed/reviewed/admitted): Record GPA, standing, support services, retention
 - **Support Plan** (visible when candidate is admitted): AI-generated 90-day plan with interactive checklists
 
@@ -370,6 +428,12 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **Terminology**: User-facing text says "Grade" (not "Grade Band"). Internal code still uses `grade_band` for DB columns, types, and variable names — only display text was changed.
 - **Voice transcription default**: Both page (`voiceEnabled` prop) and API (`/api/session/transcribe`) must agree on the default when `tenant_settings` is null. Both default to enabled (voice allowed). The API only rejects when settings explicitly exist with `voice_mode_enabled = false`.
 - **Candidate layout metadata**: Uses Next.js `metadata`/`viewport` exports for PWA meta tags (manifest, theme-color, apple-web-app). Do NOT use raw `<head>` elements in nested layouts.
+- **`interviewer_observation_notes` vs `interviewer_notes`**: Two separate tables. `interviewer_notes` is the legacy table (simple `notes` text + `rubric_scores` jsonb, referenced by `candidate_id`). `interviewer_observation_notes` is the new structured table with sentiment, linked observations/questions. Do NOT confuse them.
+- **`candidate_application_data` unique constraint**: `UNIQUE(candidate_id, cycle_id)` — upsert must use `onConflict: "candidate_id,cycle_id"`.
+- **Cohort view queries**: Uses 4 separate queries (`candidates` → `sessions` → `insight_profiles` → `learning_support_signals`), not nested joins. Same pattern as analytics and demo pages.
+- **Committee report route**: Lives at `/api/exports/committee` (not `/api/reports/`). Uses GET with `?candidate_id=` param, returns HTML (not JSON). Opens in new tab for print.
+- **SIS inbound webhook auth**: Validates via HMAC signature (`x-sis-signature` header) or direct key match (`x-sis-secret` header) against decrypted `sis_integrations.config`. Requires `x-tenant-id` header.
+- **Toast provider**: `ToastProvider` wraps dashboard layout inside `LicenseProvider`. `useToast()` hook available in all dashboard client components. Do NOT wrap candidate/public routes — they don't have it.
 
 ## Design Tokens
 
