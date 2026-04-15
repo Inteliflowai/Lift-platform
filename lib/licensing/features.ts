@@ -21,6 +21,7 @@ export const FEATURES = {
   COMMITTEE_REPORT:            'committee_report',
   APPLICATION_DATA:            'application_data',
   OBSERVATION_NOTES:           'observation_notes',
+  CLASS_BUILDER:               'class_builder',
 
   // Enterprise tier
   BENCHMARKING_NETWORK:        'benchmarking_network',
@@ -32,6 +33,7 @@ export const FEATURES = {
   STAFF_PLACEMENT:             'staff_placement',
   CUSTOM_BRANDING:             'custom_branding',
   PRIORITY_SUPPORT:            'priority_support',
+  CORE_BRIDGE:                 'core_bridge',
 } as const;
 
 export type Feature = (typeof FEATURES)[keyof typeof FEATURES];
@@ -56,6 +58,7 @@ const PROFESSIONAL_FEATURES: Feature[] = [
   FEATURES.COMMITTEE_REPORT,
   FEATURES.APPLICATION_DATA,
   FEATURES.OBSERVATION_NOTES,
+  FEATURES.CLASS_BUILDER,
 ];
 
 const ENTERPRISE_FEATURES: Feature[] = [
@@ -69,6 +72,7 @@ const ENTERPRISE_FEATURES: Feature[] = [
   FEATURES.STAFF_PLACEMENT,
   FEATURES.CUSTOM_BRANDING,
   FEATURES.PRIORITY_SUPPORT,
+  FEATURES.CORE_BRIDGE,
 ];
 
 // Trial gets Enterprise features minus white-label/branding

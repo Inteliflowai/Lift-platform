@@ -4,6 +4,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useLicense } from "@/lib/licensing/context";
+import { FEATURES } from "@/lib/licensing/features";
+import { ClassBuilder } from "@/components/cohort/ClassBuilder";
 
 interface CohortRow {
   candidate_id: string;
@@ -144,6 +147,7 @@ function MiniTRIGauge({ score }: { score: number }) {
 
 export function CohortClient() {
   useLocale(); // ensure locale context is available
+  const { hasFeature } = useLicense();
   const [rows, setRows] = useState<CohortRow[]>([]);
   const [stats, setStats] = useState<CohortStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -154,6 +158,9 @@ export function CohortClient() {
   const [search, setSearch] = useState("");
   const [cycleId, setCycleId] = useState("");
   const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [builderMode, setBuilderMode] = useState(false);
+  const showBuilder = hasFeature(FEATURES.CLASS_BUILDER);
+  const hasCoreAccess = hasFeature(FEATURES.CORE_BRIDGE);
 
   // Load cycles on mount
   useEffect(() => {
@@ -209,24 +216,49 @@ export function CohortClient() {
             All candidates in this admissions cycle — ranked and compared
           </p>
         </div>
-        {/* View toggle */}
-        <div className="flex rounded-lg border border-[#2d2d3d] bg-[#0f0f13] p-[3px]">
-          {(["table", "card"] as const).map((v) => (
+        <div className="flex items-center gap-2">
+          {/* Build Class button */}
+          {showBuilder && cycleId && rows.length > 0 && !builderMode && (
             <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`rounded-md px-3.5 py-1.5 font-body text-[13px] font-semibold transition-colors ${
-                view === v
-                  ? "bg-[#6366f1] text-white"
-                  : "text-[#64748b] hover:text-[#a0a0c0]"
-              }`}
+              onClick={() => setBuilderMode(true)}
+              className="rounded-lg bg-gradient-to-r from-[#2b1460] to-[#6366f1] px-4 py-1.5 font-body text-[13px] font-bold text-white hover:opacity-90"
             >
-              {v === "table" ? "≡ Table" : "⊞ Cards"}
+              Build Class
             </button>
-          ))}
+          )}
+          {/* View toggle */}
+          {!builderMode && (
+            <div className="flex rounded-lg border border-[#2d2d3d] bg-[#0f0f13] p-[3px]">
+              {(["table", "card"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`rounded-md px-3.5 py-1.5 font-body text-[13px] font-semibold transition-colors ${
+                    view === v
+                      ? "bg-[#6366f1] text-white"
+                      : "text-[#64748b] hover:text-[#a0a0c0]"
+                  }`}
+                >
+                  {v === "table" ? "≡ Table" : "⊞ Cards"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Class Builder mode */}
+      {builderMode && cycleId && (
+        <ClassBuilder
+          rows={rows}
+          cycleId={cycleId}
+          hasCoreAccess={hasCoreAccess}
+          onClose={() => setBuilderMode(false)}
+        />
+      )}
+
+      {/* Normal cohort view — hidden when builder mode active */}
+      {!builderMode && <>
       {/* Insight banner */}
       {stats && stats.total > 0 && (
         <div className="mb-5 rounded-xl border border-[#2d2d3d] bg-[#1a1a24] px-5 py-4">
@@ -536,6 +568,7 @@ export function CohortClient() {
           )}
         </div>
       )}
+      </>}
     </div>
   );
 }
