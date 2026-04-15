@@ -97,8 +97,12 @@ export async function POST(req: NextRequest) {
     }, { status: 400 });
   }
 
+  const firstName = String(candidateData.first_name);
+  const lastName = String(candidateData.last_name);
+  const gradeApplying = String(candidateData.grade_applying_to);
+
   // Check for duplicates
-  const email = candidateData.email.trim().toLowerCase();
+  const email = String(candidateData.email).trim().toLowerCase();
   const { data: existingInvite } = await supabaseAdmin
     .from("invites")
     .select("id, candidate_id")
@@ -116,9 +120,9 @@ export async function POST(req: NextRequest) {
   }
 
   // Determine grade band
-  const gradeNum = parseInt(String(candidateData.grade_applying_to), 10);
+  const gradeNum = parseInt(gradeApplying, 10);
   if (isNaN(gradeNum) || gradeNum < 6 || gradeNum > 11) {
-    return NextResponse.json({ error: `Invalid grade: ${candidateData.grade_applying_to}` }, { status: 400 });
+    return NextResponse.json({ error: `Invalid grade: ${gradeApplying}` }, { status: 400 });
   }
   const gradeBand = gradeNum <= 7 ? "6-7" : gradeNum === 8 ? "8" : "9-11";
 
@@ -148,11 +152,11 @@ export async function POST(req: NextRequest) {
     .insert({
       tenant_id: tenantId,
       cycle_id: cycle?.id ?? null,
-      first_name: candidateData.first_name.trim(),
-      last_name: candidateData.last_name.trim(),
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
       grade_applying_to: String(gradeNum),
       grade_band: gradeBand,
-      date_of_birth: candidateData.date_of_birth || null,
+      date_of_birth: (candidateData.date_of_birth as string) || null,
       status: "invited",
     })
     .select()
@@ -191,7 +195,7 @@ export async function POST(req: NextRequest) {
     try {
       await sendInviteEmail({
         to: email,
-        candidateFirstName: candidateData.first_name.trim(),
+        candidateFirstName: firstName.trim(),
         schoolName: tenant?.name ?? "Your School",
         link: `${appUrl}/invite/${token}`,
         expiresAt,
