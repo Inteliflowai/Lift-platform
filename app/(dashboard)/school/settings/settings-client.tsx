@@ -15,6 +15,8 @@ type Settings = {
   voice_mode_enabled: boolean;
   passage_reader_enabled: boolean;
   delete_audio_after_transcription: boolean;
+  auto_invite_on_import?: boolean;
+  invite_deadline_days?: number;
 };
 
 export function SettingsClient({
@@ -62,6 +64,8 @@ export function SettingsClient({
         require_human_review_always: settings.require_human_review_always,
         voice_mode_enabled: settings.voice_mode_enabled,
         passage_reader_enabled: settings.passage_reader_enabled,
+        auto_invite_on_import: settings.auto_invite_on_import,
+        invite_deadline_days: settings.invite_deadline_days,
       }),
     });
 
@@ -233,6 +237,53 @@ export function SettingsClient({
           <p className="mt-3 text-[10px] text-muted/70">
             {t("settings.audio_privacy")}
           </p>
+        </div>
+
+        {/* Invitation Automation */}
+        <div className="border-t border-lift-border pt-4 mt-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
+            Invitation Automation
+          </p>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Auto-send invitations on import</p>
+              <p className="text-xs text-muted">
+                Automatically email LIFT session links when candidates are imported or added via SIS webhook
+              </p>
+            </div>
+            <Toggle
+              checked={settings.auto_invite_on_import ?? false}
+              onChange={(v) =>
+                setSettings({ ...settings, auto_invite_on_import: v })
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <div>
+              <p className="text-sm font-medium">Invitation deadline</p>
+              <p className="text-xs text-muted">
+                Days before the session link expires
+              </p>
+            </div>
+            <select
+              value={settings.invite_deadline_days ?? 7}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  invite_deadline_days: parseInt(e.target.value),
+                })
+              }
+              className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
+            >
+              {[3, 5, 7, 10, 14, 21, 30].map((d) => (
+                <option key={d} value={d}>
+                  {d} days
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

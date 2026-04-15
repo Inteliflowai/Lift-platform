@@ -17,6 +17,7 @@ type Invite = {
   token: string;
   status: string;
   expires_at: string | null;
+  sent_at: string | null;
 };
 
 type Candidate = {
@@ -43,6 +44,9 @@ export function CandidateListClient({
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [groupByGrade, setGroupByGrade] = useState(true);
   const [resending, setResending] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ sent: number; skipped: number; failed: number } | null>(null);
 
   const filtered = candidates.filter((c) => {
     if (
@@ -58,6 +62,33 @@ export function CandidateListClient({
     return true;
   });
 
+  // Candidates with unsent invites (imported but not emailed)
+  function hasUnsentInvite(c: Candidate): boolean {
+    return (c.invites ?? []).some((i) => i.status === "pending" && !i.sent_at);
+  }
+
+  const unsentSelected = Array.from(selected).filter((id) => {
+    const c = candidates.find((c) => c.id === id);
+    return c && hasUnsentInvite(c);
+  });
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((c) => c.id)));
+    }
+  }
+
   async function handleResend(candidateId: string) {
     setResending(candidateId);
     await fetch(`/api/school/candidates/${candidateId}/resend-invite`, {
@@ -65,6 +96,41 @@ export function CandidateListClient({
     });
     setResending(null);
     router.refresh();
+  }
+
+  async function handleBulkSend() {
+    if (unsentSelected.length === 0) return;
+    setBulkSending(true);
+    setBulkResult(null);
+    try {
+      const res = await fetch("/api/school/candidates/bulk-send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateIds: unsentSelected }),
+      });
+      const data = await res.json();
+      setBulkResult({ sent: data.sent ?? 0, skipped: data.skipped ?? 0, failed: data.failed ?? 0 });
+      setSelected(new Set());
+      router.refresh();
+    } catch {
+      setBulkResult({ sent: 0, skipped: 0, failed: 1 });
+    } finally {
+      setBulkSending(false);
+    }
+  }
+
+  async function handleSendSingle(candidateId: string) {
+    setResending(candidateId);
+    try {
+      await fetch("/api/school/candidates/bulk-send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateIds: [candidateId] }),
+      });
+      router.refresh();
+    } finally {
+      setResending(null);
+    }
   }
 
   return (
@@ -86,6 +152,17 @@ export function CandidateListClient({
           </Link>
         </div>
       </div>
+
+      {/* Bulk result banner */}
+      {bulkResult && (
+        <div className="rounded-lg border border-success/30 bg-success/5 p-3">
+          <p className="text-sm font-medium text-success">
+            Invitations sent: {bulkResult.sent}
+            {bulkResult.skipped > 0 && <span className="ml-2 text-muted">({bulkResult.skipped} already sent)</span>}
+            {bulkResult.failed > 0 && <span className="ml-2 text-review">({bulkResult.failed} failed)</span>}
+          </p>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
@@ -167,6 +244,37 @@ export function CandidateListClient({
         </div>
       )}
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="sticky top-0 z-10 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+          <span className="text-sm font-medium text-primary">
+            {selected.size} candidate{selected.size !== 1 ? "s" : ""} selected
+            {unsentSelected.length > 0 && unsentSelected.length < selected.size && (
+              <span className="ml-1 text-muted">({unsentSelected.length} with unsent invites)</span>
+            )}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelected(new Set())}
+              className="rounded-md border border-lift-border px-3 py-1.5 text-xs font-medium text-muted hover:text-lift-text"
+            >
+              Clear
+            </button>
+            {unsentSelected.length > 0 && (
+              <button
+                onClick={handleBulkSend}
+                disabled={bulkSending}
+                className="rounded-md bg-primary px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+              >
+                {bulkSending
+                  ? "Sending..."
+                  : `Send ${unsentSelected.length} Invitation${unsentSelected.length !== 1 ? "s" : ""}`}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Empty state */}
       {candidates.length === 0 && (
         <EmptyState
@@ -183,6 +291,14 @@ export function CandidateListClient({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-lift-border bg-surface text-xs text-muted">
             <tr>
+              <th className="px-3 py-3 font-medium w-8">
+                <input
+                  type="checkbox"
+                  checked={selected.size === filtered.length && filtered.length > 0}
+                  onChange={toggleSelectAll}
+                  className="rounded accent-primary"
+                />
+              </th>
               <th className="px-4 py-3 font-medium">{t("candidates.name")}</th>
               <th className="px-4 py-3 font-medium">{t("candidates.grade_band_col")}</th>
               <th className="px-4 py-3 font-medium">{t("candidates.status_col")}</th>
@@ -200,7 +316,7 @@ export function CandidateListClient({
                 return [
                   band && groupByGrade ? (
                     <tr key={`header-${band}`}>
-                      <td colSpan={6} className="bg-page-bg px-4 py-2">
+                      <td colSpan={7} className="bg-page-bg px-4 py-2">
                         <span className="text-xs font-semibold text-primary">
                           {t("candidates.grade_band_col")} {band}
                         </span>
@@ -224,9 +340,19 @@ export function CandidateListClient({
               const hasPendingInvite = c.invites?.some(
                 (i) => i.status === "pending"
               );
+              const isUnsent = hasUnsentInvite(c);
+              const latestInvite = c.invites?.[0];
 
               return (
-                <tr key={c.id} className="hover:bg-surface/50">
+                <tr key={c.id} className={`hover:bg-surface/50 ${selected.has(c.id) ? "bg-primary/[0.03]" : ""}`}>
+                  <td className="px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(c.id)}
+                      onChange={() => toggleSelect(c.id)}
+                      className="rounded accent-primary"
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/school/candidates/${c.id}`}
@@ -238,9 +364,19 @@ export function CandidateListClient({
                   <td className="px-4 py-3 text-muted">{c.grade_band}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
-                    {(c.status === "invited" || c.status === "consent_pending") && c.invites?.[0]?.token && (
+                    {isUnsent && (
+                      <span className="ml-2 rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">
+                        Not sent
+                      </span>
+                    )}
+                    {!isUnsent && latestInvite?.sent_at && (c.status === "invited" || c.status === "consent_pending") && (
+                      <span className="ml-2 text-[10px] text-muted">
+                        Sent {new Date(latestInvite.sent_at).toLocaleDateString()}
+                      </span>
+                    )}
+                    {(c.status === "invited" || c.status === "consent_pending") && latestInvite?.token && (
                       <a
-                        href={`/invite/${c.invites[0].token}`}
+                        href={`/invite/${latestInvite.token}`}
                         target="_blank"
                         className="ml-2 text-[10px] text-[#6366f1] hover:underline"
                       >
@@ -257,7 +393,16 @@ export function CandidateListClient({
                     >
                       View
                     </Link>
-                    {hasPendingInvite && (
+                    {isUnsent && (
+                      <button
+                        onClick={() => handleSendSingle(c.id)}
+                        disabled={resending === c.id}
+                        className="text-xs font-semibold text-success hover:text-success/80 disabled:opacity-50"
+                      >
+                        {resending === c.id ? "Sending..." : "Send Invite"}
+                      </button>
+                    )}
+                    {hasPendingInvite && !isUnsent && (
                       <>
                         <button
                           onClick={() => {
@@ -289,7 +434,7 @@ export function CandidateListClient({
             })()}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted">
                   No candidates found.
                 </td>
               </tr>

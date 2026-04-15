@@ -17,6 +17,10 @@ export const FEATURES = {
   PLACEMENT_SUPPORT_PLAN:      'placement_support_plan',
   REAPPLICATION_INTELLIGENCE:  'reapplication_intelligence',
   DEMO_MODE:                   'demo_mode',
+  COHORT_VIEW:                 'cohort_view',
+  COMMITTEE_REPORT:            'committee_report',
+  APPLICATION_DATA:            'application_data',
+  OBSERVATION_NOTES:           'observation_notes',
 
   // Enterprise tier
   BENCHMARKING_NETWORK:        'benchmarking_network',
@@ -48,6 +52,10 @@ const PROFESSIONAL_FEATURES: Feature[] = [
   FEATURES.PLACEMENT_SUPPORT_PLAN,
   FEATURES.OUTCOME_TRACKING,
   FEATURES.DEMO_MODE,
+  FEATURES.COHORT_VIEW,
+  FEATURES.COMMITTEE_REPORT,
+  FEATURES.APPLICATION_DATA,
+  FEATURES.OBSERVATION_NOTES,
 ];
 
 const ENTERPRISE_FEATURES: Feature[] = [

@@ -8,7 +8,7 @@ export default async function CandidatesPage() {
   const { data: candidates } = await supabaseAdmin
     .from("candidates")
     .select(
-      "*, sessions(status, completion_pct, last_activity_at, created_at), invites(id, token, status, expires_at)"
+      "*, sessions(status, completion_pct, last_activity_at, created_at), invites(id, token, status, expires_at, sent_at)"
     )
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });

@@ -41,13 +41,20 @@ export async function POST(req: NextRequest) {
     .eq("id", rubric_id)
     .single();
 
-  // Get any free-text notes
+  // Get any free-text notes (legacy)
   const { data: notes } = await supabaseAdmin
     .from("interviewer_notes")
     .select("notes")
     .eq("candidate_id", candidate_id)
     .order("created_at", { ascending: false })
     .limit(3);
+
+  // Get structured observation notes
+  const { data: obsNotes } = await supabaseAdmin
+    .from("interviewer_observation_notes")
+    .select("note_type, linked_observation_text, linked_question_text, note_text, sentiment")
+    .eq("candidate_id", candidate_id)
+    .order("created_at", { ascending: true });
 
   const { data: candidate } = await supabaseAdmin
     .from("candidates")
@@ -117,7 +124,18 @@ Standout Moments: ${rubric.standout_moments ?? ""}
 Concerns: ${rubric.concerns ?? ""}
 Recommendation: ${rubric.recommendation}
 
-Additional notes: ${(notes ?? []).map((n) => n.notes).join(" | ").slice(0, 500)}`,
+Additional notes: ${(notes ?? []).map((n) => n.notes).join(" | ").slice(0, 500)}
+${(obsNotes ?? []).length > 0 ? `
+STRUCTURED INTERVIEWER OBSERVATIONS:
+${(obsNotes ?? []).map((n) => {
+  if (n.linked_observation_text) {
+    return `RE: "${n.linked_observation_text.slice(0, 80)}..." → ${n.sentiment ? n.sentiment.toUpperCase() + ": " : ""}${n.note_text}`;
+  }
+  if (n.linked_question_text) {
+    return `Q: "${n.linked_question_text.slice(0, 80)}..." → ${n.note_text}`;
+  }
+  return `Note: ${n.note_text}`;
+}).join("\n")}` : ""}`,
       }],
     });
 

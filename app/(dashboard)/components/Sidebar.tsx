@@ -29,6 +29,7 @@ import {
   HelpCircle,
   HeartHandshake,
   Activity,
+  Columns3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -50,6 +51,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Cycles", href: "/school/cycles", icon: Calendar, desc: "Create and manage admissions cycles with grades" },
     { label: "Team", href: "/school/team", icon: UserCheck, desc: "Invite evaluators, interviewers, and staff to your school" },
     { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
+    { label: "Cohort", href: "/school/cohort", icon: Columns3, desc: "Side-by-side candidate comparison across the cohort", feature: FEATURES.COHORT_VIEW },
     { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score", feature: FEATURES.WAITLIST_INTELLIGENCE },
     { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison", feature: FEATURES.REAPPLICATION_INTELLIGENCE },
     { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes", feature: FEATURES.OUTCOME_TRACKING, isNew: true },
@@ -61,6 +63,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "My Queue", href: "/evaluator", icon: ClipboardList, desc: "Candidates assigned to you for review" },
     { label: "All Candidates", href: "/evaluator/candidates", icon: Users, desc: "Browse all candidates across your school" },
     { label: "Reports", href: "/evaluator/reports", icon: FileText, desc: "Cohort analytics and benchmarking reports" },
+    { label: "Cohort", href: "/school/cohort", icon: Columns3, desc: "Side-by-side candidate comparison across the cohort", feature: FEATURES.COHORT_VIEW },
   ],
   interviewer: [
     { label: "My Cases", href: "/interviewer", icon: Briefcase, desc: "Interview assignments and rubric submission" },
@@ -126,6 +129,7 @@ export function Sidebar({
     "Re-Applications": t("nav.reapplications") || "Re-Applications",
     "Prediction Accuracy": t("nav.accuracy") || "Prediction Accuracy",
     "Support Plans": t("nav.support_plans") || "Support Plans",
+    "Cohort": t("nav.cohort") || "Cohort",
   };
 
   // Build combined nav sections for users with multiple roles

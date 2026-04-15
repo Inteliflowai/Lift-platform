@@ -39,6 +39,8 @@ export async function PATCH(req: NextRequest) {
     "wl_email_from_name",
     "wl_email_reply_to",
     "wl_powered_by_visible",
+    "auto_invite_on_import",
+    "invite_deadline_days",
   ];
 
   const updates: Record<string, unknown> = {};

@@ -11,8 +11,12 @@ import { RubricForm } from "@/components/interviewer/RubricForm";
 import { RadarChart } from "@/components/RadarChart";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { TOOLTIPS } from "@/lib/tooltips/content";
+import { ApplicationDataPanel } from "@/components/evaluator/ApplicationDataPanel";
+import { ObservationNotes } from "@/components/evaluator/ObservationNotes";
+import { useLicense } from "@/lib/licensing/context";
+import { FEATURES } from "@/lib/licensing/features";
 
-type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "outcomes" | "support_plan";
+type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "application" | "outcomes" | "support_plan";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
 const DIMENSIONS = ["reading", "writing", "reasoning", "reflection", "persistence", "support_seeking"] as const;
 
@@ -62,11 +66,13 @@ export function CandidateDetailClient({
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
+  const { hasFeature } = useLicense();
 
   const candidateStatus = candidate.status as string;
   const showOutcomes = ["completed", "reviewed", "admitted", "waitlisted", "offered"].includes(candidateStatus);
   const showSupportPlan = ["admitted", "offered"].includes(candidateStatus);
-  const tabs: Tab[] = ["overview", "responses", "signals", "review", "interview", ...(showOutcomes ? ["outcomes" as Tab] : []), ...(showSupportPlan ? ["support_plan" as Tab] : [])];
+  const showAppData = hasFeature(FEATURES.APPLICATION_DATA);
+  const tabs: Tab[] = ["overview", "responses", "signals", "review", "interview", ...(showAppData ? ["application" as Tab] : []), ...(showOutcomes ? ["outcomes" as Tab] : []), ...(showSupportPlan ? ["support_plan" as Tab] : [])];
 
   return (
     <div className="space-y-6">
@@ -93,7 +99,7 @@ export function CandidateDetailClient({
         {tabs.map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-primary text-primary" : "text-muted hover:text-lift-text"}`}>
-            {t === "review" ? "Evaluator Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t}
+            {t === "review" ? "Evaluator Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t === "application" ? "Application" : t}
           </button>
         ))}
       </div>
@@ -135,7 +141,18 @@ export function CandidateDetailClient({
       {tab === "responses" && <ResponsesTab responses={responses} />}
       {tab === "signals" && <SignalsTab timing={timingSignals} help={helpEvents} interactions={interactionSignals} events={sessionEvents} />}
       {tab === "review" && <ReviewTab candidateId={candidate.id as string} tenantId={tenantId} reviews={reviews} router={router} rubricSubmissions={rubricSubmissions} profile={profile} />}
-      {tab === "interview" && <InterviewTabV2 candidateId={candidate.id as string} tenantId={tenantId} candidateName={`${candidate.first_name} ${candidate.last_name}`} rubricSubmissions={rubricSubmissions} notes={interviewNotes} router={router} />}
+      {tab === "interview" && <InterviewTabV2 candidateId={candidate.id as string} tenantId={tenantId} candidateName={`${candidate.first_name} ${candidate.last_name}`} rubricSubmissions={rubricSubmissions} notes={interviewNotes} briefing={briefing} router={router} />}
+      {tab === "application" && (
+        <ApplicationDataPanel
+          candidateId={candidate.id as string}
+          cycleId={candidate.cycle_id as string | null}
+          triScore={Number(profile?.tri_score) || 0}
+          triLabel={profile?.tri_label as string | null}
+          signalCount={Number(learningSupport?.signal_count) || 0}
+          completionPct={sessions?.[0]?.completion_pct ?? 0}
+          gradeBand={candidate.grade_band as string}
+        />
+      )}
       {tab === "outcomes" && <OutcomesTab candidateId={candidate.id as string} profile={profile} />}
       {tab === "support_plan" && <SupportPlanTab candidateId={candidate.id as string} candidateName={`${candidate.first_name} ${candidate.last_name}`} />}
     </div>
@@ -806,6 +823,28 @@ function ExportButtons({ candidateId }: { candidateId: string }) {
   const { locale } = useLocale();
   const lang = locale === "pt" ? "pt" : "en";
   const langLabel = locale === "pt" ? "PT" : "EN";
+  const [committeeLoading, setCommitteeLoading] = useState(false);
+
+  async function handleCommittee() {
+    setCommitteeLoading(true);
+    try {
+      const res = await fetch(`/api/exports/committee?candidate_id=${candidateId}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to generate report" }));
+        throw new Error(err.error || "Failed to generate report");
+      }
+      const html = await res.text();
+      const win = window.open("", "_blank");
+      if (!win) throw new Error("Popup blocked — please allow popups");
+      win.document.write(html);
+      win.document.close();
+      setTimeout(() => win.print(), 800);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Could not generate report.");
+    } finally {
+      setCommitteeLoading(false);
+    }
+  }
 
   return (
     <div className="flex flex-wrap gap-2 border-t border-lift-border pt-4">
@@ -817,6 +856,13 @@ function ExportButtons({ candidateId }: { candidateId: string }) {
         className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">
         Family Summary ({langLabel})
       </a>
+      <button
+        onClick={handleCommittee}
+        disabled={committeeLoading}
+        className="rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+      >
+        {committeeLoading ? "Generating..." : "Committee Brief"}
+      </button>
     </div>
   );
 }
@@ -866,12 +912,20 @@ function CoreSyncBadge({ status, syncAt, coreStudentId, candidateId }: {
   }
 }
 
-function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmissions, notes, router }: {
+function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmissions, notes, briefing, router }: {
   candidateId: string; tenantId: string; candidateName: string;
   rubricSubmissions: Record<string, unknown>[];
   notes: Record<string, unknown>[];
+  briefing: Record<string, unknown> | null;
   router: ReturnType<typeof useRouter>;
 }) {
+  const { hasFeature } = useLicense();
+  const showObsNotes = hasFeature(FEATURES.OBSERVATION_NOTES);
+
+  // Extract briefing data for observation notes
+  const observations = (briefing?.key_observations as string[]) ?? [];
+  const interviewQuestions = (briefing?.interview_questions as { question: string; rationale: string; dimension: string }[]) ?? [];
+
   return (
     <div className="space-y-6">
       {/* Existing rubric submissions */}
@@ -903,6 +957,15 @@ function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmission
           </div>
         );
       })}
+
+      {/* Observation notes — linked to LIFT briefing */}
+      {showObsNotes && (observations.length > 0 || interviewQuestions.length > 0) && (
+        <ObservationNotes
+          candidateId={candidateId}
+          observations={observations}
+          interviewQuestions={interviewQuestions}
+        />
+      )}
 
       {/* Legacy free-text notes (read-only) */}
       {notes.length > 0 && (
