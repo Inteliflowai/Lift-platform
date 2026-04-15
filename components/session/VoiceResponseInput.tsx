@@ -159,13 +159,6 @@ export function VoiceResponseInput({
 
       const { transcript } = await res.json();
       onChange(transcript);
-
-      // Grade 6-7: read transcript back
-      if (gradeBand === "6-7" && "speechSynthesis" in window && transcript) {
-        const utterance = new SpeechSynthesisUtterance(transcript);
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
-      }
     } catch (err) {
       setError(
         err instanceof Error
