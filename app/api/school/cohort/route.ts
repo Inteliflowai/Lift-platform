@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
     .map((p) => p.learning_support_signal_id)
     .filter(Boolean) as string[];
 
-  let signalsMap: Record<string, { signal_count: number; support_indicator_level: string }> = {};
+  const signalsMap: Record<string, { signal_count: number; support_indicator_level: string }> = {};
   if (signalIds.length > 0) {
     const { data: signals } = await supabaseAdmin
       .from("learning_support_signals")

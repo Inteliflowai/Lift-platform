@@ -53,11 +53,15 @@ const DIMS = [
   { key: "support_seeking_score", label: "Advocacy" },
 ] as const;
 
+function getDimScore(row: CohortRow, key: string): number {
+  return (row[key as keyof CohortRow] as number) || 0;
+}
+
 function getTopStrength(row: CohortRow): string {
   let topLabel: string = DIMS[0].label;
-  let topScore = (row as any)[DIMS[0].key] || 0;
+  let topScore = getDimScore(row, DIMS[0].key);
   for (const d of DIMS) {
-    const score = (row as any)[d.key] || 0;
+    const score = getDimScore(row, d.key);
     if (score > topScore) {
       topScore = score;
       topLabel = d.label;
@@ -67,7 +71,7 @@ function getTopStrength(row: CohortRow): string {
 }
 
 function DimensionSparkline({ row }: { row: CohortRow }) {
-  const scores = DIMS.map((d) => (row as any)[d.key] || 0);
+  const scores = DIMS.map((d) => getDimScore(row, d.key));
   const max = Math.max(...scores);
   return (
     <div className="flex items-end gap-[2px]" style={{ height: 24 }}>
@@ -139,7 +143,7 @@ function MiniTRIGauge({ score }: { score: number }) {
 }
 
 export function CohortClient() {
-  const { t } = useLocale();
+  useLocale(); // ensure locale context is available
   const [rows, setRows] = useState<CohortRow[]>([]);
   const [stats, setStats] = useState<CohortStats | null>(null);
   const [loading, setLoading] = useState(false);

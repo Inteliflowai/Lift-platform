@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { sendCandidateInvite } from "@/lib/invitations/trigger";
 import { sendInviteEmail } from "@/lib/email";
 import { writeAuditLog } from "@/lib/audit";
 import { createHmac } from "crypto";
@@ -57,7 +56,8 @@ export async function POST(req: NextRequest) {
   try {
     const { decryptConfig } = await import("@/lib/crypto/encrypt");
     const config = decryptConfig(integration.config as string);
-    configSecret = (config as any).secret ?? (config as any).api_key ?? null;
+    const cfg = config as Record<string, string>;
+    configSecret = cfg.secret ?? cfg.api_key ?? null;
   } catch {
     return NextResponse.json({ error: "Failed to decrypt integration config" }, { status: 500 });
   }
@@ -80,17 +80,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Parse payload
-  let payload: any;
+  let payload: Record<string, unknown>;
   try {
     payload = JSON.parse(body);
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const event = payload.event;
-  const sisProvider = payload.sis_provider || integration.provider;
-  const sisAppId = payload.sis_application_id;
-  const candidateData = payload.candidate;
+  const sisProvider = (payload.sis_provider as string) || integration.provider;
+  const sisAppId = payload.sis_application_id as string | undefined;
+  const candidateData = payload.candidate as Record<string, unknown> | undefined;
 
   if (!candidateData?.first_name || !candidateData?.last_name || !candidateData?.email || !candidateData?.grade_applying_to) {
     return NextResponse.json({
@@ -215,7 +214,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Populate application data if SIS payload includes it
-  const appData = payload.application_data;
+  const appData = payload.application_data as Record<string, unknown> | undefined;
   if (appData && typeof appData === "object") {
     try {
       await supabaseAdmin
