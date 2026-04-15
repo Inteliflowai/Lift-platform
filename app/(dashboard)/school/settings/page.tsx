@@ -5,11 +5,21 @@ import { SettingsClient } from "./settings-client";
 export default async function SchoolSettingsPage() {
   const { tenantId, isPlatformAdmin } = await getTenantContext();
 
-  const { data: settings } = await supabaseAdmin
+  let { data: settings } = await supabaseAdmin
     .from("tenant_settings")
     .select("*")
     .eq("tenant_id", tenantId)
     .single();
+
+  // Auto-create settings if missing (can happen if registration insert failed silently)
+  if (!settings) {
+    const { data: created } = await supabaseAdmin
+      .from("tenant_settings")
+      .insert({ tenant_id: tenantId })
+      .select()
+      .single();
+    settings = created;
+  }
 
   const { data: tenant } = await supabaseAdmin
     .from("tenants")

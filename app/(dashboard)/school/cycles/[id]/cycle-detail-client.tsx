@@ -270,7 +270,7 @@ function GradeBandEditor({
       </h3>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div>
-          <label className="mb-1 block text-xs text-muted">Task Count</label>
+          <label className="mb-1 block text-xs text-muted">Session Tasks</label>
           <input
             type="number"
             value={config.task_count ?? ""}
@@ -297,7 +297,7 @@ function GradeBandEditor({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-muted">Hint Density</label>
+          <label className="mb-1 block text-xs text-muted">Hint Usage Level</label>
           <select
             value={config.hint_density ?? "medium"}
             onChange={(e) =>
@@ -306,20 +306,20 @@ function GradeBandEditor({
             className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
           >
             <option value="low">Low</option>
-            <option value="medium">Medium</option>
+            <option value="medium">Moderate</option>
             <option value="high">High</option>
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-muted">UX Mode</label>
+          <label className="mb-1 block text-xs text-muted">Session Experience</label>
           <select
             value={config.ux_mode ?? "standard"}
             onChange={(e) => setConfig({ ...config, ux_mode: e.target.value })}
             className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
           >
-            <option value="simple">Simple</option>
+            <option value="simple">Focused</option>
             <option value="standard">Standard</option>
-            <option value="advanced">Advanced</option>
+            <option value="advanced">Extended</option>
           </select>
         </div>
       </div>
@@ -328,7 +328,7 @@ function GradeBandEditor({
         disabled={saving}
         className="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
       >
-        {saving ? "Saving..." : "Save Config"}
+        {saving ? "Saving..." : "Save Settings"}
       </button>
     </div>
   );

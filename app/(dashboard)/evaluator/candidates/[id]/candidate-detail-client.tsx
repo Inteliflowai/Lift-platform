@@ -100,7 +100,7 @@ export function CandidateDetailClient({
         {tabs.map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-primary text-primary" : "text-muted hover:text-lift-text"}`}>
-            {t === "review" ? "Evaluator Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t === "application" ? "Application" : t}
+            {t === "review" ? "My Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t === "application" ? "Application" : t}
           </button>
         ))}
       </div>

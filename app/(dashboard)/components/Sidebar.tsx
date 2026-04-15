@@ -66,7 +66,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Cohort", href: "/school/cohort", icon: Columns3, desc: "Side-by-side candidate comparison across the cohort", feature: FEATURES.COHORT_VIEW },
   ],
   interviewer: [
-    { label: "My Cases", href: "/interviewer", icon: Briefcase, desc: "Interview assignments and rubric submission" },
+    { label: "My Interviews", href: "/interviewer", icon: Briefcase, desc: "Candidates ready for your interview, with pre-interview briefings prepared" },
   ],
   grade_dean: [
     { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates" },
@@ -118,7 +118,7 @@ export function Sidebar({
     "My Queue": t("nav.my_queue"),
     "All Candidates": t("nav.all_candidates"),
     "Reports": t("nav.reports"),
-    "My Cases": t("nav.my_cases"),
+    "My Interviews": t("nav.my_interviews") || "My Interviews",
     "Trial Health": t("nav.trial_health") || "Trial Health",
     "Tenants": t("nav.tenants"),
     "Licenses": t("nav.licenses"),

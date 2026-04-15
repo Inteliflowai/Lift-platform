@@ -11,7 +11,7 @@ export const TOOLTIPS: Record<string, TooltipContent> = {
   tri_score: {
     id: "tri_score",
     title: "Transition Readiness Index (TRI)",
-    body: "A composite score (0-100) across all 6 readiness dimensions. It reflects how prepared this student appears for the academic and social demands of a new school environment — not their intelligence or potential.",
+    body: "A composite score (0–100) across 6 readiness dimensions. It shows how prepared a student appears for the academic and social demands of a new school — not their intelligence or potential. It is not a pass/fail score.",
     learnMoreHref: "/help/evaluator#tri-score",
   },
 
@@ -57,7 +57,7 @@ export const TOOLTIPS: Record<string, TooltipContent> = {
   learning_support_signals: {
     id: "learning_support_signals",
     title: "Learning Support Signals",
-    body: "Behavioral patterns observed during the session that may suggest this student would benefit from a learning support conversation. These are observations — not diagnoses. Always requires professional follow-up.",
+    body: "LIFT detects 9 behavioral patterns observed during the session — including reading pace, revision depth, and task abandonment. When patterns appear, they are flagged for professional follow-up. These are observations, not diagnoses.",
     learnMoreHref: "/help/evaluator#enriched-signals",
   },
   signal_severity_advisory: {
@@ -134,6 +134,33 @@ export const TOOLTIPS: Record<string, TooltipContent> = {
     title: "Outcome Tracking",
     body: "Record how admitted students actually perform after enrollment. LIFT compares real outcomes against TRI predictions to compute a prediction accuracy report — proving platform value to your board over time.",
     learnMoreHref: "/help/school_admin#outcome-tracking",
+  },
+
+  // ── Session & Signals ──
+  hint_usage: {
+    id: "hint_usage",
+    title: "Hint Usage",
+    body: "How often this candidate requested hints during their session. Low = worked independently. Moderate = asked occasionally. High = asked frequently — may benefit from additional support scaffolding.",
+  },
+  task_count: {
+    id: "task_count",
+    title: "Session Tasks",
+    body: "The number of tasks in this candidate's session experience. Task count varies by grade and session configuration.",
+  },
+  tri_distribution: {
+    id: "tri_distribution",
+    title: "Readiness Distribution",
+    body: "Shows how your candidates' readiness levels are distributed. Strong Readiness = TRI 75+, Developing = TRI 50-74, Emerging = below 50. This is not a pass/fail — it shows the readiness profile of your applicant pool.",
+  },
+  readiness_level: {
+    id: "readiness_level",
+    title: "Readiness Level",
+    body: "Based on the Transition Readiness Index (TRI). Strong Readiness = candidate shows strong signals across most dimensions. Developing = solid signals with some areas still growing. Emerging = several dimensions still developing — may benefit from additional support.",
+  },
+  fit_notes: {
+    id: "fit_notes",
+    title: "Fit Notes",
+    body: "Your school's notes on candidate fit beyond readiness scores — athletic needs, artistic talents, legacy status, financial aid, or any other factor your admissions committee considers.",
   },
 
   // ── Cohort View ──

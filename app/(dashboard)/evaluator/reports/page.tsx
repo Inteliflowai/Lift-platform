@@ -18,9 +18,22 @@ export default async function CohortReportsPage() {
 
   if (!cycle) {
     return (
-      <div>
+      <div className="space-y-4">
         <h1 className="text-2xl font-bold">Cohort Reports</h1>
-        <p className="mt-2 text-muted">No active cycle found.</p>
+        <p className="text-sm text-muted">
+          Cohort reports show all candidates in your active cycle with readiness levels, dimension scores, and recommendations.
+        </p>
+        <div className="rounded-lg border border-lift-border bg-surface p-8 text-center">
+          <p className="text-sm text-muted">
+            No active admissions cycle found. Create a cycle to start collecting candidates.
+          </p>
+          <a
+            href="/school/cycles/new"
+            className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            Create Cycle →
+          </a>
+        </div>
       </div>
     );
   }

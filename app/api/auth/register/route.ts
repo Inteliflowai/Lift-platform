@@ -4,6 +4,7 @@ import { sendWelcomeEmail } from "@/lib/email";
 import { seedTaskTemplatesForTenant } from "@/lib/seed-task-templates";
 import { syncLicenseEventToHL } from "@/lib/highlevel/events";
 import { rateLimit, rateLimitResponse } from "@/lib/rateLimit/middleware";
+import { ensureDemoCandidates } from "@/lib/demo/seedDemoSchool";
 
 function slugify(name: string): string {
   return name
@@ -197,8 +198,10 @@ export async function POST(req: NextRequest) {
       estimated_applicants: estimatedApplicants,
     }).catch((err) => console.error("HL sync failed:", err));
 
-    // Create 3 demo candidates so the school sees sample data
-    await seedDemoCandidates(tenant.id);
+    // Create 3 demo candidates with full profiles so the school sees sample data immediately
+    await ensureDemoCandidates(tenant.id).catch((err) =>
+      console.error("[register] Demo seed failed:", err)
+    );
 
     return NextResponse.json(
       { success: true, tenant_id: tenant.id, redirect: "/school/welcome" },
@@ -220,35 +223,3 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function seedDemoCandidates(tenantId: string) {
-  const demos = [
-    {
-      first_name: "Sofia",
-      last_name: "Martinez (Demo)",
-      grade_applying_to: 8,
-      grade_band: "8",
-      status: "active",
-    },
-    {
-      first_name: "James",
-      last_name: "Chen (Demo)",
-      grade_applying_to: 7,
-      grade_band: "6-7",
-      status: "active",
-    },
-    {
-      first_name: "Amara",
-      last_name: "Okafor (Demo)",
-      grade_applying_to: 10,
-      grade_band: "9-11",
-      status: "active",
-    },
-  ];
-
-  for (const demo of demos) {
-    await supabaseAdmin.from("candidates").insert({
-      ...demo,
-      tenant_id: tenantId,
-    });
-  }
-}
