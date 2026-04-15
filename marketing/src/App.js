@@ -711,7 +711,7 @@ function Hero() {
 function StatsBar() {
   const stats = [
     { value: "6", label: "Readiness Dimensions" },
-    { value: "3", label: "Grade Band Experiences" },
+    { value: "3", label: "Grade Experiences" },
     { value: "40+", label: "Learning Signals Captured" },
     { value: "45–75", label: "Minutes Per Session" },
   ];
@@ -868,7 +868,7 @@ function EnterpriseSection() {
   const features = [
     { title: "White Label & Custom Branding", desc: "Run LIFT on your own domain with your school's logo, colors, and branding throughout. Candidates see your institution's identity — not ours. Emails, reports, and the candidate experience all reflect your brand.", color: BRAND.liftIndigo },
     { title: "SIS Integrations", desc: "Connect LIFT directly to Veracross, Blackbaud, PowerSchool, or Ravenna. Candidate data flows automatically — no manual exports, no duplicate entry. Your admissions data lives where your team already works.", color: BRAND.orange },
-    { title: "Cohort Intelligence Dashboard", desc: "Multi-year trend analysis and year-over-year applicant pool comparison. See how your incoming class composition evolves across readiness dimensions, grade bands, and support needs — and use that intelligence to shape your next cycle.", color: BRAND.liftEmerald },
+    { title: "Cohort Intelligence Dashboard", desc: "Multi-year trend analysis and year-over-year applicant pool comparison. See how your incoming class composition evolves across readiness dimensions, grades, and support needs — and use that intelligence to shape your next cycle.", color: BRAND.liftEmerald },
     { title: "Board-Ready Reporting", desc: "Executive summaries formatted for trustees, heads of school, and enrollment committees. Turn LIFT's session data into the kind of institutional narrative your leadership team can act on.", color: BRAND.sky },
     { title: "Custom Session Configuration", desc: "Add school-specific prompts, tasks, or reflection questions to the candidate experience. Enterprise schools can shape the session to surface signals that matter most to their specific admissions philosophy.", color: BRAND.magenta },
     { title: "API Access & Dedicated Success Manager", desc: "Full API access for schools with their own tech teams. Plus a dedicated Inteliflow success manager who knows your school, your cycle, and your goals — with guaranteed SLA response times and priority support throughout the year.", color: BRAND.mint },
@@ -1023,7 +1023,7 @@ function PricingSection() {
       features: [
         "Up to 500 candidate sessions/year",
         "5 evaluator seats",
-        "Full session engine — all grade bands 6–11",
+        "Full session engine — all grades 6–11",
         "Voice response + Passage reader TTS",
         "Transition Readiness Index (TRI)",
         "6 readiness dimensions + 9 enriched behavioral signals",
@@ -1177,8 +1177,8 @@ function FAQSection() {
   const [openIndex, setOpenIndex] = useState(null);
   const faqs = [
     { q: "Is LIFT a diagnostic assessment?", a: "No. LIFT is explicitly non-diagnostic. It does not assess learning disabilities, clinical conditions, or protected characteristics. It reveals learning behaviors and readiness patterns to inform admissions review — not to diagnose or label students." },
-    { q: "How long does a LIFT session take?", a: "Most candidates complete the experience in 45-75 minutes. Sessions are self-paced and can be paused and resumed. The platform adapts task complexity by grade band (6-7, 8, 9-11)." },
-    { q: "Which grade levels does LIFT support?", a: "LIFT currently supports Grades 6-11 across three grade band experiences. Each band uses age-appropriate tasks, language, and UX adapted to the developmental stage of the student." },
+    { q: "How long does a LIFT session take?", a: "Most candidates complete the experience in 45-75 minutes. Sessions are self-paced and can be paused and resumed. The platform adapts task complexity by grade (6-7, 8, 9-11)." },
+    { q: "Which grade levels does LIFT support?", a: "LIFT currently supports Grades 6-11 across three grade experiences. Each grade uses age-appropriate tasks, language, and UX adapted to the developmental stage of the student." },
     { q: "Can candidates complete LIFT on a mobile device?", a: "Yes. LIFT is a progressive web app (PWA) that works on any device with a modern browser. It supports offline mode for areas with unreliable connectivity — responses sync automatically when the connection is restored." },
     { q: "How does LIFT handle student data privacy?", a: "LIFT follows FERPA, COPPA, and GDPR best practices. All data is encrypted in transit and at rest. Each school's data is isolated via per-tenant database policies. Audio recordings from voice responses are deleted after transcription by default." },
     { q: "Does LIFT integrate with our existing systems?", a: "LIFT includes a CORE integration bridge for post-admissions handoff. Enterprise plans include SIS integrations with Veracross, Blackbaud, PowerSchool, and Ravenna, plus API access for custom integrations. All plans include CSV and PDF export." },

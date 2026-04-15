@@ -73,7 +73,7 @@ export default function EvaluatorHelp() {
 
         <h3 className="text-sm font-semibold">Page Layout (top to bottom)</h3>
         <Steps steps={[
-          "Candidate header — name, grade band, session completion date, TRI score badge",
+          "Candidate header — name, grade, session completion date, TRI score badge",
           "TRI Score gauge — visual indicator with label (Emerging / Developing / Ready / Thriving)",
           "Dimension scores — radar chart showing all 6 dimensions with individual scores",
           "Evaluator Intelligence briefing — AI-generated pre-interview guide",
@@ -228,7 +228,7 @@ export default function EvaluatorHelp() {
         <div className="space-y-2">
           <StatExplainer label="TRI Distribution" example="Chart" description="A histogram showing how your candidates' TRI scores are distributed. Helps you understand the overall readiness profile of your applicant pool." />
           <StatExplainer label="Dimension Averages" example="Reading: 68" description="Average scores across all completed sessions per dimension. Identifies whether your applicant pool trends strong or weak in specific areas." />
-          <StatExplainer label="Grade Band Comparison" example="Grade 8 avg: 72" description="Compares average scores across grade bands. Useful for understanding differences in readiness by age group." />
+          <StatExplainer label="Grade Comparison" example="Grade 8 avg: 72" description="Compares average scores across grades. Useful for understanding differences in readiness by age group." />
         </div>
       </HelpSection>
     </div>

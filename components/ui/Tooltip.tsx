@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Info, X } from "lucide-react";
 import type { TooltipContent } from "@/lib/tooltips/content";
 
@@ -23,6 +23,7 @@ export function Tooltip({
 }: TooltipProps) {
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(dismissedIds.includes(content.id));
+  const [showAbove, setShowAbove] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,6 +40,18 @@ export function Tooltip({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  // Check if popover would go off-screen at the bottom
+  const checkPosition = useCallback(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    setShowAbove(spaceBelow < 200);
+  }, []);
+
+  useEffect(() => {
+    if (open) checkPosition();
+  }, [open, checkPosition]);
+
   // Role filter — must come after all hooks
   if (content.roles && userRole && !content.roles.includes(userRole)) return null;
   if (dismissed && mode === "banner") return null;
@@ -51,8 +64,8 @@ export function Tooltip({
 
   // Popover content
   const popover = open && (
-    <div className="absolute z-[1000] top-full left-1/2 -translate-x-1/2 mt-2 w-[280px] rounded-xl border border-primary/20 bg-[#1e1e2e] p-3.5 shadow-xl">
-      <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 h-3 w-3 rotate-45 border-l border-t border-primary/20 bg-[#1e1e2e]" />
+    <div className={`absolute z-[1000] left-1/2 -translate-x-1/2 w-[280px] rounded-xl border border-primary/20 bg-[#1e1e2e] p-3.5 shadow-xl ${showAbove ? "bottom-full mb-2" : "top-full mt-2"}`}>
+      <div className={`absolute left-1/2 -translate-x-1/2 h-3 w-3 rotate-45 border-primary/20 bg-[#1e1e2e] ${showAbove ? "-bottom-1.5 border-r border-b" : "-top-1.5 border-l border-t"}`} />
       <div className="flex items-start justify-between gap-2">
         <p className="text-[13px] font-bold text-[#e2e8f0]">{content.title}</p>
         <button onClick={() => setOpen(false)} className="text-[#64748b] hover:text-white shrink-0">

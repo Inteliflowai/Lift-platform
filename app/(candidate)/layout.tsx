@@ -1,5 +1,26 @@
+import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import { PWARegistrar } from "./pwa-registrar";
+
+export const metadata: Metadata = {
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "LIFT",
+  },
+  icons: {
+    apple: "/icons/icon-192.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6366f1",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
 
 export default function CandidateLayout({
   children,
@@ -8,15 +29,6 @@ export default function CandidateLayout({
 }) {
   return (
     <>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#6366f1" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="LIFT" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-      </head>
       <div
         className="flex min-h-screen flex-col items-center bg-[#faf8f5] text-[#1c1917]"
         style={{

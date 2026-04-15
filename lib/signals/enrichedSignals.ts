@@ -77,7 +77,7 @@ function detectFrequentScreenRevisits(d: SessionBehavior): LearningSignal | null
   return {
     id: "frequent_passage_revisits",
     label: "Repeated Passage Re-reading",
-    description: "This student returned to re-read content multiple times before responding — more than is typical for their grade band.",
+    description: "This student returned to re-read content multiple times before responding — more than is typical for their grade.",
     recommendation: "This pattern can reflect strong thoroughness, but may also suggest the student benefits from reading comprehension support. Worth exploring in the admissions conversation.",
     severity: "advisory",
     category: "reading",

@@ -72,7 +72,7 @@ export default function AccuracyReportPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {data.map((d) => (
               <div key={d.grade_band} className="rounded-lg border border-lift-border bg-surface p-5 space-y-3">
-                <p className="text-xs font-semibold text-primary">Grade Band {d.grade_band}</p>
+                <p className="text-xs font-semibold text-primary">Grade {d.grade_band}</p>
                 <p className="text-xs text-muted">{d.sample_size} students</p>
 
                 <div>

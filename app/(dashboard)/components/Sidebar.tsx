@@ -47,7 +47,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
   school_admin: [
     { label: "Dashboard", href: "/school", icon: LayoutDashboard, desc: "Overview of candidates, sessions, and review queue" },
     { label: "Candidates", href: "/school/candidates", icon: Users, desc: "Import, invite, and manage candidate profiles" },
-    { label: "Cycles", href: "/school/cycles", icon: Calendar, desc: "Create and manage admissions cycles with grade bands" },
+    { label: "Cycles", href: "/school/cycles", icon: Calendar, desc: "Create and manage admissions cycles with grades" },
     { label: "Team", href: "/school/team", icon: UserCheck, desc: "Invite evaluators, interviewers, and staff to your school" },
     { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
     { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score", feature: FEATURES.WAITLIST_INTELLIGENCE },

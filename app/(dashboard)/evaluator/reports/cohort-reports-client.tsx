@@ -81,7 +81,7 @@ export function CohortReportsClient({
 
       {/* Completion by grade band */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-3 text-sm font-semibold">Completion by Grade Band</h2>
+        <h2 className="mb-3 text-sm font-semibold">Completion by Grade</h2>
         <div className="space-y-3">
           {Object.entries(byBand).sort().map(([band, data]) => {
             const pct = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;

@@ -126,7 +126,7 @@ export function CycleDetailClient({
                 : "text-muted hover:text-lift-text"
             }`}
           >
-            {t === "bands" ? "Grade Bands" : t}
+            {t === "bands" ? "Grades" : t}
           </button>
         ))}
       </div>
@@ -156,7 +156,7 @@ export function CycleDetailClient({
               </p>
             </div>
             <div className="rounded-lg border border-lift-border bg-surface p-4">
-              <p className="text-xs text-muted">Grade Bands</p>
+              <p className="text-xs text-muted">Grades</p>
               <p className="mt-1 text-2xl font-bold">{bands.length}</p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export function CycleDetailClient({
               <thead className="border-b border-lift-border bg-surface text-xs text-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Grade Band</th>
+                  <th className="px-4 py-3 font-medium">Grade</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Added</th>
                 </tr>

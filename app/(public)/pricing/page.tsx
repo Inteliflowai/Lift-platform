@@ -18,7 +18,7 @@ const TIERS = [
     features: [
       "500 candidate sessions per year",
       "5 evaluator seats",
-      "Full session engine — all grade bands",
+      "Full session engine — all grades",
       "Voice response & passage reader",
       "TRI Score & Learning Support Signals",
       "Evaluator Intelligence briefings & rubric",

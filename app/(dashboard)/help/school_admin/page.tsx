@@ -130,7 +130,7 @@ export default function SchoolAdminHelp() {
       <HelpSection id="cycles" title="Admissions Cycles" icon={Calendar}>
         <WhereToFind path={["Sidebar", "Cycles"]} />
         <p className="text-sm text-muted">
-          An admissions cycle represents one application period (e.g. &quot;Fall 2026&quot;). Each cycle has its own candidate pool, dates, and grade bands.
+          An admissions cycle represents one application period (e.g. &quot;Fall 2026&quot;). Each cycle has its own candidate pool, dates, and grades.
         </p>
 
         <h3 className="text-sm font-semibold">Creating a Cycle</h3>
@@ -138,7 +138,7 @@ export default function SchoolAdminHelp() {
           "Click \"New Cycle\" from the Cycles page.",
           "Enter a name (e.g. \"Fall 2026 Admissions\") and academic year.",
           "Set opening and closing dates — invites can only be sent during this window.",
-          "Configure grade bands (6-7, 8, 9-11) — each band gets its own set of age-appropriate assessment tasks.",
+          "Configure grades (6-7, 8, 9-11) — each grade gets its own set of age-appropriate assessment tasks.",
           "Click \"Create Cycle\" — it becomes active immediately.",
         ]} />
 

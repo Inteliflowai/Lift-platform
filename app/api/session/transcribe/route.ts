@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     .eq("tenant_id", invite.tenant_id)
     .single();
 
-  if (!settings?.voice_mode_enabled) {
+  if (settings && !settings.voice_mode_enabled) {
     return NextResponse.json(
       { error: "Voice mode not enabled" },
       { status: 403 }
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Delete audio if configured
-    if (settings.delete_audio_after_transcription) {
+    if (settings?.delete_audio_after_transcription) {
       await supabaseAdmin.storage.from("lift-audio").remove([storagePath]);
     }
 

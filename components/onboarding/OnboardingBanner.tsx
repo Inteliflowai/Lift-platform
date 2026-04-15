@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Check, Circle, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { usePathname } from "next/navigation";
 
 export function OnboardingBanner() {
   const { t } = useLocale();
+  const pathname = usePathname();
   const [stepsCompleted, setStepsCompleted] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [minimized, setMinimized] = useState(false);
@@ -46,7 +48,7 @@ export function OnboardingBanner() {
     },
   ];
 
-  useEffect(() => {
+  const fetchProgress = useCallback(() => {
     fetch("/api/onboarding/progress")
       .then((r) => r.json())
       .then((data) => {
@@ -57,6 +59,20 @@ export function OnboardingBanner() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  // Fetch on mount and when navigating back to this page
+  useEffect(() => {
+    fetchProgress();
+  }, [fetchProgress, pathname]);
+
+  // Refetch when window regains focus (e.g. returning from another tab/page)
+  useEffect(() => {
+    function handleFocus() {
+      fetchProgress();
+    }
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [fetchProgress]);
 
   useEffect(() => {
     if (stepsCompleted.length === STEPS.length && !allDone) {

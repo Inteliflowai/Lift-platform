@@ -111,7 +111,7 @@ export const TOOLTIPS: Record<string, TooltipContent> = {
   },
   grade_band: {
     id: "grade_band",
-    title: "Grade Band",
+    title: "Grade",
     body: "LIFT automatically serves age-appropriate tasks based on the grade a student is applying for. Grade 6-7, Grade 8, and Grade 9-11 each have a distinct experience designed for that developmental stage.",
   },
   completion_rate: {

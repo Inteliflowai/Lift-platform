@@ -42,7 +42,7 @@ export default function InterviewerHelp() {
       <HelpSection id="cases" title="Your Cases" icon={Briefcase} defaultOpen>
         <WhereToFind path={["Sidebar", "My Cases"]} />
         <p className="text-sm text-muted">
-          Your Cases page lists the candidates assigned to you for interviews. Each card shows the candidate&apos;s name, grade band, TRI score, and interview status.
+          Your Cases page lists the candidates assigned to you for interviews. Each card shows the candidate&apos;s name, grade, TRI score, and interview status.
         </p>
 
         <h3 className="text-sm font-semibold">Interview Statuses</h3>

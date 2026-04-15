@@ -49,7 +49,7 @@ export function DemoControls({
         <div className="space-y-2">
           <p className="text-sm text-muted">
             Activate Demo Mode to populate {tenantName} with 18 synthetic
-            candidates across all grade bands. Existing real data will NOT be
+            candidates across all grades. Existing real data will NOT be
             affected.
           </p>
           <button
@@ -65,7 +65,7 @@ export function DemoControls({
         <div className="rounded-md border border-[#f59e0b]/50 bg-white p-4 space-y-3">
           <p className="text-sm font-medium">
             This will populate {tenantName} with 18 synthetic candidates (6 per
-            grade band). Continue?
+            grade). Continue?
           </p>
           <div className="flex gap-2">
             <button

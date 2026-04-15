@@ -99,7 +99,7 @@ export default function NewCyclePage() {
       </form>
 
       <p className="text-xs text-muted">
-        Three grade band templates (6-7, 8, 9-11) will be auto-generated with
+        Three grade templates (6-7, 8, 9-11) will be auto-generated with
         default configurations.
       </p>
     </div>

@@ -78,21 +78,45 @@ export function GuidedTour({
   const isLast = currentStep === steps.length - 1;
 
   // Position the tooltip near the target or center screen
-  const tooltipStyle: React.CSSProperties = targetRect
-    ? {
-        position: "fixed",
-        top: step.position === "top" ? targetRect.top - 12 : targetRect.bottom + 12,
-        left: Math.max(16, Math.min(targetRect.left, window.innerWidth - 360)),
-        transform: step.position === "top" ? "translateY(-100%)" : "none",
-        zIndex: 10001,
+  let tooltipStyle: React.CSSProperties;
+  if (targetRect) {
+    let top: number;
+    let transform = "none";
+    const tooltipHeight = 200; // approximate tooltip height
+
+    if (step.position === "top") {
+      top = targetRect.top - 12;
+      transform = "translateY(-100%)";
+      // If tooltip would go above viewport, flip to bottom
+      if (top - tooltipHeight < 0) {
+        top = targetRect.bottom + 12;
+        transform = "none";
       }
-    : {
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        zIndex: 10001,
-      };
+    } else {
+      top = targetRect.bottom + 12;
+      // If tooltip would go below viewport, flip to top
+      if (top + tooltipHeight > window.innerHeight) {
+        top = targetRect.top - 12;
+        transform = "translateY(-100%)";
+      }
+    }
+
+    tooltipStyle = {
+      position: "fixed",
+      top,
+      left: Math.max(16, Math.min(targetRect.left, window.innerWidth - 360)),
+      transform,
+      zIndex: 10001,
+    };
+  } else {
+    tooltipStyle = {
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      zIndex: 10001,
+    };
+  }
 
   return (
     <>
