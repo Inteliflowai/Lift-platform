@@ -116,6 +116,45 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Predict CORE mastery band from LIFT TRI + dimension scores
+  const triScore = profile?.tri_score != null ? Number(profile.tri_score) : 0;
+  const dimReading = Number(profile?.reading_score ?? 0);
+  const dimWriting = Number(profile?.writing_score ?? 0);
+  const dimReasoning = Number(profile?.reasoning_score ?? 0);
+  const dimReflection = Number(profile?.reflection_score ?? 0);
+  const dimPersistence = Number(profile?.persistence_score ?? 0);
+  const dimAdvocacy = Number(profile?.support_seeking_score ?? 0);
+
+  // Band: reteach (<50), grade_level (50-89), advanced (90+)
+  let predictedBand = "grade_level";
+  if (triScore >= 90 || (dimReasoning >= 70 && dimReading >= 70 && triScore >= 75)) {
+    predictedBand = "advanced";
+  } else if (triScore < 50 || dimReasoning < 50 || dimReading < 50) {
+    predictedBand = "reteach";
+  }
+
+  // Style: map highest LIFT dimension to CORE learning style
+  const dimMap = [
+    { score: dimReading, style: "text" },
+    { score: dimWriting, style: "text" },
+    { score: dimReasoning, style: "kinesthetic" },
+    { score: dimReflection, style: "auditory" },
+    { score: dimPersistence, style: "kinesthetic" },
+    { score: dimAdvocacy, style: "auditory" },
+  ];
+  const maxDimScore = Math.max(...dimMap.map((d) => d.score));
+  const topDims = dimMap.filter((d) => d.score >= maxDimScore - 5);
+  let predictedStyle = "visual"; // default when no clear winner
+  if (topDims.length === 1) {
+    predictedStyle = topDims[0].style;
+  } else if (topDims.some((d) => d.style === "text")) {
+    predictedStyle = "text";
+  } else if (topDims.some((d) => d.style === "kinesthetic")) {
+    predictedStyle = "kinesthetic";
+  } else if (topDims.some((d) => d.style === "auditory")) {
+    predictedStyle = "auditory";
+  }
+
   // Build payload
   const payload = {
     lift_candidate_id: candidate.id,
@@ -126,16 +165,18 @@ export async function POST(req: NextRequest) {
     grade: candidate.grade_applying_to,
     preferred_language: candidate.preferred_language ?? "en",
     lift_session_completed_at: session?.completed_at ?? null,
-    tri_score: profile?.tri_score != null ? Number(profile.tri_score) : null,
+    tri_score: triScore || null,
     tri_label: profile?.tri_label ?? null,
+    predicted_mastery_band: profile ? predictedBand : null,
+    predicted_learning_style: profile ? predictedStyle : null,
     readiness_dimensions: profile
       ? {
-          reading: Number(profile.reading_score ?? 0),
-          writing: Number(profile.writing_score ?? 0),
-          reasoning: Number(profile.reasoning_score ?? 0),
-          reflection: Number(profile.reflection_score ?? 0),
-          persistence: Number(profile.persistence_score ?? 0),
-          support_seeking: Number(profile.support_seeking_score ?? 0),
+          reading: dimReading,
+          writing: dimWriting,
+          reasoning: dimReasoning,
+          reflection: dimReflection,
+          persistence: dimPersistence,
+          support_seeking: dimAdvocacy,
         }
       : null,
     overall_confidence: profile?.overall_confidence != null ? Number(profile.overall_confidence) : null,
