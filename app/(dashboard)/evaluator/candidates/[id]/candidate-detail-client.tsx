@@ -13,6 +13,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { TOOLTIPS } from "@/lib/tooltips/content";
 import { ApplicationDataPanel } from "@/components/evaluator/ApplicationDataPanel";
 import { ObservationNotes } from "@/components/evaluator/ObservationNotes";
+import { useToast } from "@/components/ui/Toast";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
 
@@ -824,6 +825,7 @@ function ExportButtons({ candidateId }: { candidateId: string }) {
   const lang = locale === "pt" ? "pt" : "en";
   const langLabel = locale === "pt" ? "PT" : "EN";
   const [committeeLoading, setCommitteeLoading] = useState(false);
+  const { toast } = useToast();
 
   async function handleCommittee() {
     setCommitteeLoading(true);
@@ -839,8 +841,9 @@ function ExportButtons({ candidateId }: { candidateId: string }) {
       win.document.write(html);
       win.document.close();
       setTimeout(() => win.print(), 800);
+      toast("Committee brief generated");
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Could not generate report.");
+      toast(err instanceof Error ? err.message : "Could not generate report", "error");
     } finally {
       setCommitteeLoading(false);
     }

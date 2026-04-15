@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useToast } from "@/components/ui/Toast";
 
 type Settings = {
   id: string;
@@ -36,7 +37,7 @@ export function SettingsClient({
   const [coreEnabled, setCoreEnabled] = useState(coreIntegration?.enabled ?? false);
   const [coreTenantId, setCoreTenantId] = useState(coreIntegration?.coreTenantId ?? "");
   const [coreSaving, setCoreSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
 
   if (!settings) {
     return (
@@ -50,7 +51,6 @@ export function SettingsClient({
   async function handleSave() {
     if (!settings) return;
     setSaving(true);
-    setSaved(false);
 
     const res = await fetch("/api/school/settings", {
       method: "PATCH",
@@ -72,8 +72,9 @@ export function SettingsClient({
     if (res.ok) {
       const updated = await res.json();
       setSettings(updated);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      toast("Settings saved");
+    } else {
+      toast("Failed to save settings", "error");
     }
     setSaving(false);
   }
@@ -295,7 +296,6 @@ export function SettingsClient({
         >
           {saving ? t("common.loading") : t("settings.save")}
         </button>
-        {saved && <span className="text-xs text-success">{t("settings.saved")}</span>}
       </div>
 
       {/* CORE Integration */}

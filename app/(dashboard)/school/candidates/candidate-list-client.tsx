@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EmptyState, EmptyCandidatesIcon } from "@/components/EmptyState";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useToast } from "@/components/ui/Toast";
 
 type Session = {
   status: string;
@@ -46,7 +47,7 @@ export function CandidateListClient({
   const [resending, setResending] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkSending, setBulkSending] = useState(false);
-  const [bulkResult, setBulkResult] = useState<{ sent: number; skipped: number; failed: number } | null>(null);
+  const { toast } = useToast();
 
   const filtered = candidates.filter((c) => {
     if (
@@ -101,7 +102,6 @@ export function CandidateListClient({
   async function handleBulkSend() {
     if (unsentSelected.length === 0) return;
     setBulkSending(true);
-    setBulkResult(null);
     try {
       const res = await fetch("/api/school/candidates/bulk-send", {
         method: "POST",
@@ -109,11 +109,14 @@ export function CandidateListClient({
         body: JSON.stringify({ candidateIds: unsentSelected }),
       });
       const data = await res.json();
-      setBulkResult({ sent: data.sent ?? 0, skipped: data.skipped ?? 0, failed: data.failed ?? 0 });
+      const sent = data.sent ?? 0;
+      const skipped = data.skipped ?? 0;
+      if (sent > 0) toast(`${sent} invitation${sent !== 1 ? "s" : ""} sent${skipped > 0 ? ` (${skipped} already sent)` : ""}`);
+      else if (skipped > 0) toast(`${skipped} already sent — no new invitations`, "info");
       setSelected(new Set());
       router.refresh();
     } catch {
-      setBulkResult({ sent: 0, skipped: 0, failed: 1 });
+      toast("Failed to send invitations", "error");
     } finally {
       setBulkSending(false);
     }
@@ -127,7 +130,10 @@ export function CandidateListClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ candidateIds: [candidateId] }),
       });
+      toast("Invitation sent");
       router.refresh();
+    } catch {
+      toast("Failed to send invitation", "error");
     } finally {
       setResending(null);
     }
@@ -152,17 +158,6 @@ export function CandidateListClient({
           </Link>
         </div>
       </div>
-
-      {/* Bulk result banner */}
-      {bulkResult && (
-        <div className="rounded-lg border border-success/30 bg-success/5 p-3">
-          <p className="text-sm font-medium text-success">
-            Invitations sent: {bulkResult.sent}
-            {bulkResult.skipped > 0 && <span className="ml-2 text-muted">({bulkResult.skipped} already sent)</span>}
-            {bulkResult.failed > 0 && <span className="ml-2 text-review">({bulkResult.failed} failed)</span>}
-          </p>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">

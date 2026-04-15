@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/Toast";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { TOOLTIPS } from "@/lib/tooltips/content";
+import { ClipboardList } from "lucide-react";
 
 interface ApplicationData {
   gpa_current?: number | null;
@@ -53,14 +57,18 @@ export function ApplicationDataPanel({
 }: Props) {
   const [data, setData] = useState<ApplicationData>({});
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hasData, setHasData] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetch(`/api/school/candidates/application-data?candidate_id=${candidateId}`)
       .then((r) => r.json())
       .then(({ data: appData }) => {
-        if (appData) setData(appData);
+        if (appData) {
+          setData(appData);
+          setHasData(true);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -68,7 +76,6 @@ export function ApplicationDataPanel({
 
   async function save() {
     setSaving(true);
-    setSaved(false);
     try {
       await fetch("/api/school/candidates/application-data", {
         method: "POST",
@@ -79,8 +86,10 @@ export function ApplicationDataPanel({
           ...data,
         }),
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      setHasData(true);
+      toast("Application data saved");
+    } catch {
+      toast("Failed to save", "error");
     } finally {
       setSaving(false);
     }
@@ -99,6 +108,27 @@ export function ApplicationDataPanel({
     return (
       <div className="flex items-center justify-center py-16 text-muted">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  // Empty state — show when no data has been entered yet
+  if (!loading && !hasData) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-lift-border bg-surface py-16 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+          <ClipboardList size={28} className="text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold text-lift-text">No application data yet</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+          Add GPA, test scores, and teacher recommendations here to see everything alongside LIFT session data — one view for the committee.
+        </p>
+        <button
+          onClick={() => setHasData(true)}
+          className="mt-5 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90"
+        >
+          Add Application Data
+        </button>
       </div>
     );
   }
@@ -164,13 +194,9 @@ export function ApplicationDataPanel({
           <button
             onClick={save}
             disabled={saving}
-            className={`rounded-md px-4 py-1.5 text-xs font-semibold text-white transition-colors ${
-              saved
-                ? "bg-success"
-                : "bg-primary hover:opacity-90"
-            } disabled:opacity-50`}
+            className="rounded-md bg-primary px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
           >
-            {saving ? "Saving..." : saved ? "✓ Saved" : "Save"}
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
 
@@ -306,7 +332,7 @@ export function ApplicationDataPanel({
         {/* Recommendations */}
         <div className="rounded-lg border border-lift-border bg-surface p-4">
           <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted">
-            Recommendations
+            Recommendations <Tooltip content={TOOLTIPS.recommendation_sentiment} />
           </p>
           {(
             [

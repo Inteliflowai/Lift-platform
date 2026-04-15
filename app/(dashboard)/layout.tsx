@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { LicenseProvider } from "@/lib/licensing/context";
+import { ToastProvider } from "@/components/ui/Toast";
 import { getLicense, isLicenseActive, getTrialDaysRemaining } from "@/lib/licensing/resolver";
 import { checkSessionLimit } from "@/lib/licensing/gate";
 import { TrialBanner } from "@/components/licensing/TrialBanner";
@@ -124,6 +125,7 @@ export default async function DashboardLayout({
 
   return (
     <LicenseProvider license={licenseData}>
+      <ToastProvider>
       <TenantThemeProvider branding={branding}>
       <TrialBanner />
       <div className="min-h-screen bg-white text-[#1a1a2e]">
@@ -149,6 +151,7 @@ export default async function DashboardLayout({
         </div>
       </div>
       </TenantThemeProvider>
+      </ToastProvider>
     </LicenseProvider>
   );
 }

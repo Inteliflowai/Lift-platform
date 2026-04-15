@@ -136,6 +136,59 @@ export const TOOLTIPS: Record<string, TooltipContent> = {
     learnMoreHref: "/help/school_admin#outcome-tracking",
   },
 
+  // ── Cohort View ──
+  cohort_tri_avg: {
+    id: "cohort_tri_avg",
+    title: "Average TRI",
+    body: "The mean Transition Readiness Index across all completed candidates in this cycle. Use it as a baseline — individual scores above or below this average are worth a closer look.",
+  },
+  cohort_signals: {
+    id: "cohort_signals",
+    title: "Support Signals",
+    body: "Candidates flagged with one or more behavioral patterns that may warrant a learning support conversation. Not a negative — this helps your team plan proactively before a student arrives on campus.",
+  },
+
+  // ── Observation Notes ──
+  sentiment_confirms: {
+    id: "sentiment_confirms",
+    title: "Confirms",
+    body: "The interview confirmed what LIFT observed in the session. The candidate behaved consistently across both settings — a strong signal of authentic performance.",
+  },
+  sentiment_contradicts: {
+    id: "sentiment_contradicts",
+    title: "Contradicts",
+    body: "The interview showed something different from the LIFT session. This isn't necessarily concerning — it may reflect test anxiety, a different setting, or growth since the session.",
+  },
+  sentiment_expands: {
+    id: "sentiment_expands",
+    title: "Expands",
+    body: "The interview added nuance that the session couldn't capture — context, motivation, or interpersonal qualities that deepen your understanding of this candidate.",
+  },
+  sentiment_unclear: {
+    id: "sentiment_unclear",
+    title: "Unclear",
+    body: "The interview didn't clearly confirm or contradict this observation. Note it for follow-up or additional conversation with the candidate or family.",
+  },
+
+  // ── Application Data ──
+  application_data: {
+    id: "application_data",
+    title: "Application Data",
+    body: "School-side information about this candidate — GPA, test scores, teacher recommendations — displayed alongside LIFT session data so evaluators see everything in one place.",
+  },
+  recommendation_sentiment: {
+    id: "recommendation_sentiment",
+    title: "Recommendation Sentiment",
+    body: "A quick summary of the teacher or counselor recommendation tone. Strong = enthusiastic endorsement, Positive = supportive, Neutral = factual/standard, Mixed = concerns noted alongside strengths.",
+  },
+
+  // ── Committee Report ──
+  committee_report: {
+    id: "committee_report",
+    title: "Committee Brief",
+    body: "A one-page printable summary designed for your admissions committee meeting. AI-generated narrative combining LIFT data with interview observations. Confidential — not for families.",
+  },
+
   // ── Trial-specific banners ──
   trial_invite_first_candidate: {
     id: "trial_invite_first_candidate",

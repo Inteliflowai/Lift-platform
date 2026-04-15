@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/Toast";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { TOOLTIPS } from "@/lib/tooltips/content";
+import { MessageSquarePlus } from "lucide-react";
 
 interface ObsNote {
   id: string;
@@ -42,6 +46,7 @@ export function ObservationNotes({ candidateId, observations, interviewQuestions
   const [sentiment, setSentiment] = useState("");
   const [freeNote, setFreeNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetch(`/api/school/candidates/observation-notes?candidate_id=${candidateId}`)
@@ -74,7 +79,6 @@ export function ObservationNotes({ candidateId, observations, interviewQuestions
       });
       const { note } = await res.json();
       if (note) {
-        // Replace any existing note for this linked item
         setNotes((prev) => [
           ...prev.filter(
             (n) =>
@@ -83,6 +87,7 @@ export function ObservationNotes({ candidateId, observations, interviewQuestions
           ),
           note,
         ]);
+        toast("Note saved — it will feed into the synthesis");
       }
       setNoteText("");
       setSentiment("");
@@ -106,7 +111,10 @@ export function ObservationNotes({ candidateId, observations, interviewQuestions
         }),
       });
       const { note } = await res.json();
-      if (note) setNotes((prev) => [...prev, note]);
+      if (note) {
+        setNotes((prev) => [...prev, note]);
+        toast("Note added");
+      }
       setFreeNote("");
     } finally {
       setSaving(false);
@@ -121,6 +129,21 @@ export function ObservationNotes({ candidateId, observations, interviewQuestions
   }
 
   const questionTexts = interviewQuestions.map((q) => q.question);
+
+  // Empty state when no briefing data exists yet
+  if (observations.length === 0 && questionTexts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-lift-border bg-surface py-14 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+          <MessageSquarePlus size={28} className="text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold text-lift-text">No briefing available yet</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+          Once this candidate completes their LIFT session, an AI briefing will appear here with observations and interview questions. You can then add notes on each one during the interview.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -155,7 +178,7 @@ export function ObservationNotes({ candidateId, observations, interviewQuestions
                         }}
                         className="shrink-0 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary hover:bg-primary/10"
                       >
-                        + Note
+                        Did the interview confirm this?
                       </button>
                     )}
                   </div>
@@ -201,22 +224,27 @@ export function ObservationNotes({ candidateId, observations, interviewQuestions
                   {/* Note input */}
                   {isActive && (
                     <div className="ml-4 mt-2.5 space-y-2">
-                      <div className="flex flex-wrap gap-1.5">
-                        {SENTIMENT_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.value}
-                            onClick={() =>
-                              setSentiment(sentiment === opt.value ? "" : opt.value)
-                            }
-                            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                              sentiment === opt.value
-                                ? `${opt.bg} ${opt.color}`
-                                : "bg-page-bg text-muted hover:text-lift-text"
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
+                      <div className="mb-1">
+                        <p className="mb-1.5 text-[10px] font-semibold text-muted">How did the interview compare?</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {SENTIMENT_OPTIONS.map((opt) => (
+                            <span key={opt.value} className="inline-flex items-center">
+                              <button
+                                onClick={() =>
+                                  setSentiment(sentiment === opt.value ? "" : opt.value)
+                                }
+                                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                                  sentiment === opt.value
+                                    ? `${opt.bg} ${opt.color}`
+                                    : "bg-page-bg text-muted hover:text-lift-text"
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                              <Tooltip content={TOOLTIPS[`sentiment_${opt.value}`]} />
+                            </span>
+                          ))}
+                        </div>
                       </div>
                       <textarea
                         value={noteText}

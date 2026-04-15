@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { TOOLTIPS } from "@/lib/tooltips/content";
 
 interface CohortRow {
   candidate_id: string;
@@ -221,52 +223,38 @@ export function CohortClient() {
         </div>
       </div>
 
-      {/* Stats bar */}
+      {/* Insight banner */}
       {stats && stats.total > 0 && (
-        <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
-          {[
-            {
-              label: "Total Candidates",
-              val: stats.total,
-              color: "#6366f1",
-            },
-            {
-              label: "Average TRI",
-              val: stats.avgTri,
-              color: triColor(stats.avgTri),
-            },
-            {
-              label: "Strong ≥ 75",
-              val: `${stats.triDistribution.strong} (${stats.total > 0 ? Math.round((stats.triDistribution.strong / stats.total) * 100) : 0}%)`,
-              color: "#10b981",
-            },
-            {
-              label: "With Signals",
-              val: stats.withSignals,
-              color: stats.withSignals > 0 ? "#f59e0b" : "#10b981",
-            },
-            {
-              label: "Developing",
-              val: stats.triDistribution.developing,
-              color: "#6366f1",
-            },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl border bg-[#1a1a24] p-3.5 text-center"
-              style={{ borderColor: `${s.color}25` }}
-            >
-              <div
-                className="font-mono text-2xl font-bold leading-none"
-                style={{ color: s.color }}
-              >
-                {s.val}
-              </div>
-              <div className="mt-1 font-body text-[11px] text-[#64748b]">
-                {s.label}
+        <div className="mb-5 rounded-xl border border-[#2d2d3d] bg-[#1a1a24] px-5 py-4">
+          <div className="flex items-center gap-4">
+            {/* Key insight sentence */}
+            <div className="flex-1">
+              <p className="font-body text-[15px] font-medium text-[#e2e8f0]">
+                <span className="font-mono font-bold text-[#6366f1]">{stats.total}</span> candidate{stats.total !== 1 ? "s" : ""} completed
+                {stats.withSignals > 0 ? (
+                  <span>
+                    {" — "}
+                    <span className="font-bold text-[#f59e0b]">{stats.withSignals}</span>
+                    {" "}ha{stats.withSignals !== 1 ? "ve" : "s"} support signals worth reviewing before your next committee meeting.
+                  </span>
+                ) : (
+                  <span className="text-[#10b981]"> — no support signals detected. Your class looks clean.</span>
+                )}
+              </p>
+              <div className="mt-1.5 flex items-center gap-4 font-body text-xs text-[#64748b]">
+                <span>
+                  Avg <Tooltip content={TOOLTIPS.cohort_tri_avg} mode="inline">TRI</Tooltip>:{" "}
+                  <span className="font-mono font-bold" style={{ color: triColor(stats.avgTri) }}>{stats.avgTri}</span>
+                </span>
+                <span className="text-[#10b981]">{stats.triDistribution.strong} strong</span>
+                <span className="text-[#6366f1]">{stats.triDistribution.developing} developing</span>
+                <span className="text-[#f59e0b]">{stats.triDistribution.emerging} emerging</span>
+                {Object.entries(stats.byGrade).map(([g, n]) => (
+                  <span key={g} className="text-[#64748b]">Grade {g}: {n}</span>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
         </div>
       )}
 
@@ -345,23 +333,18 @@ export function CohortClient() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#2d2d3d]">
-                  {[
-                    "Candidate",
-                    "TRI",
-                    "Dimensions",
-                    "Top Strength",
-                    "Signals",
-                    "Completion",
-                    "Date",
-                    "",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]"
-                    >
-                      {h}
-                    </th>
-                  ))}
+                  <th className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]">Candidate</th>
+                  <th className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                    TRI <Tooltip content={TOOLTIPS.tri_score} />
+                  </th>
+                  <th className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]">Dimensions</th>
+                  <th className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]">Top Strength</th>
+                  <th className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                    Signals <Tooltip content={TOOLTIPS.cohort_signals} />
+                  </th>
+                  <th className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]">Completion</th>
+                  <th className="px-4 py-3 text-left font-body text-[11px] font-bold uppercase tracking-wider text-[#64748b]">Date</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
@@ -406,7 +389,15 @@ export function CohortClient() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <MiniTRIGauge score={r.tri_score} />
+                        <div className="flex items-center gap-2">
+                          <MiniTRIGauge score={r.tri_score} />
+                          <span
+                            className="font-body text-[10px] font-bold uppercase"
+                            style={{ color }}
+                          >
+                            {triLabel(r.tri_score)}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <DimensionSparkline row={r} />
