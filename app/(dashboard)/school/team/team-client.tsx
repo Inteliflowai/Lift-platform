@@ -73,6 +73,20 @@ export function TeamClient({ members }: { members: Member[] }) {
     }
   }
 
+  async function handleChangeRole(roleId: string, newRole: string) {
+    const res = await fetch(`/api/school/team/${roleId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ new_role: newRole }),
+    });
+    if (res.ok) {
+      toast("Role updated");
+      router.refresh();
+    } else {
+      toast("Failed to update role", "error");
+    }
+  }
+
   async function handleRevoke(roleId: string) {
     if (!confirm("Remove this team member's role?")) return;
 
@@ -174,9 +188,16 @@ export function TeamClient({ members }: { members: Member[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                      {m.role}
-                    </span>
+                    <select
+                      value={m.role}
+                      onChange={(e) => handleChangeRole(m.id, e.target.value)}
+                      className="rounded-md border border-lift-border bg-page-bg px-2 py-1 text-xs text-lift-text outline-none focus:border-primary"
+                    >
+                      <option value="evaluator">Evaluator</option>
+                      <option value="interviewer">Interviewer</option>
+                      <option value="grade_dean">Grade Dean</option>
+                      <option value="learning_specialist">Learning Specialist</option>
+                    </select>
                   </td>
                   <td className="px-4 py-3 text-muted">
                     {new Date(m.granted_at).toLocaleDateString()}

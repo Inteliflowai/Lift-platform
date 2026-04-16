@@ -9,47 +9,82 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const { tenantId, user } = await getTenantContext();
-  const { email } = await req.json();
+  const body = await req.json();
+  const { email, new_role } = body;
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: "Valid email required" }, { status: 400 });
-  }
-
-  // Get the role to find the user_id
-  const { data: role } = await supabaseAdmin
+  // Get the role entry
+  const { data: roleEntry } = await supabaseAdmin
     .from("user_tenant_roles")
-    .select("user_id")
+    .select("user_id, role")
     .eq("id", params.id)
     .eq("tenant_id", tenantId)
     .single();
 
-  if (!role) {
+  if (!roleEntry) {
     return NextResponse.json({ error: "Team member not found" }, { status: 404 });
   }
 
-  // Update the user's email in users table
-  const { error: updateErr } = await supabaseAdmin
-    .from("users")
-    .update({ email: email.toLowerCase().trim() })
-    .eq("id", role.user_id);
+  // Handle role change
+  if (new_role) {
+    const schoolRoles = ["evaluator", "interviewer", "grade_dean", "learning_specialist"];
+    if (!schoolRoles.includes(new_role)) {
+      return NextResponse.json({ error: "Invalid role for school team" }, { status: 400 });
+    }
 
-  if (updateErr) {
-    return NextResponse.json({ error: updateErr.message }, { status: 500 });
+    // Check if target role already exists
+    const { data: existing } = await supabaseAdmin
+      .from("user_tenant_roles")
+      .select("id")
+      .eq("user_id", roleEntry.user_id)
+      .eq("tenant_id", tenantId)
+      .eq("role", new_role)
+      .maybeSingle();
+
+    if (existing) {
+      await supabaseAdmin.from("user_tenant_roles").delete().eq("id", params.id);
+    } else {
+      await supabaseAdmin
+        .from("user_tenant_roles")
+        .update({ role: new_role })
+        .eq("id", params.id);
+    }
+
+    await writeAuditLog(supabaseAdmin, {
+      tenant_id: tenantId,
+      actor_id: user.id,
+      action: "team_role_changed",
+      payload: { role_id: params.id, user_id: roleEntry.user_id, old_role: roleEntry.role, new_role },
+    });
+
+    return NextResponse.json({ ok: true });
   }
 
-  // Also update in Supabase Auth
-  await supabaseAdmin.auth.admin.updateUserById(role.user_id, {
-    email: email.toLowerCase().trim(),
-  }).catch(() => {});
+  // Handle email change
+  if (email) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Valid email required" }, { status: 400 });
+    }
 
-  await writeAuditLog(supabaseAdmin, {
-    tenant_id: tenantId,
-    actor_id: user.id,
-    action: "team_email_updated",
-    payload: { role_id: params.id, user_id: role.user_id, new_email: email },
-  });
+    await supabaseAdmin
+      .from("users")
+      .update({ email: email.toLowerCase().trim() })
+      .eq("id", roleEntry.user_id);
 
-  return NextResponse.json({ ok: true });
+    await supabaseAdmin.auth.admin.updateUserById(roleEntry.user_id, {
+      email: email.toLowerCase().trim(),
+    }).catch(() => {});
+
+    await writeAuditLog(supabaseAdmin, {
+      tenant_id: tenantId,
+      actor_id: user.id,
+      action: "team_email_updated",
+      payload: { role_id: params.id, user_id: roleEntry.user_id, new_email: email },
+    });
+
+    return NextResponse.json({ ok: true });
+  }
+
+  return NextResponse.json({ error: "email or new_role required" }, { status: 400 });
 }
 
 export async function DELETE(

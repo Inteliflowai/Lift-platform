@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ImpersonateButton } from "./impersonate-button";
 import { DemoControls } from "./demo-controls";
+import { UserRolesEditor } from "./user-roles-editor";
 
 export default async function TenantDetailPage({
   params,
@@ -96,43 +97,10 @@ export default async function TenantDetailPage({
         )}
       </div>
 
-      {/* Users */}
+      {/* Users & Roles */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-3 text-lg font-semibold">Users</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-xs text-muted">
-              <tr>
-                <th className="pb-2 font-medium">Name</th>
-                <th className="pb-2 font-medium">Email</th>
-                <th className="pb-2 font-medium">Role</th>
-                <th className="pb-2 font-medium">Granted</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-lift-border">
-              {users.map((u) => {
-                const profile = u.users as unknown as {
-                  email: string;
-                  full_name: string | null;
-                };
-                return (
-                  <tr key={u.id}>
-                    <td className="py-2">{profile?.full_name || "—"}</td>
-                    <td className="py-2 text-muted">{profile?.email}</td>
-                    <td className="py-2">
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="py-2 text-muted">
-                      {new Date(u.granted_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <h2 className="mb-3 text-lg font-semibold">Users & Roles</h2>
+        <UserRolesEditor users={users as any} />
       </div>
 
       {/* Cycles */}
