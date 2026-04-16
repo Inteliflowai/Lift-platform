@@ -367,6 +367,10 @@ Sentry (`@sentry/nextjs`) configured for client, server, and edge. Global error 
 
 `/admin/audit` — Cross-tenant audit log viewer for platform admins. Shows all actions with school name, user, action type, payload. Searchable + filterable by action type.
 
+### Demo Candidate Seeding (Registration)
+
+Registration calls `ensureDemoCandidates()` from `lib/demo/seedDemoSchool.ts` to seed 3 demo candidates with full profiles (Jamie Rivera TRI 74, Alex Chen TRI 61 with signals, Sofia Okafor TRI 88). The dashboard page also calls `ensureDemoCandidates()` on load as a self-healing check for tenants that registered before the full seeder was wired in. The function only creates demo data if fewer than 3 insight_profiles exist for the tenant, and only deletes candidates with zero sessions (never real candidates).
+
 ### One-Click Live Demo
 
 `/demo/new` creates a 30-minute demo session and redirects to `/demo/[token]`. No registration needed. `demo_sessions` table tracks token, expiry, UTM params, conversion. `lib/demo/seedDemoSchool.ts` ensures 3 synthetic candidates exist (Jamie Rivera TRI 74, Alex Chen TRI 61 with signals, Sofia Okafor TRI 88) with full insight profiles and learning support signals for the `lift-demo` tenant. Demo workspace shows real evaluator experience: candidate list, dimension scores, evaluator intelligence (dynamic briefing based on TRI), learning support signals, and reports tab (locked with trial CTA). Floating countdown timer, upgrade prompt at 5 min, expired modal at 0:00. Conversion tracked via `demo_token` query param on `/register`. Rate limited: 20 demos/IP/hour.
@@ -376,6 +380,28 @@ Sentry (`@sentry/nextjs`) configured for client, server, and edge. Global error 
 ### Contextual Tooltip System
 
 `lib/tooltips/content.ts` — 35+ centralized tooltip definitions covering TRI, dimensions, signals, evaluator intelligence, rubric, cycles, session tokens, grades, support plans, outcome tracking, cohort view (avg TRI, signals), observation note sentiments (confirms/contradicts/expands/unclear), application data, recommendation sentiment, committee report, and 3 trial-specific banners. `components/ui/Tooltip.tsx` — 3 modes: icon (hover popover with auto-flip positioning), inline (dotted underline), banner (dismissible bar). DB-backed dismissals via `tooltip_dismissals` table + `/api/tooltips/dismiss` route + `useTooltips()` hook. Role-aware filtering.
+
+### Back Buttons
+
+`components/ui/BackButton.tsx` — Reusable back navigation with arrow icon and hover animation. Accepts optional `href` (navigates to specific page) or falls back to `router.back()`. Added to: candidate detail, cycle detail, invite/import candidate forms, settings sub-pages (branding, integrations, data), help guide.
+
+### Email Editing
+
+**Team members** (`/school/team`): Hover over email reveals inline "Edit" link. PATCH `/api/school/team/[id]` updates `users` table + Supabase Auth email. Audit logged.
+
+**Candidate invites** (evaluator candidate detail → Overview tab): Email from `invites.sent_to_email` now displayed with inline edit. PATCH `/api/school/candidates/[id]/update-email` updates the invite record. Audit logged.
+
+### Status Badges
+
+`components/ui/StatusBadge.tsx` — Reusable status pill with per-status icons and colors: invited (✉ indigo), consent_pending (⏳ amber), active (⏳ amber), completed (✓ green), flagged (⚠ rose), reviewed (✓ gray), waitlisted (⏸ purple), admitted (🎓 green).
+
+### Grade Display
+
+UI always shows individual grades (Grade 6, Grade 7, Grade 8, etc.), never grade bands (6-7, 9-11). The `grade_band` field is internal-only for task routing. All filters, summary pills, table rows, and candidate details use `grade_applying_to`. The cohort API filter still uses `grade_band` for the backend query, but grade dropdowns show individual grade labels.
+
+### Visual Polish
+
+`globals.css` additions: `animate-page` (fadeInUp on dashboard content), `card-hover` (2px lift + shadow on hover), `accent-left-*` colored left borders, `stat-hero` (36px bold monospace numbers). Dashboard stat cards have icons, colored borders, hero numbers. Analytics page sections have emoji icons, dimension icons, learning support definition banner. Report buttons visually distinct: Internal (🏛 indigo), Family (👨‍👩‍👧 green), Committee (📋 purple).
 
 ### Guided Tours & Feature Discovery
 
@@ -424,7 +450,7 @@ Optional: `LIFT_TEAM_EMAIL`, `LIFT_DEV_MODE`.
 
 `app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 9 tabs (some conditional):
 
-- **Overview**: TRI gauge with explanation card, radar chart, dimension scores, briefing card, learning support panel
+- **Overview**: TRI gauge with explanation card, radar chart, dimension scores, briefing card, learning support panel. Shows candidate email (from invites) with inline edit capability.
 - **Responses**: Task-by-task display of candidate's written responses, word counts, revision depth. Joined via `task_instances → response_text → response_features` (nested join — do NOT join response_features directly to task_instances)
 - **Signals**: Behavioral data with descriptions — avg time per task, reading time, hints, focus loss, session duration. Time-per-task bar chart. Session timeline with color-coded events. Info banner explaining what signals are.
 - **Evaluator Review**: AI Recommendation shown FIRST (dimension score bars, placement guidance, confidence) — only if `ai_recommendation_snapshot` is non-empty. Then evaluator's own notes + tier selection (colored buttons). Text adapts: "Review the AI recommendation above" when AI exists, "Provide your assessment" when it doesn't. Override rationale only asked when tier actually differs from AI.
@@ -465,6 +491,10 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **SIS inbound webhook auth**: Validates via HMAC signature (`x-sis-signature` header) or direct key match (`x-sis-secret` header) against decrypted `sis_integrations.config`. Requires `x-tenant-id` header.
 - **Toast provider**: `ToastProvider` wraps dashboard layout inside `LicenseProvider`. `useToast()` hook available in all dashboard client components. Do NOT wrap candidate/public routes — they don't have it.
 - **Class Builder data flow**: ClassBuilder receives `CohortRowForComposition[]` (same shape as cohort API `sessions` response). The `computeComposition()` function is a pure client-side calculator — no API calls. Compositions are saved to `class_compositions` table via `/api/school/cohort/composition`.
+- **Grade display vs grade_band**: UI always shows `grade_applying_to` (individual grade: 6, 7, 8, etc.). The `grade_band` field (6-7, 8, 9-11) is internal only — used for task routing and API filtering, never shown to users. Candidate list, cohort view, dashboard, and candidate detail all display individual grades.
+- **Terminology changes (Barb feedback)**: "Task Count" → "Session Tasks", "Hint Density" → "Hint Usage Level", "UX Mode" → "Session Experience" (Simple→Focused, Advanced→Extended), "Save Config" → "Save Settings", "Evaluator Review" tab → "My Review", "My Cases" → "My Interviews".
+- **Demo seeding self-heal**: Dashboard page calls `ensureDemoCandidates()` on every load (fire-and-forget). Only creates demo data if <3 insight_profiles exist. Only deletes candidates with zero sessions. Safe for tenants with real data.
+- **Settings auto-create**: If `tenant_settings` record is missing (registration insert failed), the settings page auto-creates one with defaults instead of showing "No settings found".
 - **CORE bridge prediction mapping**: LIFT uses `reteach`/`grade_level`/`advanced` (CORE's actual band values, not "On Track"/"Reteach"/"Advanced"). Learning styles map to CORE's 5 styles: `visual`, `auditory`, `kinesthetic`, `text`, `emerging`. The mapping is in `core-handoff/route.ts` — not a shared lib.
 
 ## Design Tokens
