@@ -20,15 +20,16 @@ function BackgroundSlideshow() {
     <div className="fixed inset-0 z-0">
       {SLIDES.map((src, i) => (
         <Image key={src} src={src} alt="" fill priority={i === 0}
-          className={`object-cover transition-opacity duration-[1200ms] ${i === current ? "opacity-100" : "opacity-0"}`} />
+          className={`object-cover transition-opacity duration-[2500ms] ${i === current ? "opacity-100 scale-105" : "opacity-0 scale-100"}`}
+          style={{ transition: "opacity 2.5s ease, transform 8s ease" }} />
       ))}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.6)_100%)]" />
     </div>
   );
 }
 
 function LoginForm() {
-  const { t, brandName, brandTagline, hidePricing } = useLocale();
+  const { t, brandName, hidePricing } = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -83,23 +84,23 @@ function LoginForm() {
           <Image src="/LIFT LOGO.jpeg" alt={brandName} width={180} height={180} priority
             className="h-[168px] w-[168px] rounded-2xl object-contain" />
         </div>
-        <p className="mt-1 text-center font-[family-name:var(--font-body)] text-sm text-white/50">
-          {brandTagline}
+        <p className="mt-1 text-center font-[family-name:var(--font-body)] text-sm tracking-wide text-white/40">
+          Admissions intelligence. Built for the humans who decide.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
             <label className="mb-1.5 block text-xs font-medium text-white/50">{t("login.email")}</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
-              className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]" />
+              className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#818cf8] focus:shadow-[0_0_0_3px_rgba(129,140,248,0.15)]" />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-white/50">{t("login.password")}</label>
             <div className="relative">
               <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]" />
+                className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#818cf8] focus:shadow-[0_0_0_3px_rgba(129,140,248,0.15)]" />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black transition-colors">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
@@ -123,7 +124,7 @@ function LoginForm() {
           )}
 
           <button type="submit" disabled={loading}
-            className="w-full rounded-xl bg-[#6366f1] py-3 font-[family-name:var(--font-display)] text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5] disabled:opacity-50">
+            className="w-full rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] py-3 font-[family-name:var(--font-display)] text-sm font-semibold text-white transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
             {loading ? t("login.signing_in") : t("login.sign_in")}
           </button>
 

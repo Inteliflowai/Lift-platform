@@ -88,13 +88,13 @@ export function TopBar({
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#e5e5e5] bg-white px-6">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-lift-border bg-surface px-6">
       <div />
 
       <div className="relative" ref={ref}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#f5f5f5]"
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/5"
         >
           {avatar ? (
             <Image
@@ -111,14 +111,14 @@ export function TopBar({
           )}
           <ChevronDown
             size={14}
-            className={`text-[#999] transition-transform ${open ? "rotate-180" : ""}`}
+            className={`text-muted transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-1.5 w-60 rounded-xl border border-[#e5e5e5] bg-white py-2 shadow-lg">
+          <div className="absolute right-0 mt-1.5 w-60 rounded-xl border border-lift-border bg-surface py-2 shadow-lg">
             {/* Profile header */}
-            <div className="border-b border-[#e5e5e5] px-4 pb-3">
+            <div className="border-b border-lift-border px-4 pb-3">
               <div className="flex items-center gap-3">
                 <div className="relative group">
                   {avatar ? (
@@ -142,10 +142,10 @@ export function TopBar({
                   </button>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-[#1a1a2e]">
+                  <p className="truncate text-sm font-semibold text-lift-text">
                     {fullName || "User"}
                   </p>
-                  <p className="truncate text-xs text-[#999]">{email}</p>
+                  <p className="truncate text-xs text-muted">{email}</p>
                 </div>
               </div>
               {uploading && (
@@ -156,7 +156,7 @@ export function TopBar({
             {/* Edit Profile */}
             <a
               href="/school/settings/profile"
-              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5]"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-muted transition-colors hover:bg-white/5"
             >
               <User size={14} />
               Edit Profile
@@ -165,7 +165,7 @@ export function TopBar({
             {/* Account Settings */}
             <a
               href="/settings/account"
-              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5]"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-muted transition-colors hover:bg-white/5"
             >
               <User size={14} />
               Account Settings
@@ -174,7 +174,7 @@ export function TopBar({
             {/* Change photo */}
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5]"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-muted transition-colors hover:bg-white/5"
             >
               <Camera size={14} />
               Change photo
@@ -183,7 +183,7 @@ export function TopBar({
             {/* Logout */}
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[#666] transition-colors hover:bg-[#f5f5f5] hover:text-[#f43f5e]"
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-muted transition-colors hover:bg-white/5 hover:text-[#f43f5e]"
             >
               <LogOut size={14} />
               Log out

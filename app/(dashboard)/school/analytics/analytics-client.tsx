@@ -301,10 +301,10 @@ function DonutChart({
             />
           );
         })}
-        <text x="90" y="85" textAnchor="middle" className="text-2xl font-bold" fill="#1a1a2e" fontSize="28" fontWeight="bold">
+        <text x="90" y="85" textAnchor="middle" className="text-2xl font-bold" fill="#f1f5f9" fontSize="28" fontWeight="bold">
           {total}
         </text>
-        <text x="90" y="105" textAnchor="middle" fill="#6b7280" fontSize="11">
+        <text x="90" y="105" textAnchor="middle" fill="#94a3b8" fontSize="11">
           candidates
         </text>
       </svg>

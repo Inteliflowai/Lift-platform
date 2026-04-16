@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Playfair_Display, DM_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { getLocale, getBrand } from "@/lib/i18n/config";
@@ -11,10 +11,10 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const playfair = Playfair_Display({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const dmSans = DM_Sans({
@@ -40,7 +40,7 @@ export default function RootLayout({
     <html
       lang={getLocale()}
       suppressHydrationWarning
-      className={`${playfair.variable} ${dmSans.variable} ${geistMono.variable}`}
+      className={`${jakarta.variable} ${dmSans.variable} ${geistMono.variable}`}
     >
       <body
         suppressHydrationWarning

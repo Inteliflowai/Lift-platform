@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #0f0f13;
-  --foreground: #e8e8f0;
-  --sidebar: #1e1b2e;
-  --surface: #16161f;
-  --border: #2a2a3a;
-  --primary: #6366f1;
-  --muted: #7878a0;
-  --font-display: 'Playfair Display', serif;
+  --background: #0d1117;
+  --foreground: #f1f5f9;
+  --sidebar: #0f0c1d;
+  --surface: #161b22;
+  --border: #2d333b;
+  --primary: #818cf8;
+  --muted: #94a3b8;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'DM Sans', sans-serif;
 }
 
@@ -21,11 +21,24 @@ body, p, label, button, input, textarea, select { font-family: var(--font-body);
 
 body { color: var(--foreground); background: var(--background); }
 
+/* Selection */
+::selection { background: rgba(129, 140, 248, 0.3); color: #f1f5f9; }
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
+::-webkit-scrollbar-thumb { background: #2d333b; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444c56; }
+
+/* Glass card treatment */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
 
 /* Shimmer skeleton */
 @keyframes shimmer {
@@ -48,7 +61,7 @@ body { color: var(--foreground); background: var(--background); }
   100% { background-position: 0% 50%; }
 }
 .sidebar-mesh {
-  background: linear-gradient(135deg, #1e1b2e 0%, #252040 25%, #1e1b2e 50%, #1a1835 75%, #1e1b2e 100%);
+  background: linear-gradient(135deg, #0f0c1d 0%, #1a1535 25%, #0f0c1d 50%, #13102a 75%, #0f0c1d 100%);
   background-size: 400% 400%;
   animation: mesh-shift 20s ease infinite;
 }
@@ -152,11 +165,12 @@ body { color: var(--foreground); background: var(--background); }
 
 /* Card hover lift */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border-color: rgba(255,255,255,0.12);
 }
 
 /* Colored left accent on cards */

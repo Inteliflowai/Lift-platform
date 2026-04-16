@@ -42,9 +42,9 @@ export function InfoTooltip({ text }: { text: string }) {
         <Info size={13} />
       </button>
       {open && (
-        <div className={`absolute left-1/2 z-50 w-64 -translate-x-1/2 rounded-lg border border-lift-border bg-white p-3 text-xs leading-relaxed text-muted shadow-lg ${showBelow ? "top-full mt-2" : "bottom-full mb-2"}`}>
+        <div className={`absolute left-1/2 z-50 w-64 -translate-x-1/2 rounded-lg border border-lift-border bg-surface p-3 text-xs leading-relaxed text-muted shadow-lg ${showBelow ? "top-full mt-2" : "bottom-full mb-2"}`}>
           {text}
-          <div className={`absolute left-1/2 -translate-x-1/2 border-4 border-transparent ${showBelow ? "bottom-full border-b-white" : "top-full border-t-white"}`} />
+          <div className={`absolute left-1/2 -translate-x-1/2 border-4 border-transparent ${showBelow ? "bottom-full border-b-surface" : "top-full border-t-surface"}`} />
         </div>
       )}
     </div>

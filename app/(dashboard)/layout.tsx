@@ -128,7 +128,7 @@ export default async function DashboardLayout({
       <ToastProvider>
       <TenantThemeProvider branding={branding}>
       <TrialBanner />
-      <div className="min-h-screen bg-white text-[#1a1a2e]">
+      <div className="min-h-screen bg-page-bg text-lift-text">
         <Sidebar role={primaryRole} allRoles={userRoles} userName={profile?.full_name} branding={branding} />
         <div className="md:ml-60 flex min-h-screen flex-col">
           {user.user_metadata?.must_change_password && (
@@ -147,7 +147,7 @@ export default async function DashboardLayout({
             fullName={profile?.full_name}
             avatarUrl={profile?.avatar_url}
           />
-          <main className="flex-1 bg-[#f8f8fa] p-6 animate-page">{children}</main>
+          <main className="flex-1 bg-page-bg p-6 animate-page">{children}</main>
         </div>
       </div>
       </TenantThemeProvider>
