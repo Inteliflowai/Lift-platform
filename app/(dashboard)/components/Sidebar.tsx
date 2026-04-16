@@ -183,7 +183,7 @@ export function Sidebar({
           />
         ) : (
           <Image
-            src="/LIFT LOGO.jpeg"
+            src="/LIFT-LOGO.png"
             alt="LIFT"
             width={144}
             height={144}

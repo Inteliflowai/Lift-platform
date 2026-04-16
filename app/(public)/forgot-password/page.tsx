@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="relative z-10 w-full max-w-[400px] px-4 login-card-enter">
       <div className="mb-8 flex justify-center">
-        <Image src="/LIFT LOGO.jpeg" alt="LIFT" width={80} height={80} priority className="h-20 w-20 rounded-2xl object-contain" />
+        <Image src="/LIFT-LOGO.png" alt="LIFT" width={80} height={80} priority className="h-20 w-20 rounded-2xl object-contain" />
       </div>
 
       <div className="glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-10 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px]">

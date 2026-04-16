@@ -36,7 +36,7 @@ export function SuspendedClient({
     <div className="flex min-h-[80vh] items-center justify-center">
       <div className="mx-auto max-w-md text-center">
         <Image
-          src="/LIFT LOGO.jpeg"
+          src="/LIFT-LOGO.png"
           alt="LIFT"
           width={64}
           height={64}

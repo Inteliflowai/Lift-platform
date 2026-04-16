@@ -8,7 +8,7 @@ export default function BuySuccessPage() {
     <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-[500px] text-center">
         <Image
-          src="/LIFT LOGO.jpeg"
+          src="/LIFT-LOGO.png"
           alt="LIFT"
           width={100}
           height={100}

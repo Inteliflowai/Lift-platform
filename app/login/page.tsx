@@ -81,7 +81,7 @@ function LoginForm() {
     <div className="relative z-10 w-full max-w-[400px] login-card-enter">
       <div className={`glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-12 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px] backdrop-saturate-[1.4] ${shaking ? "shake" : ""}`}>
         <div className="flex justify-center mb-2">
-          <Image src="/LIFT LOGO.jpeg" alt={brandName} width={180} height={180} priority
+          <Image src="/LIFT-LOGO.png" alt={brandName} width={180} height={180} priority
             className="h-[168px] w-[168px] rounded-2xl object-contain" />
         </div>
         <p className="mt-1 text-center font-[family-name:var(--font-body)] text-sm tracking-wide text-white/40">

@@ -49,7 +49,7 @@ export function BuyClient() {
         {/* Logo */}
         <div className="mb-6 flex flex-col items-center">
           <Image
-            src="/LIFT LOGO.jpeg"
+            src="/LIFT-LOGO.png"
             alt="LIFT"
             width={100}
             height={100}

@@ -38,7 +38,7 @@ export default function CandidateLayout({
       >
         <header className="flex h-44 w-full items-center justify-center border-b border-[#e8e4df]">
           <Image
-            src="/LIFT LOGO.jpeg"
+            src="/LIFT-LOGO.png"
             alt="LIFT"
             width={144}
             height={144}

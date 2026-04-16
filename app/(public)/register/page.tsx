@@ -118,7 +118,7 @@ function RegisterForm() {
       {/* Logo */}
       <div className="mb-6 flex flex-col items-center">
         <Image
-          src="/LIFT LOGO.jpeg"
+          src="/LIFT-LOGO.png"
           alt="LIFT"
           width={160}
           height={160}
