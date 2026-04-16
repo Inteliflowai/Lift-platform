@@ -852,19 +852,22 @@ function ExportButtons({ candidateId }: { candidateId: string }) {
   return (
     <div className="flex flex-wrap gap-2 border-t border-lift-border pt-4">
       <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=internal&language=${lang}`} target="_blank"
-        className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">
-        Internal Report ({langLabel})
+        className="card-hover inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10"
+        title="Full evaluator detail, dimension scores, signals. For admissions committee only.">
+        <span>🏛</span> Internal Report ({langLabel})
       </a>
       <a href={`/api/exports/pdf?candidate_id=${candidateId}&export_type=family_summary&language=${lang}`} target="_blank"
-        className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text">
-        Family Summary ({langLabel})
+        className="card-hover inline-flex items-center gap-1.5 rounded-lg border border-success/20 bg-success/5 px-3.5 py-2 text-xs font-semibold text-success hover:bg-success/10"
+        title="Warm AI-written summary. Safe to share with parents.">
+        <span>👨‍👩‍👧</span> Family Summary ({langLabel})
       </a>
       <button
         onClick={handleCommittee}
         disabled={committeeLoading}
-        className="rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+        className="card-hover inline-flex items-center gap-1.5 rounded-lg border border-[#8b5cf6]/20 bg-[#8b5cf6]/5 px-3.5 py-2 text-xs font-semibold text-[#8b5cf6] hover:bg-[#8b5cf6]/10 disabled:opacity-50"
+        title="One-page decision brief for Head of School."
       >
-        {committeeLoading ? "Generating..." : "Committee Brief"}
+        <span>📋</span> {committeeLoading ? "Generating..." : "Committee Brief"}
       </button>
     </div>
   );

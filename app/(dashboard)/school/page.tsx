@@ -158,10 +158,10 @@ export default async function SchoolDashboard() {
   const needsReview = (flaggedCount ?? 0) + (reviewCount ?? 0);
 
   const stats = [
-    { label: t("dashboard.total_candidates"), value: totalCandidates ?? 0, info: "Total number of candidates imported or invited to this school across all cycles." },
-    { label: t("dashboard.completed_sessions"), value: completedSessions ?? 0, info: "Sessions where the candidate finished all tasks. Each completed session generates an AI insight profile." },
-    { label: t("dashboard.flagged_review"), value: needsReview, highlight: needsReview > 0, info: "Candidates whose profiles were flagged by the AI for human review — typically due to low confidence scores or unusual patterns." },
-    { label: t("dashboard.avg_completion"), value: `${avgCompletion}%`, info: "Average percentage of tasks completed across all sessions. A low number may indicate candidates dropping off mid-session." },
+    { label: t("dashboard.total_candidates"), value: totalCandidates ?? 0, icon: "🎓", accent: "accent-left-indigo", info: "Total candidates invited this cycle" },
+    { label: t("dashboard.completed_sessions"), value: completedSessions ?? 0, icon: "✅", accent: "accent-left-green", info: "Candidates who finished their experience" },
+    { label: t("dashboard.flagged_review"), value: needsReview, highlight: needsReview > 0, icon: "⚠️", accent: "accent-left-amber", info: "Candidates flagged for human review" },
+    { label: t("dashboard.avg_completion"), value: `${avgCompletion}%`, icon: "📊", accent: "accent-left-indigo", info: "Average task completion across all sessions" },
   ];
 
   return (
@@ -188,14 +188,15 @@ export default async function SchoolDashboard() {
         {stats.map((s) => (
           <div
             key={s.label}
-            className="rounded-lg border border-lift-border bg-surface p-4"
+            className={`card-hover rounded-lg border border-lift-border bg-surface p-4 ${"accent" in s ? s.accent : ""}`}
           >
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
+              {"icon" in s && <span className="text-lg">{s.icon}</span>}
               <p className="text-xs text-muted">{s.label}</p>
               {"info" in s && s.info && <InfoTooltip text={s.info} />}
             </div>
             <p
-              className={`mt-1 text-2xl font-bold ${
+              className={`mt-1.5 stat-hero ${
                 "highlight" in s && s.highlight ? "text-review" : "text-lift-text"
               }`}
             >

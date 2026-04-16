@@ -147,7 +147,7 @@ export default async function DashboardLayout({
             fullName={profile?.full_name}
             avatarUrl={profile?.avatar_url}
           />
-          <main className="flex-1 bg-[#f8f8fa] p-6">{children}</main>
+          <main className="flex-1 bg-[#f8f8fa] p-6 animate-page">{children}</main>
         </div>
       </div>
       </TenantThemeProvider>

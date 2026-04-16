@@ -109,23 +109,28 @@ export function AnalyticsClient({
 
       {/* ROW 1: Overview Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatCard label={t("analytics.candidates_invited")} value={o.total_candidates} info={t("analytics.candidates_info")} />
-        <StatCard label={t("analytics.sessions_completed")} value={o.completed_sessions} info={t("analytics.sessions_info")} />
-        <StatCard label={t("analytics.completion_rate")} value={`${o.completion_rate_pct}%`} info={t("analytics.rate_info")} />
-        <StatCard label={t("analytics.avg_tri")} value={o.avg_tri_score} info={t("analytics.tri_info")} />
+        <StatCard label={t("analytics.candidates_invited")} value={o.total_candidates} info={t("analytics.candidates_info")} icon="🎓" accent="accent-left-indigo" />
+        <StatCard label={t("analytics.sessions_completed")} value={o.completed_sessions} info={t("analytics.sessions_info")} icon="✅" accent="accent-left-green" />
+        <StatCard label={t("analytics.completion_rate")} value={`${o.completion_rate_pct}%`} info={t("analytics.rate_info")} icon="📈" accent="accent-left-indigo" />
+        <StatCard label={t("analytics.avg_tri")} value={o.avg_tri_score} info={t("analytics.tri_info")} icon="📊" accent={o.avg_tri_score >= 75 ? "accent-left-green" : o.avg_tri_score >= 50 ? "accent-left-indigo" : "accent-left-amber"} />
         <StatCard
           label={t("analytics.sessions_used")}
           value={o.sessions_limit ? `${o.sessions_limit - (o.sessions_remaining ?? 0)}/${o.sessions_limit}` : `${o.sessions_this_month}`}
           info={t("analytics.usage_info")}
+          icon="📋"
+          accent="accent-left-indigo"
         />
-        <StatCard label={t("analytics.avg_time")} value={`${o.avg_session_duration_minutes}m`} info={t("analytics.time_info")} />
+        <StatCard label={t("analytics.avg_time")} value={`${o.avg_session_duration_minutes} min`} info={t("analytics.time_info")} icon="⏱" accent="accent-left-indigo" />
       </div>
 
       {/* ROW 2: TRI Distribution + Grade Band */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Donut */}
         <div className="rounded-lg border border-lift-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold">{t("analytics.tri_distribution")}</h2>
+          <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold">
+            <span>🧠</span> {t("analytics.tri_distribution")}
+          </h2>
+          <p className="mb-4 text-[11px] text-muted">How candidates&apos; readiness levels are distributed across your applicant pool</p>
           <div className="flex items-center justify-center">
             <DonutChart
               segments={[
@@ -141,11 +146,13 @@ export function AnalyticsClient({
 
         {/* Grade Band Table */}
         <div className="rounded-lg border border-lift-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold">{t("analytics.by_grade_band")}</h2>
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+            <span>🎓</span> {t("analytics.by_grade_band")}
+          </h2>
           <table className="w-full text-sm">
             <thead className="text-xs text-muted">
               <tr>
-                <th className="pb-2 text-left font-medium">Band</th>
+                <th className="pb-2 text-left font-medium">Grade</th>
                 <th className="pb-2 text-right font-medium">Candidates</th>
                 <th className="pb-2 text-right font-medium">Completed</th>
                 <th className="pb-2 text-right font-medium">Rate</th>
@@ -169,50 +176,66 @@ export function AnalyticsClient({
 
       {/* ROW 3: Dimension Averages */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-4 text-sm font-semibold">{t("analytics.dimensions")}</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+          <span>💪</span> {t("analytics.dimensions")}
+        </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-          {Object.entries(data.dimension_averages).map(([dim, val]) => (
-            <div key={dim} className="rounded-lg border border-lift-border p-3">
-              <p className="text-xs text-muted capitalize">{dim.replace("_", " ")}</p>
-              <div className="mt-1 flex items-end gap-2">
-                <span className="text-xl font-bold">{val}</span>
-                <div className="flex-1 h-2 rounded-full bg-lift-border overflow-hidden mb-1">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${val}%` }}
-                  />
+          {Object.entries(data.dimension_averages).map(([dim, val]) => {
+            const dimIcons: Record<string, string> = {
+              reading: "📖", writing: "✍️", reasoning: "🧠",
+              reflection: "💭", persistence: "🎯", support_seeking: "🙋",
+            };
+            const barColor = val >= 75 ? "bg-success" : val >= 50 ? "bg-primary" : "bg-warning";
+            return (
+              <div key={dim} className="card-hover rounded-lg border border-lift-border p-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">{dimIcons[dim] || "📊"}</span>
+                  <p className="text-xs text-muted capitalize">{dim.replace("_", " ")}</p>
+                </div>
+                <div className="mt-1.5 flex items-end gap-2">
+                  <span className="stat-hero text-xl">{val}</span>
+                  <div className="flex-1 h-2 rounded-full bg-lift-border overflow-hidden mb-1">
+                    <div
+                      className={`h-full rounded-full score-bar-animate ${barColor}`}
+                      style={{ width: `${val}%` }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {/* ROW 4: Learning Support */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-4 text-sm font-semibold">{t("analytics.support_signals")}</h2>
+        <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+          <span>🔍</span> {t("analytics.support_signals")}
+        </h2>
+        <p className="mb-4 rounded-lg border border-lift-border bg-page-bg p-3 text-xs leading-relaxed text-muted">
+          LIFT detects 9 behavioral patterns observed during the session — including reading pace, revision depth, and task abandonment. When patterns appear, LIFT flags them for professional follow-up. These are observations, not diagnoses.
+        </p>
         <div className="grid grid-cols-3 gap-4">
-          <div className="rounded-lg border border-success/20 bg-success/5 p-4 text-center">
-            <p className="text-2xl font-bold text-success">{data.support_signals.none}</p>
-            <p className="mt-1 text-xs text-muted">No Indicators</p>
+          <div className="card-hover rounded-lg border border-success/20 bg-success/5 p-4 text-center accent-left-green">
+            <p className="stat-hero text-success">{data.support_signals.none}</p>
+            <p className="mt-1.5 text-xs font-medium text-muted">No Indicators</p>
           </div>
-          <div className="rounded-lg border border-warning/20 bg-warning/5 p-4 text-center">
-            <p className="text-2xl font-bold text-warning">{data.support_signals.watch}</p>
-            <p className="mt-1 text-xs text-muted">Watch</p>
+          <div className="card-hover rounded-lg border border-warning/20 bg-warning/5 p-4 text-center accent-left-amber">
+            <p className="stat-hero text-warning">{data.support_signals.watch}</p>
+            <p className="mt-1.5 text-xs font-medium text-muted">Watch</p>
           </div>
-          <div className="rounded-lg border border-review/20 bg-review/5 p-4 text-center">
-            <p className="text-2xl font-bold text-review">{data.support_signals.recommend_screening}</p>
-            <p className="mt-1 text-xs text-muted">Recommend Screening</p>
+          <div className="card-hover rounded-lg border border-review/20 bg-review/5 p-4 text-center accent-left-rose">
+            <p className="stat-hero text-review">{data.support_signals.recommend_screening}</p>
+            <p className="mt-1.5 text-xs font-medium text-muted">Recommended Screening</p>
           </div>
         </div>
-        <p className="mt-3 text-[10px] text-muted">
-          Learning Support Signals are for internal evaluator use only. They do not constitute a diagnosis.
-        </p>
       </div>
 
       {/* ROW 5: Session Completion Trend */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="mb-4 text-sm font-semibold">{t("analytics.trend")}</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+          <span>📅</span> {t("analytics.trend")}
+        </h2>
         <SparklineChart data={data.completion_by_week} />
       </div>
     </div>
@@ -221,14 +244,15 @@ export function AnalyticsClient({
 
 // ─── Stat Card ───
 
-function StatCard({ label, value, info }: { label: string; value: string | number; info: string }) {
+function StatCard({ label, value, info, icon, accent }: { label: string; value: string | number; info: string; icon?: string; accent?: string }) {
   return (
-    <div className="rounded-lg border border-lift-border bg-surface p-4">
-      <div className="flex items-center gap-1.5">
+    <div className={`card-hover rounded-lg border border-lift-border bg-surface p-4 ${accent || ""}`}>
+      <div className="flex items-center gap-2">
+        {icon && <span className="text-lg">{icon}</span>}
         <p className="text-xs text-muted">{label}</p>
         <InfoTooltip text={info} />
       </div>
-      <p className="mt-1 text-2xl font-bold font-[family-name:var(--font-geist-mono)] text-lift-text">
+      <p className="mt-1.5 stat-hero text-lift-text">
         {value}
       </p>
     </div>
