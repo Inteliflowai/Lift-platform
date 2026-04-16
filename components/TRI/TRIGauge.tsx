@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Info } from "lucide-react";
+import { displayTriLabel } from "@/lib/utils/triLabel";
 
 type Props = {
   score: number | null;
@@ -115,8 +116,8 @@ export function TRIGauge({ score, label, confidence, summary }: Props) {
 
         {/* Label */}
         <div className="mt-2 flex items-center gap-2">
-          <span className={`rounded-full px-4 py-1.5 font-[family-name:var(--font-display)] text-base font-semibold capitalize ${LABEL_BG[label ?? ""] ?? "bg-gray-100 text-gray-600"}`}>
-            {label ?? "—"}
+          <span className={`rounded-full px-4 py-1.5 font-[family-name:var(--font-display)] text-base font-semibold ${LABEL_BG[label ?? ""] ?? "bg-gray-100 text-gray-600"}`}>
+            {displayTriLabel(label) || "—"}
           </span>
           <div className="relative">
             <button onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}
@@ -154,7 +155,7 @@ export function TRIPill({ score, label, confidence }: { score: number | null; la
   if (score === null && !label) return <span className="text-xs text-muted">Processing...</span>;
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${LABEL_BG[label ?? ""] ?? "bg-gray-100 text-gray-600"}`}>{label}</span>
+      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${LABEL_BG[label ?? ""] ?? "bg-gray-100 text-gray-600"}`}>{displayTriLabel(label)}</span>
       <span className="text-xs font-semibold font-[family-name:var(--font-geist-mono)]" style={{ color: LABEL_COLORS[label ?? ""] }}>{score != null ? score.toFixed(1) : "—"}</span>
       {confidence === "low" && <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">Low data</span>}
     </span>

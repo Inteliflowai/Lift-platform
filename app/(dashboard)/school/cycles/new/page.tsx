@@ -11,13 +11,25 @@ const YEAR_OPTIONS = [
   `${currentYear + 2}-${currentYear + 3}`,
 ];
 
+const TERM_OPTIONS = [
+  { value: "full_year", label: "Full Year" },
+  { value: "fall", label: "Fall" },
+  { value: "winter", label: "Winter" },
+  { value: "spring", label: "Spring" },
+  { value: "summer", label: "Summer" },
+];
+
 export default function NewCyclePage() {
   const router = useRouter();
   const [academicYear, setAcademicYear] = useState(YEAR_OPTIONS[0]);
+  const [term, setTerm] = useState("full_year");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const cycleName = `${academicYear} Admissions`;
+  const termLabel = TERM_OPTIONS.find((t) => t.value === term)?.label ?? "";
+  const cycleName = term === "full_year"
+    ? `${academicYear} Admissions`
+    : `${academicYear} ${termLabel} Admissions`;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,12 +75,25 @@ export default function NewCyclePage() {
           </select>
         </div>
 
-        <div className="rounded-lg border border-lift-border bg-page-bg p-4">
+        <div>
+          <label className="mb-1 block text-xs text-muted">Term</label>
+          <select
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
+          >
+            {TERM_OPTIONS.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="rounded-lg border border-lift-border bg-surface p-4">
           <p className="text-sm text-lift-text">
             Cycle name: <strong>{cycleName}</strong>
           </p>
           <p className="mt-1 text-xs text-muted">
-            The cycle stays active until you archive it — no open or close dates needed.
+            The cycle stays active until you archive it.
           </p>
         </div>
 
@@ -82,11 +107,6 @@ export default function NewCyclePage() {
           {loading ? "Creating..." : "Create Cycle"}
         </button>
       </form>
-
-      <p className="text-xs text-muted">
-        Task templates for Grade 6-7, Grade 8, and Grade 9-11 experiences
-        will be configured automatically.
-      </p>
     </div>
   );
 }

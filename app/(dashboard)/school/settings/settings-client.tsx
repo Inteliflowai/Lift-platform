@@ -147,9 +147,16 @@ export function SettingsClient({
               }
               className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
             >
-              {[12, 24, 48, 72].map((h) => (
-                <option key={h} value={h}>
-                  {h} {t("common.hours")}
+              {[
+                { value: 1, label: "1 hour" },
+                { value: 2, label: "2 hours" },
+                { value: 4, label: "4 hours" },
+                { value: 12, label: "12 hours" },
+                { value: 24, label: "24 hours" },
+                { value: 48, label: "48 hours" },
+              ].map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>

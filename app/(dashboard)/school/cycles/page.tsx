@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { EmptyState, EmptyCyclesIcon } from "@/components/EmptyState";
 import { t } from "@/lib/i18n/useLocale";
+import { CycleActions } from "./cycle-actions";
 
 export default async function CyclesPage() {
   const { tenantId } = await getTenantContext();
@@ -33,8 +34,6 @@ export default async function CyclesPage() {
               <th className="px-4 py-3 font-medium">{t("cycles.year_col")}</th>
               <th className="px-4 py-3 font-medium">{t("cycles.status_col")}</th>
               <th className="px-4 py-3 font-medium">{t("cycles.candidates_col")}</th>
-              <th className="px-4 py-3 font-medium">{t("cycles.opens_col")}</th>
-              <th className="px-4 py-3 font-medium">{t("cycles.closes_col")}</th>
               <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
@@ -62,30 +61,15 @@ export default async function CyclesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">{count}</td>
-                  <td className="px-4 py-3 text-muted">
-                    {c.opens_at
-                      ? new Date(c.opens_at).toLocaleDateString()
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted">
-                    {c.closes_at
-                      ? new Date(c.closes_at).toLocaleDateString()
-                      : "—"}
-                  </td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/school/cycles/${c.id}`}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      Edit
-                    </Link>
+                    <CycleActions cycleId={c.id} candidateCount={count} status={c.status} />
                   </td>
                 </tr>
               );
             })}
             {(!cycles || cycles.length === 0) && (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={5}>
                   <EmptyState
                     icon={<EmptyCyclesIcon />}
                     title={t("cycles.empty_title")}

@@ -167,12 +167,40 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
 
   console.log("[demo] Seeding comprehensive demo data for tenant:", tenantId);
 
+  // Find or create an active cycle so demo candidates show in analytics/cohort
+  let cycleId: string | null = null;
+  const { data: activeCycle } = await supabaseAdmin
+    .from("application_cycles")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("status", "active")
+    .limit(1)
+    .single();
+
+  if (activeCycle) {
+    cycleId = activeCycle.id;
+  } else {
+    const year = new Date().getFullYear();
+    const { data: newCycle } = await supabaseAdmin
+      .from("application_cycles")
+      .insert({
+        tenant_id: tenantId,
+        name: `${year}-${year + 1} Admissions`,
+        academic_year: `${year}-${year + 1}`,
+        status: "active",
+      })
+      .select("id")
+      .single();
+    cycleId = newCycle?.id ?? null;
+  }
+
   for (const c of DEMO_CANDIDATES) {
     // Create candidate
     const { data: candidate, error: candErr } = await supabaseAdmin
       .from("candidates")
       .insert({
         tenant_id: tenantId,
+        cycle_id: cycleId,
         first_name: c.first_name,
         last_name: c.last_name,
         grade_band: c.grade_band,
@@ -194,6 +222,7 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
       .insert({
         candidate_id: candidate.id,
         tenant_id: tenantId,
+        cycle_id: cycleId,
         grade_band: c.grade_band,
         status: "completed",
         completion_pct: 100,

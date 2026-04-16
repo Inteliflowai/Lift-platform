@@ -74,3 +74,48 @@ export async function PATCH(
 
   return NextResponse.json(cycle);
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { tenantId, user } = await getTenantContext();
+
+  // Only allow deleting cycles with no candidates
+  const { count } = await supabaseAdmin
+    .from("candidates")
+    .select("id", { count: "exact", head: true })
+    .eq("cycle_id", params.id)
+    .eq("tenant_id", tenantId);
+
+  if ((count ?? 0) > 0) {
+    return NextResponse.json(
+      { error: "Cannot delete a cycle with candidates" },
+      { status: 400 }
+    );
+  }
+
+  // Delete grade band templates first
+  await supabaseAdmin
+    .from("grade_band_templates")
+    .delete()
+    .eq("cycle_id", params.id)
+    .eq("tenant_id", tenantId);
+
+  const { error } = await supabaseAdmin
+    .from("application_cycles")
+    .delete()
+    .eq("id", params.id)
+    .eq("tenant_id", tenantId);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await writeAuditLog(supabaseAdmin, {
+    tenant_id: tenantId,
+    actor_id: user.id,
+    action: "cycle_deleted",
+    payload: { cycle_id: params.id },
+  });
+
+  return NextResponse.json({ ok: true });
+}

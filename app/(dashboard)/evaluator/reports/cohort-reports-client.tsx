@@ -136,7 +136,7 @@ export function CohortReportsClient({
             const colors: Record<string, string> = { emerging: "#f43f5e", developing: "#f59e0b", ready: "#6366f1", thriving: "#10b981" };
             return (
               <div key={label} className="flex items-center gap-3">
-                <span className="w-24 text-sm capitalize">{label}</span>
+                <span className="w-36 text-sm">{{ emerging: "Emerging", developing: "Developing", ready: "Strong", thriving: "Strong" }[label]}</span>
                 <div className="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: colors[label] }} />
                 </div>
