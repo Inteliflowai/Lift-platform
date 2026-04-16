@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EmptyState, EmptyTeamIcon } from "@/components/EmptyState";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useToast } from "@/components/ui/Toast";
 
 type Member = {
   id: string;
@@ -21,6 +22,9 @@ export function TeamClient({ members }: { members: Member[] }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const { toast } = useToast();
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -49,6 +53,24 @@ export function TeamClient({ members }: { members: Member[] }) {
     setEmail("");
     setLoading(false);
     router.refresh();
+  }
+
+  async function handleUpdateEmail(roleId: string) {
+    if (!editEmail.trim()) return;
+    const res = await fetch(`/api/school/team/${roleId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: editEmail.trim() }),
+    });
+    if (res.ok) {
+      toast("Email updated");
+      setEditingId(null);
+      setEditEmail("");
+      router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({ error: "Failed" }));
+      toast(data.error || "Failed to update email", "error");
+    }
   }
 
   async function handleRevoke(roleId: string) {
@@ -125,7 +147,32 @@ export function TeamClient({ members }: { members: Member[] }) {
                   <td className="px-4 py-3">
                     {profile?.full_name || "—"}
                   </td>
-                  <td className="px-4 py-3 text-muted">{profile?.email}</td>
+                  <td className="px-4 py-3 text-muted">
+                    {editingId === m.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleUpdateEmail(m.id); if (e.key === "Escape") setEditingId(null); }}
+                          className="w-48 rounded border border-primary bg-page-bg px-2 py-1 text-xs text-lift-text outline-none"
+                          autoFocus
+                        />
+                        <button onClick={() => handleUpdateEmail(m.id)} className="text-xs font-medium text-success">Save</button>
+                        <button onClick={() => setEditingId(null)} className="text-xs text-muted">Cancel</button>
+                      </div>
+                    ) : (
+                      <span className="group">
+                        {profile?.email}
+                        <button
+                          onClick={() => { setEditingId(m.id); setEditEmail(profile?.email || ""); }}
+                          className="ml-2 text-[10px] text-primary opacity-0 group-hover:opacity-100"
+                        >
+                          Edit
+                        </button>
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
                       {m.role}

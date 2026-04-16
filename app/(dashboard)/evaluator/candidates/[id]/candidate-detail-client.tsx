@@ -40,6 +40,7 @@ function scoreColor(score: number | null): string {
 export function CandidateDetailClient({
   candidate, profile, sessions, responses, timingSignals, helpEvents,
   interactionSignals, sessionEvents, reviews, interviewNotes, inviteSentAt,
+  inviteEmail, inviteId,
   tenantId, learningSupport, briefing, rubricSubmissions, synthesis, benchmarks,
   teamMembers, assignments, isAdmin, schoolType,
 }: {
@@ -54,6 +55,8 @@ export function CandidateDetailClient({
   reviews: Record<string, unknown>[];
   interviewNotes: Record<string, unknown>[];
   inviteSentAt: string | null | undefined;
+  inviteEmail?: string | null;
+  inviteId?: string | null;
   tenantId: string;
   learningSupport: Record<string, unknown> | null;
   briefing: Record<string, unknown> | null;
@@ -107,7 +110,7 @@ export function CandidateDetailClient({
 
       {tab === "overview" && (
         <div className="space-y-6">
-          <OverviewTab candidate={candidate} profile={profile} inviteSentAt={inviteSentAt} sessions={sessions} benchmarks={benchmarks} />
+          <OverviewTab candidate={candidate} profile={profile} inviteSentAt={inviteSentAt} inviteEmail={inviteEmail} inviteId={inviteId} sessions={sessions} benchmarks={benchmarks} />
           <BriefingCard
             briefing={briefing as Parameters<typeof BriefingCard>[0]["briefing"]}
             profileFinalized={profile?.is_final === true}
@@ -160,17 +163,57 @@ export function CandidateDetailClient({
   );
 }
 
-function OverviewTab({ candidate, profile, inviteSentAt, sessions, benchmarks }: {
+function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, sessions, benchmarks }: {
   candidate: Record<string, unknown>; profile: Record<string, unknown> | null;
-  inviteSentAt: string | null | undefined; sessions: { completed_at: string | null }[];
+  inviteSentAt: string | null | undefined; inviteEmail?: string | null; inviteId?: string | null;
+  sessions: { completed_at: string | null }[];
   benchmarks: Record<string, unknown> | null;
 }) {
   const p = profile;
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [emailVal, setEmailVal] = useState(inviteEmail || "");
+  const { toast } = useToast();
+
+  async function saveEmail() {
+    if (!emailVal.trim() || !inviteId) return;
+    const res = await fetch(`/api/school/candidates/${candidate.id}/update-email`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ invite_id: inviteId, email: emailVal.trim() }),
+    });
+    if (res.ok) {
+      toast("Email updated");
+      setEditingEmail(false);
+    } else {
+      toast("Failed to update email", "error");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-3">
         <div><span className="text-muted">Language:</span> {candidate.preferred_language as string ?? "en"}</div>
         <div><span className="text-muted">DOB:</span> {candidate.date_of_birth as string ?? "—"}</div>
+        <div>
+          <span className="text-muted">Email:</span>{" "}
+          {editingEmail ? (
+            <span className="inline-flex items-center gap-1">
+              <input type="email" value={emailVal} onChange={(e) => setEmailVal(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveEmail(); if (e.key === "Escape") setEditingEmail(false); }}
+                className="w-48 rounded border border-primary bg-page-bg px-2 py-0.5 text-xs outline-none" autoFocus />
+              <button onClick={saveEmail} className="text-[10px] font-medium text-success">Save</button>
+              <button onClick={() => setEditingEmail(false)} className="text-[10px] text-muted">Cancel</button>
+            </span>
+          ) : (
+            <span className="group">
+              {inviteEmail || "—"}
+              {inviteId && (
+                <button onClick={() => { setEditingEmail(true); setEmailVal(inviteEmail || ""); }}
+                  className="ml-1.5 text-[10px] text-primary opacity-0 group-hover:opacity-100">Edit</button>
+              )}
+            </span>
+          )}
+        </div>
         <div><span className="text-muted">Invite Sent:</span> {inviteSentAt ? new Date(inviteSentAt).toLocaleDateString() : "—"}</div>
         <div><span className="text-muted">Completed:</span> {sessions[0]?.completed_at ? new Date(sessions[0].completed_at).toLocaleDateString() : "—"}</div>
         <div><span className="text-muted">CORE Sync:</span>{" "}

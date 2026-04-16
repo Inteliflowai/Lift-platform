@@ -91,7 +91,7 @@ export default async function EvaluatorCandidateDetail({
   // Invite info
   const { data: invite } = await supabaseAdmin
     .from("invites")
-    .select("sent_at")
+    .select("id, sent_at, sent_to_email")
     .eq("candidate_id", params.id)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -212,6 +212,8 @@ export default async function EvaluatorCandidateDetail({
       reviews={reviews ?? []}
       interviewNotes={interviewNotes ?? []}
       inviteSentAt={invite?.sent_at}
+      inviteEmail={invite?.sent_to_email}
+      inviteId={invite?.id}
       tenantId={tenantId}
       learningSupport={learningSupport}
       briefing={briefing}
