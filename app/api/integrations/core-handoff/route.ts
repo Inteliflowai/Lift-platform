@@ -121,6 +121,7 @@ export async function POST(req: NextRequest) {
   const dimReading = Number(profile?.reading_score ?? 0);
   const dimWriting = Number(profile?.writing_score ?? 0);
   const dimReasoning = Number(profile?.reasoning_score ?? 0);
+  const dimMath = Number(profile?.math_score ?? 0);
   const dimReflection = Number(profile?.reflection_score ?? 0);
   const dimPersistence = Number(profile?.persistence_score ?? 0);
   const dimAdvocacy = Number(profile?.support_seeking_score ?? 0);
@@ -138,6 +139,7 @@ export async function POST(req: NextRequest) {
     { score: dimReading, style: "text" },
     { score: dimWriting, style: "text" },
     { score: dimReasoning, style: "kinesthetic" },
+    { score: dimMath, style: "kinesthetic" },
     { score: dimReflection, style: "auditory" },
     { score: dimPersistence, style: "kinesthetic" },
     { score: dimAdvocacy, style: "auditory" },
@@ -174,6 +176,7 @@ export async function POST(req: NextRequest) {
           reading: dimReading,
           writing: dimWriting,
           reasoning: dimReasoning,
+          math: dimMath,
           reflection: dimReflection,
           persistence: dimPersistence,
           support_seeking: dimAdvocacy,

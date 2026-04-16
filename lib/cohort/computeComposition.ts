@@ -13,6 +13,7 @@ export interface CohortRowForComposition {
   reading_score: number;
   writing_score: number;
   reasoning_score: number;
+  math_score: number;
   reflection_score: number;
   persistence_score: number;
   support_seeking_score: number;
@@ -35,6 +36,7 @@ export interface ClassComposition {
     reading: number;
     writing: number;
     reasoning: number;
+    math: number;
     reflection: number;
     persistence: number;
     advocacy: number;
@@ -47,6 +49,7 @@ const DIM_LABELS: Record<string, string> = {
   reading: "Reading Interpretation",
   writing: "Written Expression",
   reasoning: "Reasoning & Problem Solving",
+  math: "Mathematical Reasoning",
   reflection: "Reflection & Metacognition",
   persistence: "Task Persistence",
   advocacy: "Academic Self-Advocacy",
@@ -66,7 +69,7 @@ export function computeComposition(
     byGrade: {},
     signalCount: 0,
     signalPct: 0,
-    dimensionAverages: { reading: 0, writing: 0, reasoning: 0, reflection: 0, persistence: 0, advocacy: 0 },
+    dimensionAverages: { reading: 0, writing: 0, reasoning: 0, math: 0, reflection: 0, persistence: 0, advocacy: 0 },
     classStrengths: [],
     classDeveloping: [],
   };
@@ -96,6 +99,7 @@ export function computeComposition(
     reading: avg((r) => r.reading_score || 0),
     writing: avg((r) => r.writing_score || 0),
     reasoning: avg((r) => r.reasoning_score || 0),
+    math: avg((r) => r.math_score || 0),
     reflection: avg((r) => r.reflection_score || 0),
     persistence: avg((r) => r.persistence_score || 0),
     advocacy: avg((r) => r.support_seeking_score || 0),

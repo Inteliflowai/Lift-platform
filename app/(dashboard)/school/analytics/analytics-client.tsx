@@ -182,7 +182,7 @@ export function AnalyticsClient({
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           {Object.entries(data.dimension_averages).map(([dim, val]) => {
             const dimIcons: Record<string, string> = {
-              reading: "📖", writing: "✍️", reasoning: "🧠",
+              reading: "📖", writing: "✍️", reasoning: "🧠", math: "🔢",
               reflection: "💭", persistence: "🎯", support_seeking: "🙋",
             };
             const barColor = val >= 75 ? "bg-success" : val >= 50 ? "bg-primary" : "bg-warning";

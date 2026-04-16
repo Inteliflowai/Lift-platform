@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
   const { data: profiles } = await supabaseAdmin
     .from("insight_profiles")
     .select(
-      "candidate_id, tri_score, reading_score, writing_score, reasoning_score, reflection_score, persistence_score, support_seeking_score, learning_support_signal_id"
+      "candidate_id, tri_score, reading_score, writing_score, reasoning_score, math_score, reflection_score, persistence_score, support_seeking_score, learning_support_signal_id"
     )
     .eq("tenant_id", tenantId)
     .eq("is_final", true)
@@ -119,6 +119,7 @@ export async function GET(req: NextRequest) {
     reading_score: number;
     writing_score: number;
     reasoning_score: number;
+    math_score: number;
     reflection_score: number;
     persistence_score: number;
     support_seeking_score: number;
@@ -147,6 +148,7 @@ export async function GET(req: NextRequest) {
       reading_score: Number(profile.reading_score) || 0,
       writing_score: Number(profile.writing_score) || 0,
       reasoning_score: Number(profile.reasoning_score) || 0,
+      math_score: Number(profile.math_score) || 0,
       reflection_score: Number(profile.reflection_score) || 0,
       persistence_score: Number(profile.persistence_score) || 0,
       support_seeking_score: Number(profile.support_seeking_score) || 0,

@@ -11,7 +11,7 @@ export async function computeTRI(profileId: string): Promise<TRIResult> {
   const { data: profile } = await supabaseAdmin
     .from("insight_profiles")
     .select(
-      "reading_score, writing_score, reasoning_score, reflection_score, persistence_score, support_seeking_score, overall_confidence, session_id, learning_support_signal_id"
+      "reading_score, writing_score, reasoning_score, math_score, reflection_score, persistence_score, support_seeking_score, overall_confidence, session_id, learning_support_signal_id"
     )
     .eq("id", profileId)
     .single();
@@ -39,18 +39,20 @@ export async function computeTRI(profileId: string): Promise<TRIResult> {
       (ls?.support_indicator_level as typeof supportLevel) ?? "none";
   }
 
-  // Weighted average
+  // Weighted average (7 dimensions)
   const reading = Number(profile.reading_score ?? 0);
   const writing = Number(profile.writing_score ?? 0);
   const reasoning = Number(profile.reasoning_score ?? 0);
+  const math = Number(profile.math_score ?? 0);
   const reflection = Number(profile.reflection_score ?? 0);
   const persistence = Number(profile.persistence_score ?? 0);
   const supportSeeking = Number(profile.support_seeking_score ?? 0);
 
   let raw =
-    reading * 0.2 +
-    writing * 0.2 +
-    reasoning * 0.2 +
+    reading * 0.15 +
+    writing * 0.15 +
+    reasoning * 0.15 +
+    math * 0.15 +
     reflection * 0.15 +
     persistence * 0.15 +
     supportSeeking * 0.1;

@@ -21,12 +21,13 @@ import { FEATURES } from "@/lib/licensing/features";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "application" | "outcomes" | "support_plan";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
-const DIMENSIONS = ["reading", "writing", "reasoning", "reflection", "persistence", "support_seeking"] as const;
+const DIMENSIONS = ["reading", "writing", "reasoning", "math", "reflection", "persistence", "support_seeking"] as const;
 
 const DIM_TOOLTIP_MAP: Record<string, string> = {
   reading: "dim_reading",
   writing: "dim_writing",
   reasoning: "dim_reasoning",
+  math: "dim_math",
   reflection: "dim_reflection",
   persistence: "dim_persistence",
   support_seeking: "dim_advocacy",

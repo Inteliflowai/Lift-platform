@@ -310,5 +310,67 @@ function buildTemplates(tenantId: string) {
       },
       is_active: true,
     },
+
+    // === MATH PROBLEMS — ALL GRADE BANDS ===
+    {
+      tenant_id: tenantId,
+      grade_band: "6-7",
+      task_type: "math_problem",
+      title: "The Field Trip Budget",
+      language: "en",
+      difficulty_level: 1,
+      estimated_minutes: 6,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem:
+          "Your class is planning a field trip. There are 28 students and 4 adults going. Tickets cost $8 for students and $12 for adults. The bus costs $180 for the round trip. The school has already collected $150 from a bake sale.\n\nHow much more money does the class need to raise?",
+        prompt: "Show your work step by step. Explain how you figured out the answer.",
+        hints: [
+          "First calculate the total cost of all tickets, then add the bus cost.",
+          "Total needed = (28 × $8) + (4 × $12) + $180. Then subtract $150.",
+        ],
+      },
+      is_active: true,
+    },
+    {
+      tenant_id: tenantId,
+      grade_band: "8",
+      task_type: "math_problem",
+      title: "The School Store",
+      language: "en",
+      difficulty_level: 2,
+      estimated_minutes: 7,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem:
+          "The school store sells notebooks for $3.50 each and pens for $1.25 each. During Spirit Week, everything is 20% off. The store also charges 6% sales tax on the discounted price.\n\nMaria wants to buy 4 notebooks and 6 pens.",
+        prompt: "How much will Maria pay in total? Show every step of your calculation and explain your reasoning.",
+        hints: [
+          "First find the original total, then apply the 20% discount, then add 6% tax to the discounted amount.",
+          "Original: (4 × $3.50) + (6 × $1.25) = ? Then multiply by 0.80 for discount. Then multiply by 1.06 for tax.",
+        ],
+      },
+      is_active: true,
+    },
+    {
+      tenant_id: tenantId,
+      grade_band: "9-11",
+      task_type: "math_problem",
+      title: "The Scholarship Fund",
+      language: "en",
+      difficulty_level: 3,
+      estimated_minutes: 8,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem:
+          "A school's scholarship fund starts with $10,000 and earns 4.5% annual interest, compounded yearly. Each year, the school awards $800 in scholarships from the fund.\n\nThe fund follows this pattern each year:\n1. Interest is added to the current balance\n2. Then $800 is subtracted for scholarships",
+        prompt: "Calculate the fund balance after Year 1, Year 2, and Year 3. Will the fund eventually run out of money, grow indefinitely, or stabilize? Explain your mathematical reasoning.",
+        hints: [
+          "Year 1: ($10,000 × 1.045) - $800 = ?",
+          "Compare the interest earned each year to the $800 withdrawn. What happens as the balance changes?",
+        ],
+      },
+      is_active: true,
+    },
   ];
 }

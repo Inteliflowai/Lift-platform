@@ -11,6 +11,7 @@ import * as reasoningPrompt from "@/lib/ai/prompts/reasoning";
 import * as reflectionPrompt from "@/lib/ai/prompts/reflection";
 import * as persistencePrompt from "@/lib/ai/prompts/persistence";
 import * as supportSeekingPrompt from "@/lib/ai/prompts/support_seeking";
+import * as mathPrompt from "@/lib/ai/prompts/math";
 
 const DIMENSION_PROMPTS: Record<
   string,
@@ -19,6 +20,7 @@ const DIMENSION_PROMPTS: Record<
   reading: readingPrompt,
   writing: writingPrompt,
   reasoning: reasoningPrompt,
+  math: mathPrompt,
   reflection: reflectionPrompt,
   persistence: persistencePrompt,
   support_seeking: supportSeekingPrompt,
@@ -192,6 +194,7 @@ export async function POST(req: NextRequest) {
         reading_score: scores.reading?.score ?? null,
         writing_score: scores.writing?.score ?? null,
         reasoning_score: scores.reasoning?.score ?? null,
+        math_score: scores.math?.score ?? null,
         reflection_score: scores.reflection?.score ?? null,
         persistence_score: scores.persistence?.score ?? null,
         support_seeking_score: scores.support_seeking?.score ?? null,
@@ -218,6 +221,7 @@ export async function POST(req: NextRequest) {
         reading_score: scores.reading?.score ?? null,
         writing_score: scores.writing?.score ?? null,
         reasoning_score: scores.reasoning?.score ?? null,
+        math_score: scores.math?.score ?? null,
         reflection_score: scores.reflection?.score ?? null,
         persistence_score: scores.persistence?.score ?? null,
         support_seeking_score: scores.support_seeking?.score ?? null,

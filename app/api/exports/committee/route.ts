@@ -11,12 +11,13 @@ const DIM_LABELS: Record<string, string> = {
   reading: "Reading Interpretation",
   writing: "Written Expression",
   reasoning: "Reasoning & Problem Solving",
+  math: "Mathematical Reasoning",
   reflection: "Reflection & Metacognition",
   persistence: "Task Persistence",
   support_seeking: "Academic Self-Advocacy",
 };
 
-const DIMS = ["reading", "writing", "reasoning", "reflection", "persistence", "support_seeking"] as const;
+const DIMS = ["reading", "writing", "reasoning", "math", "reflection", "persistence", "support_seeking"] as const;
 
 function getColor(s: number): string {
   return s >= 75 ? "#10b981" : s >= 50 ? "#6366f1" : "#f59e0b";

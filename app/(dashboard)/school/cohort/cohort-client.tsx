@@ -19,6 +19,7 @@ interface CohortRow {
   reading_score: number;
   writing_score: number;
   reasoning_score: number;
+  math_score: number;
   reflection_score: number;
   persistence_score: number;
   support_seeking_score: number;
@@ -52,6 +53,7 @@ const DIMS = [
   { key: "reading_score", label: "Reading" },
   { key: "writing_score", label: "Writing" },
   { key: "reasoning_score", label: "Reasoning" },
+  { key: "math_score", label: "Math" },
   { key: "reflection_score", label: "Reflection" },
   { key: "persistence_score", label: "Persistence" },
   { key: "support_seeking_score", label: "Advocacy" },

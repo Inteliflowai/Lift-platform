@@ -24,6 +24,7 @@ const DIMS = [
   { key: "reading", label: "Reading" },
   { key: "writing", label: "Writing" },
   { key: "reasoning", label: "Reasoning" },
+  { key: "math", label: "Math" },
   { key: "reflection", label: "Reflection" },
   { key: "persistence", label: "Persistence" },
   { key: "advocacy", label: "Advocacy" },

@@ -46,6 +46,12 @@ export const TOOLTIPS: Record<string, TooltipContent> = {
     body: "Sustained engagement under challenge. Measured through revision depth, time on task, and whether the student returns to difficult items rather than skipping them.",
     learnMoreHref: "/help/evaluator#dimensions",
   },
+  dim_math: {
+    id: "dim_math",
+    title: "Mathematical Reasoning",
+    body: "How the student approaches quantitative problems — accuracy, problem setup, pattern recognition, and ability to explain mathematical thinking. Scored at grade level, not absolute difficulty.",
+    learnMoreHref: "/help/evaluator#dimensions",
+  },
   dim_advocacy: {
     id: "dim_advocacy",
     title: "Academic Self-Advocacy",
