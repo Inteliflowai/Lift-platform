@@ -55,6 +55,7 @@ const NAV_ITEMS = [
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
+  { label: "Inteliflow", href: "https://inteliflowai.com", external: true },
 ];
 
 /* ─── HighLevel submission ─── */
