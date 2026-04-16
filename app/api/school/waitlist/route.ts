@@ -9,7 +9,7 @@ export async function GET() {
 
   const { data } = await supabaseAdmin
     .from("waitlist_entries")
-    .select("*, candidates(first_name, last_name, grade_band, gender)")
+    .select("*, candidates(first_name, last_name, grade_band, grade_applying_to, gender)")
     .eq("tenant_id", tenantId)
     .order("rank_position", { ascending: true });
 

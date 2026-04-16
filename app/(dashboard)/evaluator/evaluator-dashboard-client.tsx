@@ -79,6 +79,11 @@ export function EvaluatorDashboardClient({
 
   return (
     <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Evaluator Workspace</h1>
+        <p className="mt-1 text-sm text-muted">Review candidates assigned to you and browse all candidates in this cycle</p>
+      </div>
+
       {/* New assignment notification */}
       {(newAssignmentCount ?? 0) > 0 && (
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-center gap-3">

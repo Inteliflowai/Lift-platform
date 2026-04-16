@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EmptyState } from "@/components/EmptyState";
+import { useToast } from "@/components/ui/Toast";
 
 type WaitlistEntry = {
   id: string;
@@ -21,6 +22,7 @@ type WaitlistEntry = {
     first_name: string;
     last_name: string;
     grade_band: string;
+    grade_applying_to: string;
     gender: string | null;
   };
 };
@@ -74,7 +76,7 @@ export default function WaitlistPage() {
         <div>
           <h1 className="text-2xl font-bold">Waitlist</h1>
           <p className="text-sm text-muted">
-            Ranked by TRI score. Highest readiness scores are at the top.
+            TRI score is one signal — your school&apos;s definition of fit should drive final decisions.
           </p>
         </div>
         <div className="flex gap-3 text-xs">
@@ -122,6 +124,7 @@ export default function WaitlistPage() {
                 <th className="px-4 py-2 font-medium">Gender</th>
                 <th className="px-4 py-2 font-medium">TRI</th>
                 <th className="px-4 py-2 font-medium">Review</th>
+                <th className="px-4 py-2 font-medium">Fit Notes</th>
                 <th className="px-4 py-2 font-medium">Actions</th>
               </tr>
             </thead>
@@ -134,7 +137,7 @@ export default function WaitlistPage() {
                       {e.candidates?.first_name} {e.candidates?.last_name}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-muted">{e.candidates?.grade_band}</td>
+                  <td className="px-4 py-2 text-muted">{e.candidates?.grade_applying_to}</td>
                   <td className="px-4 py-2 text-muted capitalize">{e.candidates?.gender?.replace("_", " ") ?? "—"}</td>
                   <td className="px-4 py-2 font-semibold">{Number(e.tri_score).toFixed(0)}</td>
                   <td className="px-4 py-2">
@@ -143,6 +146,9 @@ export default function WaitlistPage() {
                         {e.recommendation_tier.replace("_", " ")}
                       </span>
                     )}
+                  </td>
+                  <td className="px-4 py-2">
+                    <FitNotes entryId={e.id} initialNotes={e.internal_notes || ""} />
                   </td>
                   <td className="px-4 py-2">
                     <button
@@ -173,7 +179,7 @@ export default function WaitlistPage() {
                     {e.candidates?.first_name} {e.candidates?.last_name}
                   </Link>
                   <p className="text-xs text-muted">
-                    Grade {e.candidates?.grade_band} · TRI {Number(e.tri_score).toFixed(0)} · Offered {e.offered_at ? new Date(e.offered_at).toLocaleDateString() : ""}
+                    Grade {e.candidates?.grade_applying_to} · TRI {Number(e.tri_score).toFixed(0)} · Offered {e.offered_at ? new Date(e.offered_at).toLocaleDateString() : ""}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -209,7 +215,7 @@ export default function WaitlistPage() {
                 <div key={e.id} className="flex items-center justify-between px-4 py-3">
                   <div>
                     <span className="text-sm font-medium">{e.candidates?.first_name} {e.candidates?.last_name}</span>
-                    <span className="ml-2 text-xs text-muted">Grade {e.candidates?.grade_band}</span>
+                    <span className="ml-2 text-xs text-muted">Grade {e.candidates?.grade_applying_to}</span>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${sc.bg} ${sc.text}`}>
                     {e.status}
@@ -221,5 +227,45 @@ export default function WaitlistPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function FitNotes({ entryId, initialNotes }: { entryId: string; initialNotes: string }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(initialNotes);
+  const { toast } = useToast();
+
+  async function save() {
+    await fetch("/api/school/waitlist", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entry_id: entryId, internal_notes: value }),
+    });
+    setEditing(false);
+    toast("Fit notes saved");
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
+          placeholder="e.g. pitcher, legacy..."
+          className="w-36 rounded border border-primary bg-page-bg px-2 py-1 text-xs outline-none"
+          autoFocus
+        />
+        <button onClick={save} className="text-[10px] font-medium text-success">Save</button>
+      </div>
+    );
+  }
+
+  return (
+    <span className="group cursor-pointer text-xs text-muted" onClick={() => setEditing(true)}>
+      {value || <span className="italic text-muted/50">Add notes...</span>}
+      <span className="ml-1 text-[10px] text-primary opacity-0 group-hover:opacity-100">Edit</span>
+    </span>
   );
 }

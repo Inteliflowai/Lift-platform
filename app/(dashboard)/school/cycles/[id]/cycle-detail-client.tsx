@@ -136,34 +136,22 @@ export function CycleDetailClient({
       {/* Overview Tab */}
       {tab === "overview" && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div className="rounded-lg border border-lift-border bg-surface p-4">
-              <p className="text-xs text-muted">Candidates</p>
-              <p className="mt-1 text-2xl font-bold">{candidates.length}</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="card-hover rounded-lg border border-lift-border bg-surface p-4 accent-left-indigo">
+              <p className="text-xs text-muted">🎓 Candidates</p>
+              <p className="mt-1 stat-hero text-lift-text">{candidates.length}</p>
             </div>
-            <div className="rounded-lg border border-lift-border bg-surface p-4">
-              <p className="text-xs text-muted">Opens</p>
-              <p className="mt-1 text-sm font-medium">
-                {cycle.opens_at
-                  ? new Date(cycle.opens_at).toLocaleDateString()
-                  : "Not set"}
-              </p>
-            </div>
-            <div className="rounded-lg border border-lift-border bg-surface p-4">
-              <p className="text-xs text-muted">Closes</p>
-              <p className="mt-1 text-sm font-medium">
-                {cycle.closes_at
-                  ? new Date(cycle.closes_at).toLocaleDateString()
-                  : "Not set"}
-              </p>
-            </div>
-            <div className="rounded-lg border border-lift-border bg-surface p-4">
-              <p className="text-xs text-muted">Grades</p>
-              <p className="mt-1 text-2xl font-bold">{bands.length}</p>
+            <div className="card-hover rounded-lg border border-lift-border bg-surface p-4 accent-left-indigo">
+              <p className="text-xs text-muted">📅 Academic Year</p>
+              <p className="mt-1 text-lg font-bold text-lift-text">{cycle.academic_year || "—"}</p>
             </div>
           </div>
 
-          {nextStatus && (
+          {nextStatus && candidates.length === 0 && cycle.status === "draft" ? (
+            <p className="text-xs text-muted">
+              Add candidates before activating this cycle.
+            </p>
+          ) : nextStatus ? (
             <button
               onClick={toggleStatus}
               disabled={saving}
@@ -173,7 +161,7 @@ export function CycleDetailClient({
                 ? "Updating..."
                 : `Move to ${nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1)}`}
             </button>
-          )}
+          ) : null}
         </div>
       )}
 

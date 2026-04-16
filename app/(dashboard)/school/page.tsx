@@ -219,14 +219,9 @@ export default async function SchoolDashboard() {
               Active
             </span>
           </div>
-          <div className="mt-3 flex gap-6 text-sm text-muted">
-            {cycle.opens_at && (
-              <span>Opens: {new Date(cycle.opens_at).toLocaleDateString()}</span>
-            )}
-            {cycle.closes_at && (
-              <span>Closes: {new Date(cycle.closes_at).toLocaleDateString()}</span>
-            )}
-          </div>
+          {cycle.academic_year && (
+            <p className="mt-2 text-sm text-muted">{cycle.academic_year} Academic Year</p>
+          )}
           {gradeCounts.length > 0 && (
             <div className="mt-3 flex gap-4">
               {gradeCounts.map((g) => (

@@ -93,14 +93,14 @@ export function SupportDashboardClient({
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center gap-2 text-amber-600">
             <AlertTriangle size={16} />
-            <span className="text-xs font-medium">Enhanced</span>
+            <span className="text-xs font-medium">Structured (Weekly)</span>
           </div>
           <p className="mt-1 text-2xl font-bold text-amber-700">{enhancedCount}</p>
         </div>
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="flex items-center gap-2 text-red-600">
             <AlertTriangle size={16} />
-            <span className="text-xs font-medium">Intensive</span>
+            <span className="text-xs font-medium">Intensive (Daily)</span>
           </div>
           <p className="mt-1 text-2xl font-bold text-red-700">{intensiveCount}</p>
         </div>
@@ -110,11 +110,11 @@ export function SupportDashboardClient({
       <div className="flex gap-2 flex-wrap">
         {[
           { value: "all", label: "All" },
-          { value: "no_plan", label: "No Plan" },
-          { value: "independent", label: "Independent" },
-          { value: "standard", label: "Standard" },
-          { value: "enhanced", label: "Enhanced" },
-          { value: "intensive", label: "Intensive" },
+          { value: "no_plan", label: "No additional support" },
+          { value: "independent", label: "Monitor (30-day check-in)" },
+          { value: "standard", label: "Light support (monthly)" },
+          { value: "enhanced", label: "Structured (weekly)" },
+          { value: "intensive", label: "Intensive (daily)" },
         ].map((f) => (
           <button
             key={f.value}

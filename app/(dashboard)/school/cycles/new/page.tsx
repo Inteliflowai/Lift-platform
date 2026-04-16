@@ -2,15 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BackButton } from "@/components/ui/BackButton";
+
+const currentYear = new Date().getFullYear();
+const YEAR_OPTIONS = [
+  `${currentYear}-${currentYear + 1}`,
+  `${currentYear + 1}-${currentYear + 2}`,
+  `${currentYear + 2}-${currentYear + 3}`,
+];
 
 export default function NewCyclePage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [academicYear, setAcademicYear] = useState("");
-  const [opensAt, setOpensAt] = useState("");
-  const [closesAt, setClosesAt] = useState("");
+  const [academicYear, setAcademicYear] = useState(YEAR_OPTIONS[0]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const cycleName = `${academicYear} Admissions`;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,10 +28,8 @@ export default function NewCyclePage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name,
+        name: cycleName,
         academic_year: academicYear,
-        opens_at: opensAt || undefined,
-        closes_at: closesAt || undefined,
       }),
     });
 
@@ -41,50 +46,30 @@ export default function NewCyclePage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold">New Application Cycle</h1>
+      <BackButton href="/school/cycles" label="Cycles" />
+      <h1 className="text-2xl font-bold">New Admissions Cycle</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-xs text-muted">Cycle Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. 2026-2027 Admissions"
-            required
-            className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
-          />
-        </div>
-        <div>
           <label className="mb-1 block text-xs text-muted">Academic Year</label>
-          <input
-            type="text"
+          <select
             value={academicYear}
             onChange={(e) => setAcademicYear(e.target.value)}
-            placeholder="e.g. 2026-2027"
-            required
             className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
-          />
+          >
+            {YEAR_OPTIONS.map((yr) => (
+              <option key={yr} value={yr}>{yr}</option>
+            ))}
+          </select>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-xs text-muted">Opens At</label>
-            <input
-              type="date"
-              value={opensAt}
-              onChange={(e) => setOpensAt(e.target.value)}
-              className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-muted">Closes At</label>
-            <input
-              type="date"
-              value={closesAt}
-              onChange={(e) => setClosesAt(e.target.value)}
-              className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
-            />
-          </div>
+
+        <div className="rounded-lg border border-lift-border bg-page-bg p-4">
+          <p className="text-sm text-lift-text">
+            Cycle name: <strong>{cycleName}</strong>
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            The cycle stays active until you archive it — no open or close dates needed.
+          </p>
         </div>
 
         {error && <p className="text-xs text-review">{error}</p>}
@@ -99,8 +84,8 @@ export default function NewCyclePage() {
       </form>
 
       <p className="text-xs text-muted">
-        Three grade templates (6-7, 8, 9-11) will be auto-generated with
-        default configurations.
+        Task templates for Grade 6-7, Grade 8, and Grade 9-11 experiences
+        will be configured automatically.
       </p>
     </div>
   );
