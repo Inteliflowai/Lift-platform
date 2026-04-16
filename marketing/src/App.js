@@ -387,24 +387,10 @@ function Header({ onOpen }) {
         transition: "all 0.3s ease",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-        <a
-          href="https://inteliflowai.com"
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            padding: "6px 12px", borderRadius: 8,
-            background: BRAND.card, border: `1px solid ${BRAND.line}`,
-            color: BRAND.muted, fontSize: 12, fontWeight: 600,
-            textDecoration: "none", transition: "all 0.2s ease",
-            fontFamily: "'DM Sans', sans-serif",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = BRAND.cardStrong; e.currentTarget.style.color = BRAND.white; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = BRAND.card; e.currentTarget.style.color = BRAND.muted; }}
-        >
-          ← Inteliflow
-        </a>
-        <a href="#top" style={{ display: "flex", alignItems: "center" }}>
-          <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 56, width: "auto", objectFit: "contain" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <a href="https://inteliflowai.com" title="Back to Inteliflow" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 999, border: `1px solid ${BRAND.line}`, background: BRAND.card, color: BRAND.muted, fontSize: 18, textDecoration: "none", flexShrink: 0 }}>&larr;</a>
+        <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 60, width: "auto", objectFit: "contain" }} />
         </a>
       </div>
 
