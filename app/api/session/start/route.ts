@@ -80,8 +80,23 @@ export async function POST(req: NextRequest) {
     .eq("is_active", true)
     .order("created_at");
 
-  // Shuffle templates (Fisher-Yates) so each candidate gets a random order
-  const shuffled = [...(templates ?? [])];
+  // For task types with multiple templates, pick one randomly per type
+  const byType = new Map<string, typeof templates>();
+  for (const t of templates ?? []) {
+    const list = byType.get(t.task_type) ?? [];
+    list.push(t);
+    byType.set(t.task_type, list);
+  }
+  const selected: NonNullable<typeof templates> = [];
+  for (const [, typeTemplates] of Array.from(byType.entries())) {
+    if (!typeTemplates || typeTemplates.length === 0) continue;
+    // Pick one random template per task type
+    const pick = typeTemplates[Math.floor(Math.random() * typeTemplates.length)];
+    selected.push(pick);
+  }
+
+  // Shuffle selected templates (Fisher-Yates) so each candidate gets a random order
+  const shuffled = [...selected];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];

@@ -311,66 +311,100 @@ function buildTemplates(tenantId: string) {
       is_active: true,
     },
 
-    // === MATH PROBLEMS — ALL GRADE BANDS ===
+    // === MATH PROBLEMS — GRADE 6-7 (3 variants) ===
     {
-      tenant_id: tenantId,
-      grade_band: "6-7",
-      task_type: "math_problem",
-      title: "The Field Trip Budget",
-      language: "en",
-      difficulty_level: 1,
-      estimated_minutes: 6,
+      tenant_id: tenantId, grade_band: "6-7", task_type: "math_problem",
+      title: "The Field Trip Budget", language: "en", difficulty_level: 1, estimated_minutes: 6,
       dimension_targets: ["math", "reasoning"],
       content: {
-        problem:
-          "Your class is planning a field trip. There are 28 students and 4 adults going. Tickets cost $8 for students and $12 for adults. The bus costs $180 for the round trip. The school has already collected $150 from a bake sale.\n\nHow much more money does the class need to raise?",
+        problem: "Your class is planning a field trip. There are 28 students and 4 adults going. Tickets cost $8 for students and $12 for adults. The bus costs $180 for the round trip. The school has already collected $150 from a bake sale.\n\nHow much more money does the class need to raise?",
         prompt: "Show your work step by step. Explain how you figured out the answer.",
-        hints: [
-          "First calculate the total cost of all tickets, then add the bus cost.",
-          "Total needed = (28 × $8) + (4 × $12) + $180. Then subtract $150.",
-        ],
-      },
-      is_active: true,
+        hints: ["First calculate the total cost of all tickets, then add the bus cost.", "Total needed = (28 × $8) + (4 × $12) + $180. Then subtract $150."],
+      }, is_active: true,
     },
     {
-      tenant_id: tenantId,
-      grade_band: "8",
-      task_type: "math_problem",
-      title: "The School Store",
-      language: "en",
-      difficulty_level: 2,
-      estimated_minutes: 7,
+      tenant_id: tenantId, grade_band: "6-7", task_type: "math_problem",
+      title: "The Bake Sale", language: "en", difficulty_level: 1, estimated_minutes: 6,
       dimension_targets: ["math", "reasoning"],
       content: {
-        problem:
-          "The school store sells notebooks for $3.50 each and pens for $1.25 each. During Spirit Week, everything is 20% off. The store also charges 6% sales tax on the discounted price.\n\nMaria wants to buy 4 notebooks and 6 pens.",
+        problem: "The 6th grade class is holding a bake sale. They made 48 cupcakes that sell for $2 each, 30 brownies that sell for $3 each, and 24 cookies that sell for $1.50 each. By the end of the sale, they sold all the cupcakes, 22 brownies, and 18 cookies.\n\nThe ingredients cost $65 total.",
+        prompt: "How much profit did the class make? Show all your work and explain each step.",
+        hints: ["Calculate revenue for each item sold, then add them together.", "Revenue = (48 × $2) + (22 × $3) + (18 × $1.50). Profit = Revenue - $65."],
+      }, is_active: true,
+    },
+    {
+      tenant_id: tenantId, grade_band: "6-7", task_type: "math_problem",
+      title: "The Garden Plot", language: "en", difficulty_level: 1, estimated_minutes: 6,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem: "A rectangular school garden measures 12 feet by 8 feet. The students want to put a fence around it and divide it into 3 equal sections with fencing running the short way (8 feet).\n\nFencing costs $4.50 per foot.",
+        prompt: "How much fencing do they need in total, and how much will it cost? Show your work and explain your thinking.",
+        hints: ["Draw a picture first. The perimeter needs fencing, plus 2 divider fences inside.", "Perimeter = 2(12) + 2(8) = 40 feet. Plus 2 dividers × 8 feet = 16 feet. Total = 56 feet."],
+      }, is_active: true,
+    },
+
+    // === MATH PROBLEMS — GRADE 8 (3 variants) ===
+    {
+      tenant_id: tenantId, grade_band: "8", task_type: "math_problem",
+      title: "The School Store", language: "en", difficulty_level: 2, estimated_minutes: 7,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem: "The school store sells notebooks for $3.50 each and pens for $1.25 each. During Spirit Week, everything is 20% off. The store also charges 6% sales tax on the discounted price.\n\nMaria wants to buy 4 notebooks and 6 pens.",
         prompt: "How much will Maria pay in total? Show every step of your calculation and explain your reasoning.",
-        hints: [
-          "First find the original total, then apply the 20% discount, then add 6% tax to the discounted amount.",
-          "Original: (4 × $3.50) + (6 × $1.25) = ? Then multiply by 0.80 for discount. Then multiply by 1.06 for tax.",
-        ],
-      },
-      is_active: true,
+        hints: ["First find the original total, then apply the 20% discount, then add 6% tax.", "Original: (4 × $3.50) + (6 × $1.25) = ? Then multiply by 0.80 for discount. Then multiply by 1.06 for tax."],
+      }, is_active: true,
     },
     {
-      tenant_id: tenantId,
-      grade_band: "9-11",
-      task_type: "math_problem",
-      title: "The Scholarship Fund",
-      language: "en",
-      difficulty_level: 3,
-      estimated_minutes: 8,
+      tenant_id: tenantId, grade_band: "8", task_type: "math_problem",
+      title: "The Pizza Party", language: "en", difficulty_level: 2, estimated_minutes: 7,
       dimension_targets: ["math", "reasoning"],
       content: {
-        problem:
-          "A school's scholarship fund starts with $10,000 and earns 4.5% annual interest, compounded yearly. Each year, the school awards $800 in scholarships from the fund.\n\nThe fund follows this pattern each year:\n1. Interest is added to the current balance\n2. Then $800 is subtracted for scholarships",
+        problem: "A class of 32 students is ordering pizza. Each large pizza has 8 slices and costs $14.99. Each student eats an average of 2.5 slices. The teacher adds a 15% tip on the total before tax, then 7% sales tax is applied to the subtotal (before tip).\n\nThe class has collected $160 from students.",
+        prompt: "How many pizzas do they need? What is the total cost including tip and tax? Is $160 enough? Show all work.",
+        hints: ["Total slices = 32 × 2.5. Divide by 8 and round up for whole pizzas.", "Pizzas needed × $14.99 = subtotal. Tax = subtotal × 0.07. Tip = subtotal × 0.15. Total = subtotal + tax + tip."],
+      }, is_active: true,
+    },
+    {
+      tenant_id: tenantId, grade_band: "8", task_type: "math_problem",
+      title: "The Track Meet", language: "en", difficulty_level: 2, estimated_minutes: 7,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem: "In a track meet, Runner A completes a 400m lap in 58.4 seconds. Runner B completes the same lap in 1 minute and 2.7 seconds. Runner C is 15% slower than Runner A.\n\nThe relay team needs 3 runners whose combined time for 3 laps is under 3 minutes.",
+        prompt: "Calculate each runner's time. Can any combination of these 3 runners make a relay team that finishes under 3 minutes? Show your reasoning.",
+        hints: ["Convert all times to seconds first. Runner C = Runner A's time × 1.15.", "3 minutes = 180 seconds. Try all combinations: A+B+C, and check the total."],
+      }, is_active: true,
+    },
+
+    // === MATH PROBLEMS — GRADE 9-11 (3 variants) ===
+    {
+      tenant_id: tenantId, grade_band: "9-11", task_type: "math_problem",
+      title: "The Scholarship Fund", language: "en", difficulty_level: 3, estimated_minutes: 8,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem: "A school's scholarship fund starts with $10,000 and earns 4.5% annual interest, compounded yearly. Each year, the school awards $800 in scholarships from the fund.\n\nThe fund follows this pattern each year:\n1. Interest is added to the current balance\n2. Then $800 is subtracted for scholarships",
         prompt: "Calculate the fund balance after Year 1, Year 2, and Year 3. Will the fund eventually run out of money, grow indefinitely, or stabilize? Explain your mathematical reasoning.",
-        hints: [
-          "Year 1: ($10,000 × 1.045) - $800 = ?",
-          "Compare the interest earned each year to the $800 withdrawn. What happens as the balance changes?",
-        ],
-      },
-      is_active: true,
+        hints: ["Year 1: ($10,000 × 1.045) - $800 = ?", "Compare the interest earned each year to the $800 withdrawn. What happens as the balance changes?"],
+      }, is_active: true,
+    },
+    {
+      tenant_id: tenantId, grade_band: "9-11", task_type: "math_problem",
+      title: "The Population Model", language: "en", difficulty_level: 3, estimated_minutes: 8,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem: "A small town has a population of 12,000. It is growing at 3% per year. A nearby city has a population of 45,000 but is declining at 1.5% per year.\n\nAssume these rates stay constant.",
+        prompt: "In how many years will the town's population exceed half the city's population? Show your calculations for at least 5 years and explain the pattern you observe.",
+        hints: ["Town after n years = 12,000 × (1.03)^n. City after n years = 45,000 × (0.985)^n.", "Calculate both populations year by year and compare. When does Town > City/2?"],
+      }, is_active: true,
+    },
+    {
+      tenant_id: tenantId, grade_band: "9-11", task_type: "math_problem",
+      title: "The Ticket Pricing", language: "en", difficulty_level: 3, estimated_minutes: 8,
+      dimension_targets: ["math", "reasoning"],
+      content: {
+        problem: "A school theater has 500 seats. Last year, tickets were $12 each and they sold 420 seats. Research suggests that for every $1 increase in price, 20 fewer tickets will be sold. For every $1 decrease, 20 more tickets will be sold (up to capacity).\n\nThe production costs $3,200 regardless of attendance.",
+        prompt: "What ticket price maximizes profit? What is the maximum profit? Show your mathematical reasoning, including any equations or models you use.",
+        hints: ["Let x = price change from $12. Revenue = (12 + x)(420 - 20x). Profit = Revenue - 3200.", "Expand the revenue equation and find its maximum. This is a quadratic — the vertex gives the maximum."],
+      }, is_active: true,
     },
   ];
 }
