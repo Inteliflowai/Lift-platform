@@ -1,20 +1,16 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
   baseEmailTemplate,
   type EmailTemplateOptions,
 } from "./templates/base";
 
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT) || 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
 }
 
 interface LiftEmail {
@@ -92,14 +88,14 @@ export async function sendLiftEmail(email: LiftEmail): Promise<void> {
     const mergedOptions = { ...brandingOptions, ...email.options };
     const fullHtml = baseEmailTemplate(email.content, mergedOptions);
 
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: `${fromName} <${process.env.EMAIL_USER || "lift@inteliflowai.com"}>`,
+    const resend = getResend();
+    await resend.emails.send({
+      from: `${fromName} <lift@inteliflowai.com>`,
       replyTo,
       to: email.to,
       subject: email.subject,
       html: fullHtml,
-      bcc: email.bcc,
+      ...(email.bcc ? { bcc: email.bcc } : {}),
     });
 
     // Log successful delivery
