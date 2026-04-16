@@ -506,7 +506,7 @@ function AnimatedDemo() {
     return () => clearInterval(timer);
   }, [screen]);
 
-  const BAR_TARGETS = [81, 68, 74, 62, 78, 71];
+  const BAR_TARGETS = [81, 68, 74, 72, 62, 78, 71];
   useEffect(() => {
     if (screen !== 1) { setBarValues([0,0,0,0,0,0]); return; }
     BAR_TARGETS.forEach((target, i) => {
@@ -537,7 +537,7 @@ function AnimatedDemo() {
   })();
 
   const getBarColor = (v) => v >= 75 ? '#10b981' : v >= 60 ? '#6366f1' : '#f59e0b';
-  const DIMS = ['Reading Interpretation', 'Written Expression', 'Reasoning & Problems', 'Reflection & Metacog.', 'Task Persistence', 'Self-Advocacy'];
+  const DIMS = ['Reading Interpretation', 'Written Expression', 'Reasoning & Problems', 'Mathematical Reasoning', 'Reflection & Metacog.', 'Task Persistence', 'Self-Advocacy'];
   const mono = { fontFamily: "'Geist Mono', monospace" };
 
   const cardStyle = {
@@ -593,7 +593,7 @@ function AnimatedDemo() {
 
       {screen === 1 && (
         <div style={cardStyle}>
-          <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 18 }}>6 Readiness Dimensions</div>
+          <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 18 }}>7 Readiness Dimensions</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
             {DIMS.map((dim, i) => { const val = barValues[i]; const color = getBarColor(BAR_TARGETS[i]); return (
               <div key={dim}>
@@ -701,7 +701,7 @@ function Hero() {
 
 function StatsBar() {
   const stats = [
-    { value: "6", label: "Readiness Dimensions" },
+    { value: "7", label: "Readiness Dimensions" },
     { value: "3", label: "Grade Experiences" },
     { value: "40+", label: "Learning Signals Captured" },
     { value: "45–75", label: "Minutes Per Session" },
@@ -748,8 +748,8 @@ function ProblemSection() {
 function HowItWorks() {
   const steps = [
     { num: "1", title: "Invite", desc: "Send candidates a secure link. They complete LIFT's adaptive experience on any device — no download needed. Sessions take 45-75 minutes." },
-    { num: "2", title: "Experience", desc: "LIFT serves age-appropriate reading, writing, reasoning, and reflection tasks. It captures not just answers — but how students approach them." },
-    { num: "3", title: "Insight", desc: "AI generates a Transition Readiness Index (TRI), scores across 6 readiness dimensions, and plain-language reports for your admissions team." },
+    { num: "2", title: "Experience", desc: "LIFT serves age-appropriate reading, writing, math, reasoning, and reflection tasks. It captures not just answers — but how students approach them." },
+    { num: "3", title: "Insight", desc: "AI generates a Transition Readiness Index (TRI), scores across 7 readiness dimensions, and plain-language reports for your admissions team." },
     { num: "4", title: "Decide", desc: "Your team reviews with confidence. Pre-interview briefings, structured rubrics, and cohort comparisons make every decision more informed." },
   ];
   return (
@@ -782,6 +782,7 @@ function DimensionsSection() {
     { name: "Reading Interpretation", color: BRAND.liftIndigo, desc: "How a student engages with text — comprehension strategies, evidence use, and the ability to extract meaning from grade-level passages." },
     { name: "Written Expression", color: BRAND.liftEmerald, desc: "Clarity, structure, and voice in written output. LIFT captures revision behavior and how ideas develop across drafts." },
     { name: "Reasoning & Problem Structuring", color: BRAND.orange, desc: "How a student approaches unfamiliar problems — whether they identify patterns, organize information, and build logical solutions." },
+    { name: "Mathematical Reasoning", color: BRAND.liftRose, desc: "Accuracy, problem setup, pattern recognition, and the ability to explain mathematical thinking. Scored at grade level — not absolute difficulty." },
     { name: "Reflection & Metacognition", color: BRAND.sky, desc: "Awareness of one's own learning process. LIFT measures how students evaluate their own work, name challenges, and plan next steps." },
     { name: "Task Persistence", color: BRAND.magenta, desc: "Sustained engagement under challenge. Measured through revision depth, time on task, and willingness to return to difficult items." },
     { name: "Academic Self-Advocacy", color: BRAND.mint, desc: "How students seek support — whether they use hints, ask for clarification, or leverage available tools when stuck." },
@@ -789,7 +790,7 @@ function DimensionsSection() {
   return (
     <Section id="features">
       <Label>What LIFT measures</Label>
-      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>Six dimensions of learning readiness.</h2>
+      <h2 style={{ fontSize: 38, color: BRAND.white, marginBottom: 16 }}>Seven dimensions of learning readiness.</h2>
       <p style={{ fontSize: 17, color: BRAND.muted, maxWidth: 720, marginBottom: 48, lineHeight: 1.7 }}>
         LIFT does not diagnose. It reveals how a student approaches academic tasks — the signals that predict who will thrive with the right support.
       </p>
@@ -830,7 +831,7 @@ function SignalsSection() {
           9 enriched behavioral signals. Not diagnoses — observations.
         </h2>
         <p style={{ fontSize: 17, color: BRAND.muted, maxWidth: 780, marginBottom: 48, lineHeight: 1.7 }}>
-          LIFT captures 40+ learning signals during each session and distills them into actionable behavioral observations across reading, writing, attention, and self-regulation. Every signal describes what was observed — never what&apos;s &quot;wrong.&quot; Each includes plain-language evidence and a specific recommendation for your team.
+          LIFT captures 40+ learning signals during each session and distills them into actionable behavioral observations across reading, writing, math, attention, and self-regulation. Every signal describes what was observed — never what&apos;s &quot;wrong.&quot; Each includes plain-language evidence and a specific recommendation for your team.
         </p>
         <div className="lift-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {signals.map((s) => (
