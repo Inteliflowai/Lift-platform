@@ -24,26 +24,27 @@ const IMAGES = {
 };
 
 const BRAND = {
-  bg: "#2b1460",
-  bg2: "#4a2286",
-  bg3: "#6a2ea2",
+  // LIFT brand — indigo-forward, deep navy base
+  bg: "#0f0c1d",
+  bg2: "#1a1535",
+  bg3: "#252040",
   white: "#ffffff",
-  text: "#f7f1ff",
-  muted: "#ddd0f7",
-  line: "rgba(255,255,255,0.16)",
-  card: "rgba(255,255,255,0.10)",
-  cardStrong: "rgba(255,255,255,0.16)",
-  blue: "#8b5cf6",
-  sky: "#c084fc",
-  purple: "#7c3aed",
-  magenta: "#ec4899",
-  green: "#facc15",
-  mint: "#fde047",
+  text: "#eef2ff",
+  muted: "#c7d2fe",
+  line: "rgba(255,255,255,0.12)",
+  card: "rgba(255,255,255,0.06)",
+  cardStrong: "rgba(255,255,255,0.12)",
+  blue: "#818cf8",
+  sky: "#a5b4fc",
+  purple: "#6366f1",
+  magenta: "#a78bfa",
+  green: "#34d399",
+  mint: "#6ee7b7",
   orange: "#f59e0b",
-  shadow: "0 24px 80px rgba(18,8,43,0.35)",
+  shadow: "0 24px 80px rgba(6,4,18,0.5)",
   liftIndigo: "#6366f1",
-  liftEmerald: "#10b981",
-  liftRose: "#f43f5e",
+  liftEmerald: "#34d399",
+  liftRose: "#f87171",
 };
 
 const HL_WEBHOOK_URL = "https://lift.inteliflowai.com/api/integrations/hl-inbound";
@@ -131,7 +132,7 @@ function usePageStyles() {
     const style = document.createElement("style");
     style.id = id;
     style.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap');
 
       html, body {
         margin: 0 !important;
@@ -171,7 +172,7 @@ function usePageStyles() {
       .lift-app img { max-width: 100%; height: auto; }
       .lift-app a { color: inherit; text-decoration: none; }
       .lift-app h1, .lift-app h2, .lift-app h3 {
-        font-family: 'Playfair Display', Georgia, serif;
+        font-family: 'Plus Jakarta Sans', sans-serif;
         line-height: 1.05;
         margin: 0;
       }
@@ -318,7 +319,7 @@ function GradientButton({ children, href, onClick, style: extraStyle }) {
     justifyContent: "center",
     gap: 8,
     padding: "14px 32px",
-    background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`,
+    background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.blue})`,
     color: BRAND.white,
     fontWeight: 700,
     fontSize: 15,
@@ -571,9 +572,9 @@ function AnimatedDemo() {
       {screen === 0 && (
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #2b1460, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#fff', flexShrink: 0 }}>JR</div>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #0f0c1d, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, color: '#fff', flexShrink: 0 }}>JR</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#e2e8f0', marginBottom: 3 }}>Jamie Rivera</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, color: '#e2e8f0', marginBottom: 3 }}>Jamie Rivera</div>
               <div style={{ fontSize: 12, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>Grade 8 · Boarding School</div>
             </div>
             <span style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', color: '#10b981', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, fontFamily: "'DM Sans', sans-serif" }}>✓ Complete</span>
@@ -602,7 +603,7 @@ function AnimatedDemo() {
 
       {screen === 1 && (
         <div style={cardStyle}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 18 }}>6 Readiness Dimensions</div>
+          <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 18 }}>6 Readiness Dimensions</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
             {DIMS.map((dim, i) => { const val = barValues[i]; const color = getBarColor(BAR_TARGETS[i]); return (
               <div key={dim}>
@@ -626,7 +627,7 @@ function AnimatedDemo() {
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <span style={{ color: '#f59e0b', fontSize: 14 }}>✦</span>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0' }}>Pre-Interview Briefing</span>
+            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0' }}>Pre-Interview Briefing</span>
           </div>
           <div style={{ fontSize: 11, color: '#6366f1', marginBottom: 14, fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>Generated for Jamie Rivera</div>
           {['Strong evidence use — revisited key reading passages before answering on 4 of 5 tasks.', 'Reasoning–expression gap: reasoning 74, writing output 68 — ideas present, expression developing.', 'Low hint usage on hard tasks despite errors — may not seek support proactively.'].map((obs, i) => (
@@ -646,7 +647,7 @@ function AnimatedDemo() {
 
       {screen === 3 && (
         <div style={cardStyle}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 16 }}>Reports Ready</div>
+          <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 16 }}>Reports Ready</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
             {[{ label: '📋 Internal', color: '#6366f1', fill: false }, { label: '👨‍👩‍👧 Family', color: '#10b981', fill: true }, { label: '📍 Placement', color: '#8b5cf6', fill: false }].map(b => (
               <div key={b.label} style={{ flex: 1, padding: '8px 4px', textAlign: 'center', background: b.fill ? b.color : 'transparent', border: `1px solid ${b.color}${b.fill ? '' : '60'}`, borderRadius: 8, fontSize: 11, fontWeight: 700, color: b.fill ? '#fff' : b.color, fontFamily: "'DM Sans', sans-serif", cursor: 'default' }}>{b.label}</div>
@@ -654,7 +655,7 @@ function AnimatedDemo() {
           </div>
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 14px', marginBottom: 14, position: 'relative', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ width: 24, height: 24, borderRadius: 4, background: 'linear-gradient(135deg, #2b1460, #6366f1)', flexShrink: 0 }} />
+              <div style={{ width: 24, height: 24, borderRadius: 4, background: 'linear-gradient(135deg, #0f0c1d, #6366f1)', flexShrink: 0 }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>Hillside Academy · Family Report</span>
             </div>
             <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.65, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>"Dear Rivera family, Jamie approached today's experience with genuine curiosity and showed real strength in how they..."</p>
@@ -676,12 +677,12 @@ function AnimatedDemo() {
 function Hero() {
   return (
     <section style={{ position: "relative", overflow: "hidden", paddingTop: 72, width: "100%" }}>
-      <Glow left={-120} top={-80} size={600} from={BRAND.sky} to={BRAND.magenta} />
-      <Glow right={-100} top={-60} size={500} from={BRAND.orange} to={BRAND.purple} />
+      <Glow left={-120} top={-80} size={600} from={BRAND.blue} to={BRAND.purple} />
+      <Glow right={-100} top={-60} size={500} from={BRAND.green} to={BRAND.blue} />
       <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "56px 40px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
         <div>
           <Label>Admissions Intelligence for K-12 Schools</Label>
-          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 28, marginTop: 12 }}>
+          <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 28, marginTop: 12 }}>
             See How Students Learn Before They Arrive.
           </h1>
           <p style={{ fontSize: 22, color: BRAND.text, marginBottom: 16, lineHeight: 1.5 }}>
@@ -770,9 +771,9 @@ function HowItWorks() {
           {steps.map((step) => (
             <Glass key={step.num}>
               <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-                <div style={{ width: 48, height: 48, borderRadius: "50%", flexShrink: 0, background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Geist Mono', monospace", fontWeight: 700, fontSize: 20, color: BRAND.white }}>{step.num}</div>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", flexShrink: 0, background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.blue})`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Geist Mono', monospace", fontWeight: 700, fontSize: 20, color: BRAND.white }}>{step.num}</div>
                 <div>
-                  <h3 style={{ fontSize: 22, fontWeight: 700, color: BRAND.white, marginBottom: 8, fontFamily: "'Playfair Display', serif" }}>{step.title}</h3>
+                  <h3 style={{ fontSize: 22, fontWeight: 700, color: BRAND.white, marginBottom: 8, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{step.title}</h3>
                   <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{step.desc}</p>
                 </div>
               </div>
@@ -805,7 +806,7 @@ function DimensionsSection() {
       <div className="lift-dimensions-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 36 }}>
         {dims.map((d) => (
           <Glass key={d.name} style={{ borderLeft: `4px solid ${d.color}` }}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{d.name}</h3>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{d.name}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{d.desc}</p>
           </Glass>
         ))}
@@ -847,7 +848,7 @@ function SignalsSection() {
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 600, background: "rgba(255,255,255,0.12)", color: BRAND.sky }}>{s.category}</span>
               </div>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{s.name}</h3>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{s.name}</h3>
               <p style={{ fontSize: 14, color: BRAND.muted, lineHeight: 1.6 }}>{s.desc}</p>
             </Glass>
           ))}
@@ -883,7 +884,7 @@ function EnterpriseSection() {
       <div className="lift-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
         {features.map((f) => (
           <Glass key={f.title} style={{ borderLeft: `4px solid ${f.color}` }}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{f.title}</h3>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 20, fontWeight: 700, color: BRAND.white, marginBottom: 8 }}>{f.title}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{f.desc}</p>
           </Glass>
         ))}
@@ -908,8 +909,8 @@ function YearRoundSection() {
       <div className="lift-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
         {seasons.map((s) => (
           <Glass key={s.title}>
-            <span style={{ display: "inline-block", padding: "4px 14px", borderRadius: 20, background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`, color: BRAND.white, fontSize: 12, fontWeight: 700, marginBottom: 14, letterSpacing: 0.5 }}>{s.period}</span>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>{s.title}</h3>
+            <span style={{ display: "inline-block", padding: "4px 14px", borderRadius: 20, background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.blue})`, color: BRAND.white, fontSize: 12, fontWeight: 700, marginBottom: 14, letterSpacing: 0.5 }}>{s.period}</span>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>{s.title}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{s.desc}</p>
           </Glass>
         ))}
@@ -934,7 +935,7 @@ function AudienceSection() {
       <div className="lift-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
         {audiences.map((a) => (
           <Glass key={a.title}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 10 }}>{a.title}</h3>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, color: BRAND.white, marginBottom: 10 }}>{a.title}</h3>
             <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>{a.desc}</p>
           </Glass>
         ))}
@@ -993,7 +994,7 @@ function FoundersSection() {
       <div className="lift-founders-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 32 }}>
         <Glass style={{ textAlign: "center" }}>
           <img src={IMAGES.barbaraImg} alt="Barbara Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }} />
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Barbara Leventhal</h3>
+          <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Barbara Leventhal</h3>
           <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Co-Founder &amp; Chief Learning Officer</p>
           <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
             With over 25 years in education across three countries, Barbara brings deep expertise in curriculum design, student assessment, and learning support. Barbara leads LIFT's pedagogical framework ensuring every dimension is grounded in decades of real classroom insight.
@@ -1001,7 +1002,7 @@ function FoundersSection() {
         </Glass>
         <Glass style={{ textAlign: "center" }}>
           <img src={IMAGES.marvinImg} alt="Marvin Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }} />
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Marvin Leventhal</h3>
+          <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Marvin Leventhal</h3>
           <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Co-Founder &amp; CEO</p>
           <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
             A technologist and entrepreneur with two decades of experience building platforms that bridge complex systems. Marvin leads product strategy and engineering, ensuring LIFT delivers real insight — not just data — to every school it serves.
@@ -1090,9 +1091,9 @@ function PricingSection() {
               <span style={{ position: "absolute", top: -12, right: 24, background: BRAND.mint, color: BRAND.bg, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20 }}>Most Popular</span>
             )}
             {tier.enterprise && (
-              <span style={{ position: "absolute", top: -12, right: 24, background: `linear-gradient(135deg, ${BRAND.magenta}, ${BRAND.orange})`, color: BRAND.white, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20 }}>Full Platform</span>
+              <span style={{ position: "absolute", top: -12, right: 24, background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.blue})`, color: BRAND.white, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20 }}>Full Platform</span>
             )}
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: BRAND.white, marginBottom: 8 }}>{tier.name}</h3>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 26, color: BRAND.white, marginBottom: 8 }}>{tier.name}</h3>
             <div style={{ marginBottom: 24 }}>
               <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 40, fontWeight: 700, color: BRAND.white }}>${tier.monthly?.toLocaleString()}</span>
               <span style={{ fontSize: 16, color: BRAND.muted }}>/month</span>
@@ -1229,7 +1230,7 @@ function InquiryForm({ formType }) {
     return (
       <Glass style={{ textAlign: "center", padding: 40 }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>&#10003;</div>
-        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>Thank you!</h3>
+        <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, color: BRAND.white, marginBottom: 8 }}>Thank you!</h3>
         <p style={{ color: BRAND.muted, fontSize: 15 }}>We'll be in touch within 1 business day.</p>
         <button onClick={() => setStatus("idle")} style={{ marginTop: 20, background: "none", border: "none", color: BRAND.sky, cursor: "pointer", fontSize: 14, fontFamily: "'DM Sans', sans-serif" }}>Submit another inquiry</button>
       </Glass>
@@ -1238,7 +1239,7 @@ function InquiryForm({ formType }) {
 
   return (
     <Glass>
-      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: BRAND.white, marginBottom: 20 }}>{formType}</h3>
+      <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, color: BRAND.white, marginBottom: 20 }}>{formType}</h3>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div><label style={labelStyle}>Full Name *</label><input name="full_name" value={form.full_name} onChange={handleChange} required style={inputStyle} /></div>
         <div><label style={labelStyle}>School Name *</label><input name="school_name" value={form.school_name} onChange={handleChange} required style={inputStyle} /></div>
@@ -1290,7 +1291,7 @@ function FormsSection() {
   return (
     <Section id="contact">
       <Label>Get in Touch</Label>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, textAlign: "center", marginBottom: 40 }}>Ready to see LIFT in action?</h2>
+      <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 42, color: BRAND.white, textAlign: "center", marginBottom: 40 }}>Ready to see LIFT in action?</h2>
       <div className="lift-forms-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, maxWidth: 900, margin: "0 auto" }}>
         <InquiryForm formType="Request a Demo" />
         <InquiryForm formType="Talk With Our Team" />
@@ -1308,7 +1309,7 @@ function CTASection() {
         <Glow left={-80} top={-80} size={400} from={BRAND.magenta} to="transparent" />
         <Glow right={-80} bottom={-80} size={400} from={BRAND.sky} to="transparent" />
         <div style={{ position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, color: BRAND.white, marginBottom: 20 }}>See your next class more clearly.</h2>
+          <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 42, color: BRAND.white, marginBottom: 20 }}>See your next class more clearly.</h2>
           <div className="lift-cta-buttons" style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
             <GradientButton href="https://lift.inteliflowai.com/demo/new">Try Live Demo</GradientButton>
             <GlassButton href="https://lift.inteliflowai.com/register">Start Free Trial</GlassButton>
