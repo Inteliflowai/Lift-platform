@@ -33,7 +33,7 @@ export default async function EvaluatorDashboard() {
   const { data: reviewCandidates } = await supabaseAdmin
     .from("insight_profiles")
     .select(
-      "candidate_id, requires_human_review, low_confidence_flags, unusual_pattern_flags, overall_confidence, generated_at, candidates(id, first_name, last_name, grade_band, status), sessions(completion_pct, completed_at)"
+      "candidate_id, requires_human_review, low_confidence_flags, unusual_pattern_flags, overall_confidence, generated_at, candidates(id, first_name, last_name, grade_band, grade_applying_to, status), sessions(completion_pct, completed_at)"
     )
     .eq("tenant_id", tenantId)
     .eq("is_final", true)
@@ -60,7 +60,7 @@ export default async function EvaluatorDashboard() {
   const { data: allCandidates } = await supabaseAdmin
     .from("candidates")
     .select(
-      "id, first_name, last_name, grade_band, status, created_at, sessions(completion_pct, last_activity_at, completed_at), insight_profiles(requires_human_review, overall_confidence, tri_score, tri_label, tri_confidence), evaluator_reviews(recommendation_tier, status)"
+      "id, first_name, last_name, grade_band, grade_applying_to, status, created_at, sessions(completion_pct, last_activity_at, completed_at), insight_profiles(requires_human_review, overall_confidence, tri_score, tri_label, tri_confidence), evaluator_reviews(recommendation_tier, status)"
     )
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });

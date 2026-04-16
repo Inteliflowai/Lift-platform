@@ -67,7 +67,7 @@ export default async function SchoolDashboard() {
   // Review queue
   const { data: flaggedCandidates } = await supabaseAdmin
     .from("candidates")
-    .select("id, first_name, last_name, grade_band, status")
+    .select("id, first_name, last_name, grade_band, grade_applying_to, status")
     .eq("tenant_id", tenantId)
     .eq("status", "flagged")
     .limit(10);
@@ -75,7 +75,7 @@ export default async function SchoolDashboard() {
   const { data: reviewProfiles } = await supabaseAdmin
     .from("insight_profiles")
     .select(
-      "candidate_id, low_confidence_flags, candidates(id, first_name, last_name, grade_band, status)"
+      "candidate_id, low_confidence_flags, candidates(id, first_name, last_name, grade_band, grade_applying_to, status)"
     )
     .eq("tenant_id", tenantId)
     .eq("requires_human_review", true)
@@ -87,6 +87,7 @@ export default async function SchoolDashboard() {
     first_name: string;
     last_name: string;
     grade_band: string;
+    grade_applying_to?: string;
     flag_reason: string;
   };
 
@@ -96,6 +97,7 @@ export default async function SchoolDashboard() {
       first_name: c.first_name,
       last_name: c.last_name,
       grade_band: c.grade_band,
+      grade_applying_to: c.grade_applying_to,
       flag_reason: "Status flagged",
     })) ?? []),
     ...(reviewProfiles
@@ -106,12 +108,14 @@ export default async function SchoolDashboard() {
           first_name: string;
           last_name: string;
           grade_band: string;
+          grade_applying_to?: string;
         };
         return {
           id: c.id,
           first_name: c.first_name,
           last_name: c.last_name,
           grade_band: c.grade_band,
+          grade_applying_to: c.grade_applying_to,
           flag_reason:
             p.low_confidence_flags?.join(", ") || "Requires human review",
         };
@@ -130,7 +134,7 @@ export default async function SchoolDashboard() {
   const { data: recentCompleted } = await supabaseAdmin
     .from("sessions")
     .select(
-      "completed_at, candidates(id, first_name, last_name, grade_band)"
+      "completed_at, candidates(id, first_name, last_name, grade_band, grade_applying_to)"
     )
     .eq("tenant_id", tenantId)
     .eq("status", "completed")
@@ -263,7 +267,7 @@ export default async function SchoolDashboard() {
                       {c.first_name} {c.last_name}
                     </span>
                     <span className="ml-2 text-xs text-muted">
-                      Grade {c.grade_band}
+                      Grade {c.grade_applying_to || c.grade_band}
                     </span>
                   </div>
                   <span className="text-xs text-review">{c.flag_reason}</span>
@@ -289,6 +293,7 @@ export default async function SchoolDashboard() {
                   first_name: string;
                   last_name: string;
                   grade_band: string;
+                  grade_applying_to?: string;
                 } | null;
                 if (!c) return null;
                 return (
@@ -301,7 +306,7 @@ export default async function SchoolDashboard() {
                         {c.first_name} {c.last_name}
                       </span>
                       <span className="ml-2 text-xs text-muted">
-                        Grade {c.grade_band}
+                        Grade {c.grade_applying_to || c.grade_band}
                       </span>
                     </div>
                     <span className="text-xs text-muted">

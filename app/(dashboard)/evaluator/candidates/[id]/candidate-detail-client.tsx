@@ -1125,7 +1125,7 @@ function OutcomesTab({ candidateId, profile }: { candidateId: string; profile: R
                       {(o.academic_standing as string).replace("_", " ")}
                     </span>
                   ) : null}
-                  {o.retained === false && <span className="text-review font-medium">Withdrawn</span>}
+                  {o.retained === false && <span className="text-review font-medium">No longer enrolled</span>}
                 </div>
               </div>
             ))}
@@ -1212,7 +1212,7 @@ function OutcomesTab({ candidateId, profile }: { candidateId: string; profile: R
 
           <label className="flex items-center gap-2 text-xs">
             <input type="checkbox" checked={form.retained} onChange={(e) => setForm({ ...form, retained: e.target.checked })} className="accent-primary" />
-            Student retained (still enrolled)
+            Still enrolled at school
           </label>
 
           {!form.retained && (

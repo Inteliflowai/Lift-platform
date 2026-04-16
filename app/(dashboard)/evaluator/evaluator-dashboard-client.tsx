@@ -22,6 +22,7 @@ type AllCandidate = {
   first_name: string;
   last_name: string;
   grade_band: string;
+  grade_applying_to?: string;
   status: string;
   created_at: string;
   sessions: { completion_pct: number; last_activity_at: string | null; completed_at: string | null }[];
@@ -49,7 +50,7 @@ export function EvaluatorDashboardClient({
 
   // Build queue items
   const queueItems = reviewCandidates.map((rc) => {
-    const c = rc.candidates as { id: string; first_name: string; last_name: string; grade_band: string; status: string } | null;
+    const c = rc.candidates as { id: string; first_name: string; last_name: string; grade_band: string; grade_applying_to?: string; status: string } | null;
     const s = rc.sessions as { completion_pct: number; completed_at: string | null } | null;
     const flags = [...(rc.low_confidence_flags ?? []), ...(rc.unusual_pattern_flags ?? [])];
     const isMyReview = c ? myReviewCandidateIds.includes(c.id) : false;
@@ -71,7 +72,7 @@ export function EvaluatorDashboardClient({
 
   const filteredAll = allCandidates.filter((c) => {
     if (search && !`${c.first_name} ${c.last_name}`.toLowerCase().includes(search.toLowerCase())) return false;
-    if (gradeFilter && c.grade_band !== gradeFilter) return false;
+    if (gradeFilter && (c.grade_applying_to || c.grade_band) !== gradeFilter) return false;
     if (statusFilter && c.status !== statusFilter) return false;
     if (reviewFilter && !c.insight_profiles?.some((p) => p.requires_human_review)) return false;
     return true;
@@ -127,7 +128,7 @@ export function EvaluatorDashboardClient({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{q.candidate!.first_name} {q.candidate!.last_name}</span>
-                  <span className="text-xs text-muted">Grade {q.candidate!.grade_band}</span>
+                  <span className="text-xs text-muted">Grade {q.candidate!.grade_applying_to || q.candidate!.grade_band}</span>
                   {q.isMyReview && (
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">Assigned</span>
                   )}
@@ -198,7 +199,7 @@ export function EvaluatorDashboardClient({
                   return (
                     <tr key={c.id} className="hover:bg-surface/50 cursor-pointer" onClick={() => window.location.href = `/evaluator/candidates/${c.id}`}>
                       <td className="px-4 py-3 font-medium text-primary">{c.first_name} {c.last_name}</td>
-                      <td className="px-4 py-3 text-muted">{c.grade_band}</td>
+                      <td className="px-4 py-3 text-muted">{c.grade_applying_to || c.grade_band}</td>
                       <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                       <td className="px-4 py-3">{sess?.completion_pct ?? 0}%</td>
                       <td className="px-4 py-3"><TRIPill score={profile?.tri_score ?? null} label={profile?.tri_label ?? null} confidence={profile?.tri_confidence ?? null} /></td>
