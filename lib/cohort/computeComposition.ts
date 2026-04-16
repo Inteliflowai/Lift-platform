@@ -8,6 +8,7 @@ export interface CohortRowForComposition {
   first_name: string;
   last_name: string;
   grade_band: string;
+  grade_applying_to?: string;
   tri_score: number;
   reading_score: number;
   writing_score: number;

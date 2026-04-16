@@ -14,6 +14,7 @@ interface CohortRow {
   first_name: string;
   last_name: string;
   grade_band: string;
+  grade_applying_to: string;
   tri_score: number;
   reading_score: number;
   writing_score: number;
@@ -314,9 +315,9 @@ export function CohortClient() {
           className="rounded-lg border border-[#2d2d3d] bg-[#0f0f13] px-3 py-2 font-body text-[13px] text-[#e2e8f0] outline-none"
         >
           <option value="">All Grades</option>
-          <option value="6-7">Grade 6-7</option>
+          <option value="6-7">Grades 6-7</option>
           <option value="8">Grade 8</option>
-          <option value="9-11">Grade 9-11</option>
+          <option value="9-11">Grades 9-11</option>
         </select>
         <select
           value={sort}
@@ -419,7 +420,7 @@ export function CohortClient() {
                               {name}
                             </div>
                             <div className="font-body text-[11px] text-[#64748b]">
-                              Grade {r.grade_band}
+                              Grade {r.grade_applying_to}
                             </div>
                           </div>
                         </div>
@@ -527,7 +528,7 @@ export function CohortClient() {
                       {name}
                     </div>
                     <div className="font-body text-[11px] text-[#64748b]">
-                      Grade {r.grade_band}
+                      Grade {r.grade_applying_to}
                     </div>
                   </div>
                   <MiniTRIGauge score={r.tri_score} />

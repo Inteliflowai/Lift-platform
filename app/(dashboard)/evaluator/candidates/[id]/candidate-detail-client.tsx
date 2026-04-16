@@ -83,7 +83,7 @@ export function CandidateDetailClient({
             {candidate.first_name as string} {candidate.last_name as string}
           </h1>
           <p className="text-sm text-muted">
-            Grade {candidate.grade_applying_to as string} (Band {candidate.grade_band as string})
+            Grade {candidate.grade_applying_to as string}
             {candidate.gender ? <span className="ml-2 capitalize">{String(candidate.gender).replace("_", " ")}</span> : null}
           </p>
         </div>

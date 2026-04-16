@@ -26,6 +26,7 @@ type Candidate = {
   first_name: string;
   last_name: string;
   grade_band: string;
+  grade_applying_to: string;
   status: string;
   created_at: string;
   sessions: Session[];
@@ -40,7 +41,7 @@ export function CandidateListClient({
   const router = useRouter();
   const { t } = useLocale();
   const [search, setSearch] = useState("");
-  const [gradeBandFilter, setGradeBandFilter] = useState("");
+  const [gradeFilter, setGradeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [groupByGrade, setGroupByGrade] = useState(true);
@@ -57,7 +58,7 @@ export function CandidateListClient({
         .includes(search.toLowerCase())
     )
       return false;
-    if (gradeBandFilter && c.grade_band !== gradeBandFilter) return false;
+    if (gradeFilter && c.grade_applying_to !== gradeFilter) return false;
     if (statusFilter && c.status !== statusFilter) return false;
     if (flaggedOnly && c.status !== "flagged") return false;
     return true;
@@ -169,14 +170,14 @@ export function CandidateListClient({
           className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
         />
         <select
-          value={gradeBandFilter}
-          onChange={(e) => setGradeBandFilter(e.target.value)}
+          value={gradeFilter}
+          onChange={(e) => setGradeFilter(e.target.value)}
           className="rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
         >
           <option value="">All Grades</option>
-          <option value="6-7">6-7</option>
-          <option value="8">8</option>
-          <option value="9-11">9-11</option>
+          {["6", "7", "8", "9", "10", "11"].map((g) => (
+            <option key={g} value={g}>Grade {g}</option>
+          ))}
         </select>
         <select
           value={statusFilter}
@@ -207,28 +208,28 @@ export function CandidateListClient({
             onChange={(e) => setGroupByGrade(e.target.checked)}
             className="rounded accent-primary"
           />
-          {t("candidates.grade_band_col")}
+          {t("candidates.grade_col") || "Grade"}
         </label>
       </div>
 
-      {/* Grade band summary */}
+      {/* Grade summary */}
       {candidates.length > 0 && (
         <div className="flex flex-wrap gap-3">
-          {["6-7", "8", "9-11"].map((band) => {
-            const count = candidates.filter((c) => c.grade_band === band).length;
+          {["6", "7", "8", "9", "10", "11"].map((grade) => {
+            const count = candidates.filter((c) => c.grade_applying_to === grade).length;
             if (count === 0) return null;
-            const completed = candidates.filter((c) => c.grade_band === band && c.status === "completed").length;
+            const completed = candidates.filter((c) => c.grade_applying_to === grade && c.status === "completed").length;
             return (
               <div
-                key={band}
+                key={grade}
                 className={`rounded-lg border px-4 py-2 text-xs cursor-pointer transition-colors ${
-                  gradeBandFilter === band
+                  gradeFilter === grade
                     ? "border-primary bg-primary/5 text-primary"
                     : "border-lift-border text-muted hover:border-primary/30"
                 }`}
-                onClick={() => setGradeBandFilter(gradeBandFilter === band ? "" : band)}
+                onClick={() => setGradeFilter(gradeFilter === grade ? "" : grade)}
               >
-                <span className="font-semibold">{t("candidates.grade_band_col")} {band}</span>
+                <span className="font-semibold">Grade {grade}</span>
                 <span className="ml-2">{count} {t("candidates.title").toLowerCase()}</span>
                 {completed > 0 && (
                   <span className="ml-1 text-success">({completed} {t("analytics.completed").toLowerCase()})</span>
@@ -295,7 +296,7 @@ export function CandidateListClient({
                 />
               </th>
               <th className="px-4 py-3 font-medium">{t("candidates.name")}</th>
-              <th className="px-4 py-3 font-medium">{t("candidates.grade_band_col")}</th>
+              <th className="px-4 py-3 font-medium">{t("candidates.grade_col") || "Grade"}</th>
               <th className="px-4 py-3 font-medium">{t("candidates.status_col")}</th>
               <th className="px-4 py-3 font-medium">{t("candidates.completion_col")}</th>
               <th className="px-4 py-3 font-medium">{t("candidates.last_activity_col")}</th>
@@ -304,16 +305,16 @@ export function CandidateListClient({
           </thead>
           <tbody className="divide-y divide-lift-border">
             {(() => {
-              const bands = groupByGrade ? ["6-7", "8", "9-11"] : [null];
-              return bands.map((band) => {
-                const group = band ? filtered.filter((c) => c.grade_band === band) : filtered;
+              const grades = groupByGrade ? ["6", "7", "8", "9", "10", "11"] : [null];
+              return grades.map((grade) => {
+                const group = grade ? filtered.filter((c) => c.grade_applying_to === grade) : filtered;
                 if (group.length === 0) return null;
                 return [
-                  band && groupByGrade ? (
-                    <tr key={`header-${band}`}>
+                  grade && groupByGrade ? (
+                    <tr key={`header-${grade}`}>
                       <td colSpan={7} className="bg-page-bg px-4 py-2">
                         <span className="text-xs font-semibold text-primary">
-                          {t("candidates.grade_band_col")} {band}
+                          Grade {grade}
                         </span>
                         <span className="ml-2 text-xs text-muted">
                           ({group.length})
@@ -356,7 +357,7 @@ export function CandidateListClient({
                       {c.first_name} {c.last_name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted">{c.grade_band}</td>
+                  <td className="px-4 py-3 text-muted">Grade {c.grade_applying_to}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
                     {isUnsent && (

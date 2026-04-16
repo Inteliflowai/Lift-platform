@@ -137,23 +137,22 @@ export default async function SchoolDashboard() {
     .order("completed_at", { ascending: false })
     .limit(5);
 
-  // Grade band breakdown
-  let gradeBandCounts: { grade_band: string; count: number }[] = [];
+  // Grade breakdown (by individual grade, not band)
+  let gradeCounts: { grade: string; count: number }[] = [];
   if (cycle) {
-    const { data: bandData } = await supabaseAdmin
+    const { data: gradeData } = await supabaseAdmin
       .from("candidates")
-      .select("grade_band")
+      .select("grade_applying_to")
       .eq("tenant_id", tenantId)
       .eq("cycle_id", cycle.id);
 
     const counts: Record<string, number> = {};
-    bandData?.forEach((c) => {
-      counts[c.grade_band] = (counts[c.grade_band] || 0) + 1;
+    gradeData?.forEach((c) => {
+      if (c.grade_applying_to) counts[c.grade_applying_to] = (counts[c.grade_applying_to] || 0) + 1;
     });
-    gradeBandCounts = Object.entries(counts).map(([grade_band, count]) => ({
-      grade_band,
-      count,
-    }));
+    gradeCounts = Object.entries(counts)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([grade, count]) => ({ grade, count }));
   }
 
   const hour = new Date().getHours();
@@ -228,14 +227,14 @@ export default async function SchoolDashboard() {
               <span>Closes: {new Date(cycle.closes_at).toLocaleDateString()}</span>
             )}
           </div>
-          {gradeBandCounts.length > 0 && (
+          {gradeCounts.length > 0 && (
             <div className="mt-3 flex gap-4">
-              {gradeBandCounts.map((g) => (
+              {gradeCounts.map((g) => (
                 <span
-                  key={g.grade_band}
+                  key={g.grade}
                   className="rounded-md border border-lift-border px-3 py-1 text-sm"
                 >
-                  Grade {g.grade_band}:{" "}
+                  Grade {g.grade}:{" "}
                   <span className="font-semibold">{g.count}</span>
                 </span>
               ))}

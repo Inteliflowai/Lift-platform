@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   // Fetch candidates for this cycle
   let candidateQuery = supabaseAdmin
     .from("candidates")
-    .select("id, first_name, last_name, grade_band, status, cycle_id")
+    .select("id, first_name, last_name, grade_band, grade_applying_to, status, cycle_id")
     .eq("tenant_id", tenantId)
     .eq("cycle_id", cycleId);
 
@@ -114,6 +114,7 @@ export async function GET(req: NextRequest) {
     first_name: string;
     last_name: string;
     grade_band: string;
+    grade_applying_to: string;
     tri_score: number;
     reading_score: number;
     writing_score: number;
@@ -141,6 +142,7 @@ export async function GET(req: NextRequest) {
       first_name: candidate.first_name,
       last_name: candidate.last_name,
       grade_band: candidate.grade_band,
+      grade_applying_to: candidate.grade_applying_to,
       tri_score: Number(profile.tri_score) || 0,
       reading_score: Number(profile.reading_score) || 0,
       writing_score: Number(profile.writing_score) || 0,

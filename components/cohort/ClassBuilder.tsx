@@ -195,7 +195,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
                             {r.first_name} {r.last_name}
                           </div>
                           <div className="font-body text-[11px] text-[#64748b]">
-                            Grade {r.grade_band}
+                            Grade {r.grade_applying_to || r.grade_band}
                           </div>
                         </div>
                       </div>
