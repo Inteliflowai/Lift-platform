@@ -55,7 +55,6 @@ const NAV_ITEMS = [
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
-  { label: "Back to Inteliflow", href: "https://inteliflowai.com", external: true },
 ];
 
 /* ─── HighLevel submission ─── */
@@ -389,21 +388,6 @@ function Header({ onOpen }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-        <a
-          href="https://inteliflowai.com"
-          title="Back to Inteliflow"
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            width: 28, height: 28, borderRadius: 6,
-            background: BRAND.card, border: `1px solid ${BRAND.line}`,
-            color: BRAND.muted, fontSize: 13, textDecoration: "none",
-            transition: "background 0.2s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.cardStrong)}
-          onMouseLeave={(e) => (e.currentTarget.style.background = BRAND.card)}
-        >
-          &#8249;
-        </a>
         <a href="#top" style={{ display: "flex", alignItems: "center" }}>
           <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 44, filter: "brightness(2.5)" }} />
         </a>
