@@ -65,9 +65,23 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
 
   if ((count ?? 0) >= 3) return;
 
-  // Clear any existing candidates without profiles for this tenant
-  const { error: delErr } = await supabaseAdmin.from("candidates").delete().eq("tenant_id", tenantId);
-  if (delErr) console.error("[demo] delete candidates error:", delErr);
+  // Only clear demo candidates (status "active" with no sessions) — never delete real candidates
+  const { data: existingCandidates } = await supabaseAdmin
+    .from("candidates")
+    .select("id, status, sessions(id)")
+    .eq("tenant_id", tenantId);
+
+  const demoCandidateIds = (existingCandidates ?? [])
+    .filter((c) => (c.sessions as unknown[])?.length === 0)
+    .map((c) => c.id);
+
+  if (demoCandidateIds.length > 0) {
+    const { error: delErr } = await supabaseAdmin
+      .from("candidates")
+      .delete()
+      .in("id", demoCandidateIds);
+    if (delErr) console.error("[demo] delete demo candidates error:", delErr);
+  }
 
   console.log("[demo] Seeding demo candidates for tenant:", tenantId);
 

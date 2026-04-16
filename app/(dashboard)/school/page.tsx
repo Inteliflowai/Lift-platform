@@ -6,9 +6,14 @@ import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
 import { SchoolAdminTour } from "@/components/tours/SchoolAdminTour";
 import { TrialBannerTooltips } from "@/components/tooltips/TrialBannerTooltips";
 import { t } from "@/lib/i18n/useLocale";
+import { ensureDemoCandidates } from "@/lib/demo/seedDemoSchool";
 
 export default async function SchoolDashboard() {
   const { tenantId, tenant } = await getTenantContext();
+
+  // Self-heal: ensure demo candidates exist for trial tenants that registered
+  // before the full demo seeder was wired into registration
+  ensureDemoCandidates(tenantId).catch(() => {});
 
   // Active cycle
   const { data: cycle } = await supabaseAdmin
