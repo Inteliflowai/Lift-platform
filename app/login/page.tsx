@@ -100,7 +100,7 @@ function LoginForm() {
               <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
                 className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#818cf8] focus:shadow-[0_0_0_3px_rgba(129,140,248,0.15)]" />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>

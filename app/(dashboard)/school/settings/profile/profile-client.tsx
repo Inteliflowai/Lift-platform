@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Camera } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
+import { useToast } from "@/components/ui/Toast";
 
 export function ProfileClient({
   userId,
@@ -27,7 +29,7 @@ export function ProfileClient({
   const [avatar, setAvatar] = useState(initialAvatar);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
 
   const initials = (fullName || email)
     .split(" ")
@@ -70,7 +72,6 @@ export function ProfileClient({
 
   async function handleSave() {
     setSaving(true);
-    setSaved(false);
 
     await supabase
       .from("users")
@@ -78,13 +79,13 @@ export function ProfileClient({
       .eq("id", userId);
 
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    toast("Profile updated");
     router.refresh();
   }
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
+      <BackButton label="Back" />
       <h1 className="text-2xl font-bold">Edit Profile</h1>
 
       <div className="rounded-lg border border-lift-border bg-surface p-6 space-y-6">
@@ -163,7 +164,7 @@ export function ProfileClient({
         {/* Role (read-only) */}
         <div>
           <label className="mb-1 block text-sm font-medium text-lift-text">
-            Role
+            Your role in LIFT
           </label>
           <input
             type="text"
@@ -171,6 +172,9 @@ export function ProfileClient({
             disabled
             className="w-full rounded-lg border border-lift-border bg-lift-border/20 px-4 py-3 text-sm text-muted cursor-not-allowed capitalize"
           />
+          <p className="mt-1 text-[10px] text-muted">
+            Your access level in this school. Contact your school admin to change roles.
+          </p>
         </div>
 
         {/* Save */}
@@ -182,9 +186,6 @@ export function ProfileClient({
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
-          {saved && (
-            <span className="text-xs text-success">Profile updated</span>
-          )}
         </div>
       </div>
     </div>

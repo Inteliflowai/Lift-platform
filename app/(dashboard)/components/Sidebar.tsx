@@ -192,7 +192,7 @@ export function Sidebar({
           />
         )}
         {(!branding?.hideLiftBranding && branding?.poweredByVisible !== false) && (
-          <p className="mt-1.5 text-[10px] text-[#a0a0c0]/40">
+          <p className="mt-1.5 text-[10px] text-[#a0a0c0]/70">
             Powered by {brandName}
           </p>
         )}
