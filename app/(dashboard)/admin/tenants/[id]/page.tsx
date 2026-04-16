@@ -100,7 +100,7 @@ export default async function TenantDetailPage({
       {/* Users & Roles */}
       <div className="rounded-lg border border-lift-border bg-surface p-5">
         <h2 className="mb-3 text-lg font-semibold">Users & Roles</h2>
-        <UserRolesEditor users={users as any} />
+        <UserRolesEditor users={users as { id: string; role: string; granted_at: string; users: { id: string; email: string; full_name: string | null } | null }[]} />
       </div>
 
       {/* Cycles */}
