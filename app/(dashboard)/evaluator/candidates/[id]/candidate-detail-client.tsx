@@ -14,6 +14,7 @@ import { TOOLTIPS } from "@/lib/tooltips/content";
 import { ApplicationDataPanel } from "@/components/evaluator/ApplicationDataPanel";
 import { ObservationNotes } from "@/components/evaluator/ObservationNotes";
 import { useToast } from "@/components/ui/Toast";
+import { BackButton } from "@/components/ui/BackButton";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
 
@@ -80,6 +81,7 @@ export function CandidateDetailClient({
 
   return (
     <div className="space-y-6">
+      <BackButton label="Candidates" />
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">

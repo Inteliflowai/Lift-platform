@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { BackButton } from "@/components/ui/BackButton";
 import * as XLSX from "xlsx";
 
 type CandidateRow = {
@@ -148,6 +149,7 @@ export default function ImportCandidatesPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <BackButton href="/school/candidates" label="Candidates" />
       <div>
         <h1 className="text-2xl font-bold">Import Candidates</h1>
         <p className="mt-1 text-sm text-muted">

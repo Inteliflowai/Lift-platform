@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RefreshCw, Check, X, Download, Upload, Plug, Unplug } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 interface Integration {
   id: string;
@@ -199,6 +200,7 @@ export function IntegrationsClient() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
+      <BackButton href="/school/settings" label="Settings" />
       <div>
         <h1 className="text-2xl font-bold text-lift-text">SIS Integrations</h1>
         <p className="mt-1 text-sm text-muted">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function InviteCandidatePage() {
   const router = useRouter();
@@ -62,6 +63,7 @@ export default function InviteCandidatePage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
+      <BackButton href="/school/candidates" label="Candidates" />
       <h1 className="text-2xl font-bold">Invite Candidate</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">

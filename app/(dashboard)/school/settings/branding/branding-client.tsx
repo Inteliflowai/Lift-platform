@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { BackButton } from "@/components/ui/BackButton";
 import { Upload, Check, Globe, Mail, Palette, Eye } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -105,6 +106,7 @@ export function BrandingClient({
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
+      <BackButton href="/school/settings" label="Settings" />
       <h1 className="text-2xl font-bold">Branding</h1>
 
       {/* Logo Upload */}

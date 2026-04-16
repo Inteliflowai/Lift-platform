@@ -24,6 +24,7 @@ import {
   TableOfContents,
 } from "../components/HelpUI";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function SchoolAdminHelp() {
   const { t } = useLocale();
@@ -47,6 +48,7 @@ export default function SchoolAdminHelp() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <BackButton label="Dashboard" />
       <div>
         <h1 className="text-2xl font-bold">{t("help.school_admin.title")}</h1>
         <p className="mt-1 text-sm text-muted">

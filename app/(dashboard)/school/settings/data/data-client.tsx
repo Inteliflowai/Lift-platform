@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Clock, AlertTriangle, Shield } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 type Cycle = { id: string; name: string };
 type ExportRequest = {
@@ -60,6 +61,7 @@ export function DataPrivacyClient({
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
+      <BackButton href="/school/settings" label="Settings" />
       <h1 className="text-2xl font-bold">Data & Privacy</h1>
 
       {/* FERPA Notice */}

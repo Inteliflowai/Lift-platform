@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { BackButton } from "@/components/ui/BackButton";
 
 type Cycle = {
   id: string;
@@ -96,6 +97,7 @@ export function CycleDetailClient({
 
   return (
     <div className="space-y-6">
+      <BackButton href="/school/cycles" label="Cycles" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{cycle.name}</h1>
