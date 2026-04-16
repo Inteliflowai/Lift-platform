@@ -388,11 +388,9 @@ function Header({ onOpen }) {
         transition: "all 0.3s ease",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-        <a href="#top" style={{ display: "flex", alignItems: "center" }}>
-          <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 44, filter: "brightness(2.5)" }} />
-        </a>
-      </div>
+      <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+        <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 56, width: "auto", objectFit: "contain" }} />
+      </a>
 
       <nav className="lift-desktop-nav" style={{ display: "flex", gap: 32, alignItems: "center" }}>
         {NAV_ITEMS.map((item) => (
