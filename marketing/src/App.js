@@ -375,18 +375,22 @@ function Header({ onOpen }) {
         position: "fixed",
         top: 0, left: 0, right: 0,
         zIndex: 1000,
-        padding: "0 40px",
-        height: 72,
+        background: scrolled ? "rgba(15,12,29,0.85)" : "transparent",
+        backdropFilter: scrolled ? "blur(16px)" : "none",
+        WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
+        borderBottom: scrolled ? `1px solid ${BRAND.line}` : "1px solid transparent",
+        transition: "all 0.35s ease",
+      }}
+    >
+      <div style={{
+        width: "min(1280px, calc(100% - 48px))",
+        margin: "0 auto",
+        padding: "16px 0",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        background: scrolled ? "rgba(43,20,96,0.92)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-        borderBottom: scrolled ? `1px solid ${BRAND.line}` : "1px solid transparent",
-        transition: "all 0.3s ease",
-      }}
-    >
+        gap: 16,
+      }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <a href="https://inteliflowai.com" title="Back to Inteliflow" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 999, border: `1px solid ${BRAND.line}`, background: BRAND.card, color: BRAND.muted, fontSize: 18, textDecoration: "none", flexShrink: 0 }}>&larr;</a>
         <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -427,6 +431,7 @@ function Header({ onOpen }) {
         >
           &#9776;
         </button>
+      </div>
       </div>
     </header>
   );
