@@ -140,6 +140,11 @@ function usePageStyles() {
         background: ${BRAND.bg} !important;
       }
 
+      .lift-app {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+      }
+
       body:has(.lift-app) .site-header,
       body:has(.lift-app) .site-footer,
       body:has(.lift-app) .ast-above-header,
@@ -665,7 +670,7 @@ function Hero() {
     <section style={{ position: "relative", overflow: "hidden", paddingTop: 0, width: "100%" }}>
       <Glow left={-120} top={-80} size={600} from={BRAND.blue} to={BRAND.purple} />
       <Glow right={-100} top={-60} size={500} from={BRAND.green} to={BRAND.blue} />
-      <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "24px 40px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
+      <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "56px 40px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
         <div>
           <Label>For Independent, Boarding & Therapeutic Schools</Label>
           <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 16, marginTop: 12 }}>
