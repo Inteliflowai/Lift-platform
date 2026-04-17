@@ -24,25 +24,25 @@ const IMAGES = {
 };
 
 const BRAND = {
-  // LIFT brand — indigo-forward, deep navy base
-  bg: "#0f0c1d",
-  bg2: "#1a1535",
-  bg3: "#252040",
+  // LIFT brand — teal-forward, deep dark base (matches logo)
+  bg: "#0a1419",
+  bg2: "#0d1f24",
+  bg3: "#122a30",
   white: "#ffffff",
-  text: "#eef2ff",
-  muted: "#c7d2fe",
+  text: "#ecfdf5",
+  muted: "#99f6e4",
   line: "rgba(255,255,255,0.12)",
   card: "rgba(255,255,255,0.06)",
   cardStrong: "rgba(255,255,255,0.12)",
-  blue: "#818cf8",
-  sky: "#a5b4fc",
-  purple: "#6366f1",
-  magenta: "#a78bfa",
+  blue: "#2dd4bf",
+  sky: "#5eead4",
+  purple: "#14b8a6",
+  magenta: "#0d9488",
   green: "#34d399",
   mint: "#6ee7b7",
   orange: "#f59e0b",
-  shadow: "0 24px 80px rgba(6,4,18,0.5)",
-  liftIndigo: "#6366f1",
+  shadow: "0 24px 80px rgba(4,12,14,0.5)",
+  liftIndigo: "#14b8a6",
   liftEmerald: "#34d399",
   liftRose: "#f87171",
 };
@@ -536,7 +536,7 @@ function AnimatedDemo() {
     return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
   })();
 
-  const getBarColor = (v) => v >= 75 ? '#10b981' : v >= 60 ? '#6366f1' : '#f59e0b';
+  const getBarColor = (v) => v >= 75 ? '#10b981' : v >= 60 ? '#14b8a6' : '#f59e0b';
   const DIMS = ['Reading Interpretation', 'Written Expression', 'Reasoning & Problems', 'Mathematical Reasoning', 'Reflection & Metacog.', 'Task Persistence', 'Self-Advocacy'];
   const mono = { fontFamily: "'Geist Mono', monospace" };
 
@@ -547,14 +547,14 @@ function AnimatedDemo() {
   };
 
   const dots = Array.from({ length: SCREENS }, (_, i) => (
-    <div key={i} style={{ width: i === screen ? 20 : 6, height: 6, borderRadius: 3, background: i === screen ? '#6366f1' : 'rgba(255,255,255,0.2)', transition: 'all 0.4s ease' }} />
+    <div key={i} style={{ width: i === screen ? 20 : 6, height: 6, borderRadius: 3, background: i === screen ? '#14b8a6' : 'rgba(255,255,255,0.2)', transition: 'all 0.4s ease' }} />
   ));
 
   return (
     <div style={{ width: '100%', maxWidth: 420, position: 'relative' }}>
       <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 14 }}>{dots}</div>
       <div style={{ textAlign: 'center', marginBottom: 10 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: '#6366f1', fontFamily: "'DM Sans', sans-serif" }}>
+        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: '#14b8a6', fontFamily: "'DM Sans', sans-serif" }}>
           {['Candidate Profile', 'Readiness Dimensions', 'Evaluator Intelligence', 'Reports Ready'][screen]}
         </span>
       </div>
@@ -562,7 +562,7 @@ function AnimatedDemo() {
       {screen === 0 && (
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #0f0c1d, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, color: '#fff', flexShrink: 0 }}>JR</div>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #0f0c1d, #14b8a6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, color: '#fff', flexShrink: 0 }}>JR</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, color: '#e2e8f0', marginBottom: 3 }}>Jamie Rivera</div>
               <div style={{ fontSize: 12, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>Grade 8 · Boarding School</div>
@@ -574,7 +574,7 @@ function AnimatedDemo() {
               <svg width="140" height="140" viewBox="0 0 140 140">
                 <path d="M 18 100 A 52 52 0 1 1 122 100" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" strokeLinecap="round" />
                 <path d={triArc} fill="none" stroke="url(#triGrad)" strokeWidth="8" strokeLinecap="round" />
-                <defs><linearGradient id="triGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor="#ec4899" /></linearGradient></defs>
+                <defs><linearGradient id="triGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#14b8a6" /><stop offset="100%" stopColor="#ec4899" /></linearGradient></defs>
               </svg>
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 8 }}>
                 <span style={{ ...mono, fontSize: 34, fontWeight: 700, color: '#e2e8f0', lineHeight: 1 }}>{triValue}</span>
@@ -619,10 +619,10 @@ function AnimatedDemo() {
             <span style={{ color: '#f59e0b', fontSize: 14 }}>✦</span>
             <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0' }}>Pre-Interview Briefing</span>
           </div>
-          <div style={{ fontSize: 11, color: '#6366f1', marginBottom: 14, fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>Generated for Jamie Rivera</div>
+          <div style={{ fontSize: 11, color: '#14b8a6', marginBottom: 14, fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>Generated for Jamie Rivera</div>
           {['Strong evidence use — revisited key reading passages before answering on 4 of 5 tasks.', 'Reasoning–expression gap: reasoning 74, writing output 68 — ideas present, expression developing.', 'Low hint usage on hard tasks despite errors — may not seek support proactively.'].map((obs, i) => (
             <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10, animation: `lift-fadeUp 0.4s ease ${i * 150}ms both` }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#6366f1', flexShrink: 0, marginTop: 6 }} />
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#14b8a6', flexShrink: 0, marginTop: 6 }} />
               <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{obs}</p>
             </div>
           ))}
@@ -639,13 +639,13 @@ function AnimatedDemo() {
         <div style={cardStyle}>
           <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 16 }}>Reports Ready</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-            {[{ label: '📋 Internal', color: '#6366f1', fill: false }, { label: '👨‍👩‍👧 Family', color: '#10b981', fill: true }, { label: '📍 Placement', color: '#8b5cf6', fill: false }].map(b => (
+            {[{ label: '📋 Internal', color: '#14b8a6', fill: false }, { label: '👨‍👩‍👧 Family', color: '#10b981', fill: true }, { label: '📍 Placement', color: '#8b5cf6', fill: false }].map(b => (
               <div key={b.label} style={{ flex: 1, padding: '8px 4px', textAlign: 'center', background: b.fill ? b.color : 'transparent', border: `1px solid ${b.color}${b.fill ? '' : '60'}`, borderRadius: 8, fontSize: 11, fontWeight: 700, color: b.fill ? '#fff' : b.color, fontFamily: "'DM Sans', sans-serif", cursor: 'default' }}>{b.label}</div>
             ))}
           </div>
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 14px', marginBottom: 14, position: 'relative', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ width: 24, height: 24, borderRadius: 4, background: 'linear-gradient(135deg, #0f0c1d, #6366f1)', flexShrink: 0 }} />
+              <div style={{ width: 24, height: 24, borderRadius: 4, background: 'linear-gradient(135deg, #0f0c1d, #14b8a6)', flexShrink: 0 }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}>Hillside Academy · Family Report</span>
             </div>
             <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.65, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>"Dear Rivera family, Jamie approached today's experience with genuine curiosity and showed real strength in how they..."</p>

@@ -374,7 +374,7 @@ export function CandidateListClient({
                       <a
                         href={`/invite/${latestInvite.token}`}
                         target="_blank"
-                        className="ml-2 text-[10px] text-[#6366f1] hover:underline"
+                        className="ml-2 text-[10px] text-[#14b8a6] hover:underline"
                       >
                         Open invite
                       </a>
@@ -408,7 +408,7 @@ export function CandidateListClient({
                               navigator.clipboard.writeText(url);
                             }
                           }}
-                          className="text-xs text-[#6366f1] hover:underline"
+                          className="text-xs text-[#14b8a6] hover:underline"
                         >
                           Copy Link
                         </button>

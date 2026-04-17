@@ -1003,7 +1003,7 @@ function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmission
             {sub.concerns ? <p className="text-xs text-[#f43f5e]">Concerns: {String(sub.concerns)}</p> : null}
             <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
               sub.recommendation === "strong_yes" ? "bg-[#10b981]/10 text-[#10b981]" :
-              sub.recommendation === "yes" ? "bg-[#6366f1]/10 text-[#6366f1]" :
+              sub.recommendation === "yes" ? "bg-[#14b8a6]/10 text-[#14b8a6]" :
               sub.recommendation === "unsure" ? "bg-[#f59e0b]/10 text-[#f59e0b]" :
               "bg-[#f43f5e]/10 text-[#f43f5e]"
             }`}>{(sub.recommendation as string)?.replace("_", " ")}</span>

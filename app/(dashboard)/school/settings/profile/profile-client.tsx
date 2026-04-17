@@ -101,7 +101,7 @@ export function ProfileClient({
                 className="h-24 w-24 rounded-full object-cover"
               />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#818cf8] text-2xl font-bold text-white">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#14b8a6] to-[#2dd4bf] text-2xl font-bold text-white">
                 {initials}
               </div>
             )}

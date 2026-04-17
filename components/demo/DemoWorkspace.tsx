@@ -85,7 +85,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
               {/* Header */}
               <div className="mb-4 flex items-center justify-between rounded-xl border border-[#2d2d3d] bg-[#1a1a24] px-6 py-5">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#2b1460] to-primary font-[family-name:var(--font-display)] text-lg font-bold text-white">{selected.first_name[0]}{selected.last_name[0]}</div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#0a1419] to-primary font-[family-name:var(--font-display)] text-lg font-bold text-white">{selected.first_name[0]}{selected.last_name[0]}</div>
                   <div>
                     <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-white/90">{name}</h2>
                     <span className="text-xs text-white/60">Grade {selected.grade_band} · Session Complete</span>
@@ -155,7 +155,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                     <div className="mt-5 border-t border-white/5 pt-5">
                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-white/60">Suggested Interview Questions</p>
                       {[`"Walk me through how you approached the hardest task."`, `"What would you do differently if you could redo one task?"`].map((q, i) => (
-                        <div key={i} className="mb-2 rounded-lg border border-primary/15 bg-primary/5 px-3.5 py-2.5 text-sm italic leading-relaxed text-[#a5b4fc]">{q}</div>
+                        <div key={i} className="mb-2 rounded-lg border border-primary/15 bg-primary/5 px-3.5 py-2.5 text-sm italic leading-relaxed text-[#5eead4]">{q}</div>
                       ))}
                     </div>
                     <div className="mt-5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-300/80">
@@ -184,7 +184,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                             <span className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase" style={{ background: s.severity === "notable" ? "rgba(249,115,22,0.15)" : "rgba(245,158,11,0.15)", color: s.severity === "notable" ? "#f97316" : "#f59e0b" }}>{s.severity}</span>
                           </div>
                           <p className="mb-2 text-xs leading-relaxed text-white/70">{s.description}</p>
-                          <p className="text-xs text-[#a5b4fc]">💡 {s.recommendation}</p>
+                          <p className="text-xs text-[#5eead4]">💡 {s.recommendation}</p>
                         </div>
                       ))}
                     </div>
@@ -203,7 +203,7 @@ export function DemoWorkspace({ token, expiresAt, candidates }: { token: string;
                       ))}
                     </div>
                     <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                      <p className="text-sm leading-relaxed text-[#a5b4fc]">🔒 Report generation is available on your free trial. Start your trial to download all three report types for {name}.</p>
+                      <p className="text-sm leading-relaxed text-[#5eead4]">🔒 Report generation is available on your free trial. Start your trial to download all three report types for {name}.</p>
                       <a href={`/register?demo_token=${token}`} className="mt-3 inline-block rounded-lg bg-gradient-to-r from-primary to-[#8b5cf6] px-6 py-2.5 text-sm font-bold text-white">Start Free Trial — No Credit Card →</a>
                     </div>
                   </div>

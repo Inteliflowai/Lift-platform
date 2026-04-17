@@ -105,7 +105,7 @@ export function TopBar({
               className="h-8 w-8 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#818cf8] text-xs font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#14b8a6] to-[#2dd4bf] text-xs font-bold text-white">
               {initials}
             </div>
           )}
@@ -130,7 +130,7 @@ export function TopBar({
                       className="h-10 w-10 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#818cf8] text-sm font-bold text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#14b8a6] to-[#2dd4bf] text-sm font-bold text-white">
                       {initials}
                     </div>
                   )}
@@ -149,7 +149,7 @@ export function TopBar({
                 </div>
               </div>
               {uploading && (
-                <p className="mt-2 text-xs text-[#6366f1]">Uploading...</p>
+                <p className="mt-2 text-xs text-[#14b8a6]">Uploading...</p>
               )}
             </div>
 

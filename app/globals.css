@@ -5,10 +5,10 @@
 :root {
   --background: #0d1117;
   --foreground: #f1f5f9;
-  --sidebar: #0f0c1d;
+  --sidebar: #0a1419;
   --surface: #161b22;
   --border: #2d333b;
-  --primary: #818cf8;
+  --primary: #14b8a6;
   --muted: #94a3b8;
   --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'DM Sans', sans-serif;
@@ -22,7 +22,7 @@ body, p, label, button, input, textarea, select { font-family: var(--font-body);
 body { color: var(--foreground); background: var(--background); }
 
 /* Selection */
-::selection { background: rgba(129, 140, 248, 0.3); color: #f1f5f9; }
+::selection { background: rgba(20, 184, 166, 0.3); color: #f1f5f9; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -61,7 +61,7 @@ body { color: var(--foreground); background: var(--background); }
   100% { background-position: 0% 50%; }
 }
 .sidebar-mesh {
-  background: linear-gradient(135deg, #0f0c1d 0%, #1a1535 25%, #0f0c1d 50%, #13102a 75%, #0f0c1d 100%);
+  background: linear-gradient(135deg, #0a1419 0%, #0d1f24 25%, #0a1419 50%, #0c1a1e 75%, #0a1419 100%);
   background-size: 400% 400%;
   animation: mesh-shift 20s ease infinite;
 }
@@ -115,7 +115,7 @@ body { color: var(--foreground); background: var(--background); }
   position: absolute;
   inset: -1px;
   border-radius: 21px;
-  background: conic-gradient(from 0deg, #6366f1, #818cf8, #6366f1);
+  background: conic-gradient(from 0deg, #0d9488, #2dd4bf, #0d9488);
   opacity: 0.15;
   animation: glow-rotate 8s linear infinite;
   z-index: -1;

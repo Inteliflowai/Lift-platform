@@ -44,7 +44,7 @@ interface Cycle {
 }
 
 const triColor = (s: number) =>
-  s >= 75 ? "#10b981" : s >= 50 ? "#6366f1" : "#f59e0b";
+  s >= 75 ? "#10b981" : s >= 50 ? "#14b8a6" : "#f59e0b";
 
 const triLabel = (s: number) =>
   s >= 75 ? "Strong" : s >= 50 ? "Developing" : "Emerging";
@@ -88,7 +88,7 @@ function DimensionSparkline({ row }: { row: CohortRow }) {
           style={{
             width: 6,
             height: Math.max(3, (score / 100) * 24),
-            background: score === max ? "#6366f1" : "rgba(99,102,241,0.3)",
+            background: score === max ? "#14b8a6" : "rgba(20,184,166,0.3)",
             borderRadius: 1,
           }}
         />
@@ -224,7 +224,7 @@ export function CohortClient() {
           {showBuilder && cycleId && rows.length > 0 && !builderMode && (
             <button
               onClick={() => setBuilderMode(true)}
-              className="rounded-lg bg-gradient-to-r from-[#2b1460] to-[#6366f1] px-4 py-1.5 font-body text-[13px] font-bold text-white hover:opacity-90"
+              className="rounded-lg bg-gradient-to-r from-[#0a1419] to-[#14b8a6] px-4 py-1.5 font-body text-[13px] font-bold text-white hover:opacity-90"
             >
               Build Class
             </button>
@@ -238,7 +238,7 @@ export function CohortClient() {
                   onClick={() => setView(v)}
                   className={`rounded-md px-3.5 py-1.5 font-body text-[13px] font-semibold transition-colors ${
                     view === v
-                      ? "bg-[#6366f1] text-white"
+                      ? "bg-[#14b8a6] text-white"
                       : "text-[#64748b] hover:text-[#a0a0c0]"
                   }`}
                 >
@@ -269,7 +269,7 @@ export function CohortClient() {
             {/* Key insight sentence */}
             <div className="flex-1">
               <p className="font-body text-[15px] font-medium text-[#e2e8f0]">
-                <span className="font-mono font-bold text-[#6366f1]">{stats.total}</span> candidate{stats.total !== 1 ? "s" : ""} completed
+                <span className="font-mono font-bold text-[#14b8a6]">{stats.total}</span> candidate{stats.total !== 1 ? "s" : ""} completed
                 {stats.withSignals > 0 ? (
                   <span>
                     {" — "}
@@ -286,7 +286,7 @@ export function CohortClient() {
                   <span className="font-mono font-bold" style={{ color: triColor(stats.avgTri) }}>{stats.avgTri}</span>
                 </span>
                 <span className="text-[#10b981]">{stats.triDistribution.strong} strong</span>
-                <span className="text-[#6366f1]">{stats.triDistribution.developing} developing</span>
+                <span className="text-[#14b8a6]">{stats.triDistribution.developing} developing</span>
                 <span className="text-[#f59e0b]">{stats.triDistribution.emerging} emerging</span>
                 {Object.entries(stats.byGrade).map(([g, n]) => (
                   <span key={g} className="text-[#64748b]">Grade {g}: {n}</span>
@@ -354,7 +354,7 @@ export function CohortClient() {
       {/* Loading state */}
       {loading && (
         <div className="flex justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#6366f1] border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#14b8a6] border-t-transparent" />
         </div>
       )}
 
@@ -481,7 +481,7 @@ export function CohortClient() {
                       <td className="px-4 py-3">
                         <a
                           href={`/evaluator/candidates/${r.candidate_id}`}
-                          className="font-body text-xs font-semibold text-[#6366f1] no-underline hover:text-[#818cf8]"
+                          className="font-body text-xs font-semibold text-[#14b8a6] no-underline hover:text-[#2dd4bf]"
                         >
                           View →
                         </a>
@@ -543,7 +543,7 @@ export function CohortClient() {
                   >
                     {triLabel(r.tri_score)}
                   </span>
-                  <span className="rounded-full bg-[rgba(99,102,241,0.1)] px-2.5 py-0.5 font-body text-[11px] font-semibold text-[#a5b4fc]">
+                  <span className="rounded-full bg-[rgba(20,184,166,0.1)] px-2.5 py-0.5 font-body text-[11px] font-semibold text-[#5eead4]">
                     ✦ {getTopStrength(r)}
                   </span>
                   {r.signal_count > 0 && (
@@ -557,7 +557,7 @@ export function CohortClient() {
 
                 <a
                   href={`/evaluator/candidates/${r.candidate_id}`}
-                  className="mt-3.5 block rounded-lg border border-[rgba(99,102,241,0.2)] bg-[rgba(99,102,241,0.08)] py-2 text-center font-body text-[13px] font-semibold text-[#a5b4fc] no-underline hover:bg-[rgba(99,102,241,0.15)]"
+                  className="mt-3.5 block rounded-lg border border-[rgba(20,184,166,0.2)] bg-[rgba(20,184,166,0.08)] py-2 text-center font-body text-[13px] font-semibold text-[#5eead4] no-underline hover:bg-[rgba(20,184,166,0.15)]"
                 >
                   View Profile →
                 </a>

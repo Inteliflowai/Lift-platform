@@ -74,7 +74,7 @@ export default async function DashboardLayout({
 
     if (wl) {
       branding = {
-        primaryColor: wl.wl_primary_color !== "#6366f1" ? wl.wl_primary_color : null,
+        primaryColor: wl.wl_primary_color !== "#14b8a6" ? wl.wl_primary_color : null,
         logoUrl: wl.logo_url ?? null,
         logoDarkUrl: wl.wl_logo_dark_url ?? null,
         faviconUrl: wl.wl_favicon_url ?? null,

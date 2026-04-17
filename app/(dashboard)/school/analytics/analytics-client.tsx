@@ -136,7 +136,7 @@ export function AnalyticsClient({
               segments={[
                 { value: data.tri_distribution.emerging, color: "#f43f5e", label: t("analytics.emerging") },
                 { value: data.tri_distribution.developing, color: "#f59e0b", label: t("analytics.developing") },
-                { value: data.tri_distribution.ready, color: "#6366f1", label: t("analytics.ready") },
+                { value: data.tri_distribution.ready, color: "#14b8a6", label: t("analytics.ready") },
                 { value: data.tri_distribution.thriving, color: "#10b981", label: t("analytics.thriving") },
               ]}
               total={triTotal}

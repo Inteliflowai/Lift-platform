@@ -265,7 +265,7 @@ export function SubscriptionClient({
             {sessionsLimit ? (
               <div className="mt-1.5 h-2 rounded-full bg-lift-border overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#6366f1] to-[#818cf8] transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-[#14b8a6] to-[#2dd4bf] transition-all"
                   style={{
                     width: `${Math.min(100, (sessionsUsed / sessionsLimit) * 100)}%`,
                   }}

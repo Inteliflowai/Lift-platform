@@ -18,7 +18,7 @@ interface ClassBuilderProps {
 }
 
 const triColor = (n: number) =>
-  n >= 75 ? "#10b981" : n >= 50 ? "#6366f1" : "#f59e0b";
+  n >= 75 ? "#10b981" : n >= 50 ? "#14b8a6" : "#f59e0b";
 
 const DIMS = [
   { key: "reading", label: "Reading" },
@@ -173,7 +173,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
                     onClick={() => toggle(r.candidate_id)}
                     className={`cursor-pointer transition-colors ${
                       i < rows.length - 1 ? "border-b border-white/[0.04]" : ""
-                    } ${isSelected ? "bg-[rgba(99,102,241,0.08)]" : "hover:bg-white/[0.02]"}`}
+                    } ${isSelected ? "bg-[rgba(20,184,166,0.08)]" : "hover:bg-white/[0.02]"}`}
                   >
                     <td className="w-10 px-4 py-2.5">
                       <input
@@ -238,7 +238,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
               <div className="grid grid-cols-2 gap-2.5">
                 <div
                   className="rounded-lg border p-2.5 text-center"
-                  style={{ borderColor: "#6366f125", background: "#6366f110" }}
+                  style={{ borderColor: "#14b8a625", background: "#14b8a610" }}
                 >
                   <div className="font-mono text-[26px] font-bold leading-none text-primary">
                     {comp.total}
@@ -273,7 +273,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
               {(
                 [
                   { key: "strong", label: "Strong ≥ 75", color: "#10b981" },
-                  { key: "developing", label: "Developing 50-74", color: "#6366f1" },
+                  { key: "developing", label: "Developing 50-74", color: "#14b8a6" },
                   { key: "emerging", label: "Emerging < 50", color: "#f59e0b" },
                 ] as const
               ).map((band) => {
@@ -308,7 +308,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
                   .map(([grade, count]) => (
                     <div key={grade} className="mb-1 flex justify-between last:mb-0">
                       <span className="font-body text-xs text-[#94a3b8]">Grade {grade}</span>
-                      <span className="font-mono text-xs text-[#a5b4fc]">{count}</span>
+                      <span className="font-mono text-xs text-[#5eead4]">{count}</span>
                     </div>
                   ))}
               </div>
@@ -401,7 +401,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
               <button
                 onClick={saveDraft}
                 disabled={saving}
-                className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-2.5 font-body text-[13px] font-semibold text-[#a5b4fc] hover:bg-primary/15 disabled:opacity-50"
+                className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-2.5 font-body text-[13px] font-semibold text-[#5eead4] hover:bg-primary/15 disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save Draft"}
               </button>
@@ -415,7 +415,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
             <button
               onClick={() => setConfirmModal(true)}
               disabled={selected.size === 0}
-              className="w-full rounded-lg bg-gradient-to-r from-[#2b1460] to-[#6366f1] py-3 font-body text-sm font-bold text-white disabled:opacity-40"
+              className="w-full rounded-lg bg-gradient-to-r from-[#0a1419] to-[#14b8a6] py-3 font-body text-sm font-bold text-white disabled:opacity-40"
             >
               ✓ Confirm Incoming Class ({selected.size})
             </button>
@@ -445,7 +445,7 @@ export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBui
                 <button
                   onClick={confirmClass}
                   disabled={saving}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-[#2b1460] to-[#6366f1] py-2.5 font-body text-sm font-bold text-white disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-[#0a1419] to-[#14b8a6] py-2.5 font-body text-sm font-bold text-white disabled:opacity-50"
                 >
                   {saving ? "Confirming..." : "Confirm Class"}
                 </button>

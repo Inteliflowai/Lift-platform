@@ -30,7 +30,7 @@ export default async function BrandingPage() {
         logoUrl: settings?.logo_url ?? "",
         logoDarkUrl: settings?.wl_logo_dark_url ?? "",
         faviconUrl: settings?.wl_favicon_url ?? "",
-        primaryColor: settings?.wl_primary_color ?? "#6366f1",
+        primaryColor: settings?.wl_primary_color ?? "#14b8a6",
         customDomain: settings?.wl_custom_domain ?? "",
         domainVerified: settings?.wl_custom_domain_verified ?? false,
         hideLiftBranding: settings?.wl_hide_lift_branding ?? false,

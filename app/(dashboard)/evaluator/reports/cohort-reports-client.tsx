@@ -52,7 +52,7 @@ export function CohortReportsClient({
 
   const statuses = ["invited", "active", "completed", "flagged", "reviewed", "archived"];
   const statusColors: Record<string, string> = {
-    invited: "#6366f1", active: "#10b981", completed: "#10b981",
+    invited: "#14b8a6", active: "#10b981", completed: "#10b981",
     flagged: "#f43f5e", reviewed: "#7878a0", archived: "#2a2a3a",
   };
 
@@ -133,7 +133,7 @@ export function CohortReportsClient({
           {(["emerging", "developing", "ready", "thriving"] as const).map((label) => {
             const count = triByLabel[label] ?? 0;
             const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-            const colors: Record<string, string> = { emerging: "#f43f5e", developing: "#f59e0b", ready: "#6366f1", thriving: "#10b981" };
+            const colors: Record<string, string> = { emerging: "#f43f5e", developing: "#f59e0b", ready: "#14b8a6", thriving: "#10b981" };
             return (
               <div key={label} className="flex items-center gap-3">
                 <span className="w-36 text-sm">{{ emerging: "Emerging", developing: "Developing", ready: "Strong", thriving: "Strong" }[label]}</span>

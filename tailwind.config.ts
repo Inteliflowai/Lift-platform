@@ -12,11 +12,11 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        primary: "#818cf8",
+        primary: "#14b8a6",
         success: "#34d399",
         warning: "#f59e0b",
         review: "#f87171",
-        sidebar: "#0f0c1d",
+        sidebar: "#0a1419",
         "page-bg": "#0d1117",
         surface: "#161b22",
         "lift-border": "#2d333b",

@@ -92,13 +92,13 @@ function LoginForm() {
           <div>
             <label className="mb-1.5 block text-xs font-medium text-white/50">{t("login.email")}</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
-              className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#818cf8] focus:shadow-[0_0_0_3px_rgba(129,140,248,0.15)]" />
+              className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#14b8a6] focus:shadow-[0_0_0_3px_rgba(20,184,166,0.15)]" />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-white/50">{t("login.password")}</label>
             <div className="relative">
               <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#818cf8] focus:shadow-[0_0_0_3px_rgba(129,140,248,0.15)]" />
+                className="w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 pr-10 text-sm text-white outline-none transition-all focus:border-[#14b8a6] focus:shadow-[0_0_0_3px_rgba(20,184,166,0.15)]" />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -124,12 +124,12 @@ function LoginForm() {
           )}
 
           <button type="submit" disabled={loading}
-            className="w-full rounded-xl bg-gradient-to-r from-[#6366f1] to-[#818cf8] py-3 font-[family-name:var(--font-display)] text-sm font-semibold text-white transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
+            className="w-full rounded-xl bg-gradient-to-r from-[#0d9488] to-[#14b8a6] py-3 font-[family-name:var(--font-display)] text-sm font-semibold text-white transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
             {loading ? t("login.signing_in") : t("login.sign_in")}
           </button>
 
           <div className="text-center">
-            <a href="/forgot-password" className="text-xs text-white/40 hover:text-[#6366f1] transition-colors">
+            <a href="/forgot-password" className="text-xs text-white/40 hover:text-[#14b8a6] transition-colors">
               {t("login.forgot_password")}
             </a>
           </div>
@@ -138,7 +138,7 @@ function LoginForm() {
         {!hidePricing && (
           <p className="mt-4 text-center text-xs text-white/30">
             {t("login.no_account")}{" "}
-            <a href="/register" className="text-[#6366f1] hover:underline">{t("login.start_trial")}</a>
+            <a href="/register" className="text-[#14b8a6] hover:underline">{t("login.start_trial")}</a>
           </p>
         )}
       </div>

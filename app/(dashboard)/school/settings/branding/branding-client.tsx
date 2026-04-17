@@ -181,7 +181,7 @@ export function BrandingClient({
             className="w-28 rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm font-mono outline-none focus:border-primary"
           />
           <button
-            onClick={() => update("primaryColor", "#6366f1")}
+            onClick={() => update("primaryColor", "#14b8a6")}
             className="text-xs text-muted hover:underline"
           >
             Reset to default
