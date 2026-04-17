@@ -671,15 +671,15 @@ function Hero() {
       <Glow right={-100} top={-60} size={500} from={BRAND.green} to={BRAND.blue} />
       <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "56px 40px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
         <div>
-          <Label>Admissions Intelligence for K-12 Schools</Label>
-          <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 28, marginTop: 12 }}>
-            See How Students Learn Before They Arrive.
+          <Label>For Independent, Boarding & Therapeutic Schools</Label>
+          <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 16, marginTop: 12 }}>
+            Learning Intelligence for Admissions.
           </h1>
-          <p style={{ fontSize: 22, color: BRAND.text, marginBottom: 16, lineHeight: 1.5 }}>
-            LIFT is an AI-powered admissions insight platform for Grades 6–11. Reveal each applicant's readiness patterns, learning behaviors, and transition signals — in a single adaptive experience.
+          <p style={{ fontSize: 24, color: BRAND.blue, marginBottom: 20, lineHeight: 1.4, fontWeight: 600, letterSpacing: -0.5, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Built on pedagogy. Powered by AI.
           </p>
-          <p style={{ fontSize: 18, color: BRAND.muted, marginBottom: 36, lineHeight: 1.6 }}>
-            From invitation to insight in under 75 minutes. Used by independent, boarding, and therapeutic schools to make better admissions decisions, stronger placements, and more confident transitions.
+          <p style={{ fontSize: 18, color: BRAND.muted, marginBottom: 36, lineHeight: 1.7 }}>
+            Independently evaluates students across seven readiness dimensions. Sits alongside Ravenna and Blackbaud — doesn&apos;t replace them, doesn&apos;t rely on parent-reported data. From invitation to insight in under 75 minutes.
           </p>
           <div className="lift-hero-buttons" style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
             <GradientButton href="https://lift.inteliflowai.com/demo/new">Try Live Demo</GradientButton>
@@ -1325,7 +1325,7 @@ function Footer() {
       <div className="lift-footer-inner" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 40, marginBottom: 12, filter: "brightness(2.5)" }} />
-          <p style={{ fontSize: 14, color: BRAND.muted, maxWidth: 300, lineHeight: 1.6 }}>AI-powered admissions insight for K-12 schools. From invitation to insight in under 75 minutes.</p>
+          <p style={{ fontSize: 14, color: BRAND.muted, maxWidth: 300, lineHeight: 1.6 }}>Learning intelligence for admissions. Built on pedagogy. Powered by AI.</p>
         </div>
         <div className="lift-footer-right" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1337,7 +1337,7 @@ function Footer() {
             <a href="https://inteliflowai.com/terms-of-service" style={{ color: BRAND.muted }} target="_blank" rel="noopener noreferrer">Terms of Service</a>
             <a href="mailto:lift@inteliflowai.com" style={{ color: BRAND.muted }}>lift@inteliflowai.com</a>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>&copy; 2026 Inteliflow AI &middot; LIFT is a non-diagnostic admissions insight tool</p>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>&copy; 2026 Inteliflow AI &middot; LIFT is a non-diagnostic learning intelligence platform</p>
         </div>
       </div>
     </footer>
@@ -1351,7 +1351,7 @@ export default function LiftLandingPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    document.title = "LIFT — AI-Powered Admissions Insight | Inteliflow";
+    document.title = "LIFT — Learning Intelligence for Admissions | Inteliflow";
   }, []);
 
   return (
