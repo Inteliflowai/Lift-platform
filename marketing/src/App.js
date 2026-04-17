@@ -372,14 +372,10 @@ function Header({ onOpen }) {
   return (
     <header
       style={{
-        position: "fixed",
-        top: 0, left: 0, right: 0,
+        position: "relative",
         zIndex: 1000,
-        background: scrolled ? "rgba(15,12,29,0.85)" : "transparent",
-        backdropFilter: scrolled ? "blur(16px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-        borderBottom: scrolled ? `1px solid ${BRAND.line}` : "1px solid transparent",
-        transition: "all 0.35s ease",
+        background: BRAND.bg,
+        borderBottom: `1px solid ${BRAND.line}`,
       }}
     >
       <div style={{
@@ -666,7 +662,7 @@ function AnimatedDemo() {
 
 function Hero() {
   return (
-    <section style={{ position: "relative", overflow: "hidden", paddingTop: 72, width: "100%" }}>
+    <section style={{ position: "relative", overflow: "hidden", paddingTop: 0, width: "100%" }}>
       <Glow left={-120} top={-80} size={600} from={BRAND.blue} to={BRAND.purple} />
       <Glow right={-100} top={-60} size={500} from={BRAND.green} to={BRAND.blue} />
       <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "56px 40px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
