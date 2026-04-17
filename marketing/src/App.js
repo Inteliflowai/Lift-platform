@@ -479,7 +479,7 @@ function AnimatedDemo() {
   const [barValues, setBarValues] = useState([0,0,0,0,0,0]);
 
   const SCREENS = 4;
-  const SCREEN_DURATION = 3000;
+  const SCREEN_DURATION = 10000;
   const FADE_DURATION = 400;
 
   useEffect(() => {
