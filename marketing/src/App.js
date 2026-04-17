@@ -1018,15 +1018,18 @@ function PricingSection() {
         "Full session engine — all grades 6–11",
         "Voice response + Passage reader TTS",
         "Transition Readiness Index (TRI)",
-        "6 readiness dimensions + 9 enriched behavioral signals",
-        "Learning Support Signals panel with recommendations",
-        "Evaluator Intelligence — briefings & rubric",
-        "AI-generated insight reports (internal, family, placement)",
-        "90-day Support Plan Generator for admitted students",
-        "Outcome Tracking — compare predictions vs actual performance",
-        "PDF + CSV export & FERPA-compliant data handling",
+        "7 readiness dimensions including Math + 9 behavioral signals",
+        "Learning Support Signals with recommendations",
+        "Evaluator Intelligence — briefings, rubric & observation notes",
+        "AI-generated reports (internal, family, committee brief)",
+        "Cohort View — side-by-side candidate comparison",
+        "Class Builder — model your incoming class composition",
+        "Application Data panel — GPA, test scores, recommendations",
+        "Automated invitation triggers + bulk send",
+        "90-day Support Plan Generator",
+        "Outcome Tracking — predictions vs actual performance",
         "CORE integration bridge",
-        "Guided onboarding wizard",
+        "PDF + CSV export & FERPA-compliant data handling",
         "Email support",
       ],
       cta: "Start Free Trial",
@@ -1044,6 +1047,7 @@ function PricingSection() {
         "Unlimited evaluator seats",
         "White label — custom domain & full branding",
         "SIS integrations (Veracross, Blackbaud, PowerSchool, Ravenna)",
+        "CORE Bridge — push admitted students with predicted mastery bands",
         "Cohort Intelligence Dashboard",
         "Board-ready executive reporting",
         "Custom session configuration",
@@ -1052,8 +1056,7 @@ function PricingSection() {
         "SLA — guaranteed response times",
         "Priority onboarding & training",
         "Cross-school benchmarking network",
-        "Re-application intelligence",
-        "Waitlist intelligence",
+        "Re-application & waitlist intelligence",
       ],
       cta: "Contact Us",
       href: "mailto:lift@inteliflowai.com?subject=LIFT%20Enterprise%20Inquiry",
@@ -1118,7 +1121,7 @@ function PricingSection() {
       </div>
       <Glass style={{ marginTop: 32, textAlign: "center", padding: "20px 32px", background: "rgba(99,102,241,0.10)", borderLeft: `4px solid ${BRAND.liftIndigo}`, maxWidth: 900, margin: "32px auto 0" }}>
         <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
-          <strong style={{ color: BRAND.white }}>Your 30-day trial includes all Enterprise features</strong> — unlimited sessions, full session engine, TRI scoring, evaluator intelligence, SIS integrations, benchmarking, and more. No credit card required.
+          <strong style={{ color: BRAND.white }}>Your 30-day trial includes all Enterprise features</strong> — unlimited sessions, 7-dimension scoring with math, evaluator intelligence, cohort view, class builder, committee briefs, SIS integrations, and more. No credit card required.
         </p>
       </Glass>
       <p style={{ textAlign: "center", fontSize: 14, color: BRAND.muted, marginTop: 24 }}>
