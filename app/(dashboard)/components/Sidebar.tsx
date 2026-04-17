@@ -54,8 +54,10 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Cohort", href: "/school/cohort", icon: Columns3, desc: "Side-by-side candidate comparison across the cohort", feature: FEATURES.COHORT_VIEW },
     { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score", feature: FEATURES.WAITLIST_INTELLIGENCE },
     { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison", feature: FEATURES.REAPPLICATION_INTELLIGENCE },
-    { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes", feature: FEATURES.OUTCOME_TRACKING, isNew: true },
-    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates", feature: FEATURES.PLACEMENT_SUPPORT_PLAN, isNew: true },
+    { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes", feature: FEATURES.OUTCOME_TRACKING },
+    { label: "Trends", href: "/school/reports/trends", icon: BarChart2, desc: "Year-over-year cohort trends and prediction accuracy", feature: FEATURES.PREDICTION_TRENDS, isNew: true },
+    { label: "Institutional Memory", href: "/school/reports/institutional", icon: ScrollText, desc: "Multi-year evaluator calibration and board-ready insights", feature: FEATURES.INSTITUTIONAL_MEMORY, isNew: true },
+    { label: "Support Plans", href: "/support", icon: HeartHandshake, desc: "90-day onboarding plans for admitted candidates", feature: FEATURES.PLACEMENT_SUPPORT_PLAN },
     { label: "Audit Log", href: "/school/audit", icon: ScrollText, desc: "Complete history of all actions taken on your account" },
     { label: "Settings", href: "/school/settings", icon: Settings, desc: "School preferences, voice settings, and subscription" },
   ],
@@ -130,6 +132,8 @@ export function Sidebar({
     "Prediction Accuracy": t("nav.accuracy") || "Prediction Accuracy",
     "Support Plans": t("nav.support_plans") || "Support Plans",
     "Cohort": t("nav.cohort") || "Cohort",
+    "Trends": t("nav.trends") || "Trends",
+    "Institutional Memory": t("nav.institutional_memory") || "Institutional Memory",
   };
 
   // Build combined nav sections for users with multiple roles
