@@ -33,8 +33,8 @@ LIFT (Learning Insight for Transitions) is a non-diagnostic admissions insight p
 - **OpenAI** — Whisper (voice transcription), TTS (passage reader)
 - **Stripe** — Subscription billing, checkout sessions, customer portal
 - **HighLevel** — CRM integration, sales pipeline automation
-- **Tailwind CSS 3** — Custom design tokens (primary: indigo #6366f1)
-- **Nodemailer** — SMTP email delivery (branded HTML templates)
+- **Tailwind CSS 3** — Custom design tokens (primary: teal #14b8a6, matches LIFT logo)
+- **Resend** — Email delivery via API (`RESEND_API_KEY`, sends from `lift@inteliflowai.com`)
 - **Archiver** — ZIP generation for FERPA data exports
 - **Lucide React** — Icons
 - **Sentry** — Error monitoring and performance tracking (`@sentry/nextjs`)
@@ -112,8 +112,8 @@ Three clients in `lib/supabase/`:
 Orchestrated by `POST /api/pipeline/run`, with graceful failure chain (per-step try/catch):
 
 1. **Extract** (`/api/pipeline/extract`) — Compute response_features from response_text
-2. **Score** (`/api/pipeline/score`) — Claude API call per dimension: reading, writing, reasoning, reflection, persistence, support_seeking
-3. **TRI** (`lib/signals/tri.ts`) — Transition Readiness Index: weighted average with confidence adjustments
+2. **Score** (`/api/pipeline/score`) — Claude API call per dimension: reading, writing, reasoning, math, reflection, persistence, support_seeking (7 dimensions)
+3. **TRI** (`lib/signals/tri.ts`) — Transition Readiness Index: weighted average (all 7 at 0.15 each, advocacy at 0.10) with confidence adjustments
 4. **Narrative** (`/api/pipeline/narrative`) — Generate internal_narrative and family_narrative (fallback text on failure)
 5. **Learning Support** (`lib/signals/learningSupport.ts`) — 8 boolean flags. Levels: none / watch / recommend_screening
 5b. **Enriched Signals** (`lib/signals/enrichedSignals.ts`) — 9 behavioral detectors saved as JSONB
@@ -126,7 +126,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 `lib/licensing/` implements a 2-tier subscription system (Professional $12,000/yr, Enterprise $18,000/yr) + 30-day trial (all Enterprise features minus white label):
 
-- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes, class_builder. Enterprise-only: core_bridge
+- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes, class_builder. Enterprise-only: core_bridge. Math dimension is not feature-gated — available to all tiers.
 - **`gate.ts`** — `checkFeature()`, `requireFeature()`, `checkSessionLimit()`
 - **`resolver.ts`** — License cache (5-min TTL) via `getLicense()` / `isLicenseActive()`
 - **`context.tsx`** — `LicenseProvider` + `useLicense()` hook
@@ -242,6 +242,7 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 032: application_data (candidate_application_data table)
 - 033: observation_notes (interviewer_observation_notes table)
 - 034: class_compositions (class_compositions table for Class Builder)
+- 035: math_dimension (math_score column on insight_profiles, math_problem task type)
 `FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
 
 ### Demo Mode
@@ -338,6 +339,21 @@ Enriches the existing core-handoff flow with predicted mastery band and learning
   - Style: `text` (reading/writing dominant), `kinesthetic` (reasoning/persistence), `auditory` (reflection/advocacy), `visual` (default when no clear winner)
 - **CORE side** (`app/api/import/lift-inbound/route.ts`): Stores `predicted_mastery_band` and `predicted_learning_style` in `users.lift_data` JSONB. Teacher student detail page renders LIFT Admissions Profile card (TRI, predicted band, predicted style, signal count) when `lift_data` exists.
 - **No separate toggle needed**: Platform admin enables `core_integration_enabled` on the LIFT tenant. Predictions auto-included in admit handoff. CORE shows the data when present, hides when not.
+
+### Mathematical Reasoning Dimension
+
+7th scoring dimension added to the pipeline. `lib/ai/prompts/math.ts` evaluates accuracy, problem setup, pattern recognition, number sense, and ability to explain mathematical thinking — scored at grade level. `math_score` column on `insight_profiles` (migration 035). TRI weights rebalanced: all 7 dimensions at 0.15, advocacy at 0.10.
+
+Math task templates (3 variants per grade band, 9 total):
+- Grade 6-7: Field Trip Budget, Bake Sale, Garden Plot
+- Grade 8: School Store, Pizza Party, Track Meet
+- Grade 9-11: Scholarship Fund, Population Model, Ticket Pricing
+
+Task selection randomized: session start picks one template per task type from the pool (Fisher-Yates shuffle). Candidates in the same grade band get different math problems.
+
+### Task Selection Logic
+
+`app/api/session/start/route.ts` — for task types with multiple templates, picks one randomly per type before shuffling order. This applies to ALL task types, not just math. Templates are grouped by `task_type`, one selected per group, then the selected set is shuffled for presentation order.
 
 ### Trial Intelligence
 
@@ -448,7 +464,7 @@ Optional: `LIFT_TEAM_EMAIL`, `LIFT_DEV_MODE`.
 
 ## Evaluator Candidate Detail
 
-`app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 9 tabs (some conditional):
+`app/(dashboard)/evaluator/candidates/[id]/` — The main review page. 7 dimensions scored (reading, writing, reasoning, math, reflection, persistence, advocacy). 9 tabs (some conditional):
 
 - **Overview**: TRI gauge with explanation card, radar chart, dimension scores, briefing card, learning support panel. Shows candidate email (from invites) with inline edit capability.
 - **Responses**: Task-by-task display of candidate's written responses, word counts, revision depth. Joined via `task_instances → response_text → response_features` (nested join — do NOT join response_features directly to task_instances)
@@ -495,8 +511,16 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **Terminology changes (Barb feedback)**: "Task Count" → "Session Tasks", "Hint Density" → "Hint Usage Level", "UX Mode" → "Session Experience" (Simple→Focused, Advanced→Extended), "Save Config" → "Save Settings", "Evaluator Review" tab → "My Review", "My Cases" → "My Interviews".
 - **Demo seeding self-heal**: Dashboard page calls `ensureDemoCandidates()` on every load (fire-and-forget). Only creates demo data if <3 insight_profiles exist. Only deletes candidates with zero sessions. Safe for tenants with real data.
 - **Settings auto-create**: If `tenant_settings` record is missing (registration insert failed), the settings page auto-creates one with defaults instead of showing "No settings found".
-- **CORE bridge prediction mapping**: LIFT uses `reteach`/`grade_level`/`advanced` (CORE's actual band values, not "On Track"/"Reteach"/"Advanced"). Learning styles map to CORE's 5 styles: `visual`, `auditory`, `kinesthetic`, `text`, `emerging`. The mapping is in `core-handoff/route.ts` — not a shared lib.
+- **CORE bridge prediction mapping**: LIFT uses `reteach`/`grade_level`/`advanced` (CORE's actual band values, not "On Track"/"Reteach"/"Advanced"). Learning styles map to CORE's 5 styles: `visual`, `auditory`, `kinesthetic`, `text`, `emerging`. Math dimension maps to `kinesthetic`. The mapping is in `core-handoff/route.ts` — not a shared lib.
+- **TRI label display mapping**: DB stores `emerging`/`developing`/`ready`/`thriving`. UI displays "Emerging Readiness"/"Developing Readiness"/"Strong Readiness" via `lib/utils/triLabel.ts`. The `displayTriLabel()` function handles the mapping. Do NOT use `capitalize` on raw DB labels.
+- **Email delivery**: Uses Resend API (not Nodemailer SMTP). Single env var `RESEND_API_KEY`. Sends from `lift@inteliflowai.com`. Domain verified in Resend dashboard.
+- **Brand colors**: Platform uses teal (`#14b8a6`) matching the LIFT logo — NOT indigo. Do not introduce `#6366f1` or `#818cf8` as primary colors. Use `bg-primary`, `text-primary`, `border-primary` Tailwind classes which resolve to teal via tokens.
+- **Cycle deletion**: Only allowed when cycle has zero candidates. DELETE `/api/school/cycles/[id]` deletes grade_band_templates first (FK constraint).
+- **Role editing**: Platform admin can assign any role via `/api/admin/roles`. School admin can only assign evaluator/interviewer/grade_dean/learning_specialist via `/api/school/team/[id]` PATCH. Cannot assign platform_admin or school_admin from school team page.
+- **Math task randomization**: Session start picks one template per task_type from the pool. 3 math variants per grade band = different candidates get different problems. This applies to ALL task types with multiple templates.
 
 ## Design Tokens
 
-Primary color is indigo (`#6366f1`), customizable per-tenant via white label (`wl_primary_color`). All custom colors defined in `tailwind.config.ts`: primary, success (#10b981), warning (#f59e0b), review (#f43f5e), sidebar (#1e1b2e), page-bg (#f8f8fa), surface (#ffffff), lift-border (#e5e5e5), lift-text (#1a1a2e), muted (#6b7280). Fonts: Playfair Display (headings), DM Sans (body). Branding: "Powered by Inteliflow".
+Primary color is teal (`#14b8a6`), matching the LIFT logo. Customizable per-tenant via white label (`wl_primary_color`). Dark theme: page-bg (#0d1117), surface (#161b22), lift-border (#2d333b), lift-text (#f1f5f9), muted (#94a3b8), sidebar (#0a1419). Signal colors: success (#34d399), warning (#f59e0b), review (#f87171). Fonts: Plus Jakarta Sans (headings), DM Sans (body). Branding: "Powered by Inteliflow".
+
+Brand family: Inteliflow (purple #2b1460), LIFT (teal #14b8a6), Spark (orange #f97316), CORE (indigo #6366f1).
