@@ -126,7 +126,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 `lib/licensing/` implements a 2-tier subscription system (Professional $12,000/yr, Enterprise $18,000/yr) + 30-day trial (all Enterprise features minus white label):
 
-- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes, class_builder. Enterprise-only: core_bridge. Math dimension is not feature-gated — available to all tiers.
+- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes, class_builder, prediction_trends. Enterprise-only: core_bridge, institutional_memory. Math dimension is not feature-gated — available to all tiers.
 - **`gate.ts`** — `checkFeature()`, `requireFeature()`, `checkSessionLimit()`
 - **`resolver.ts`** — License cache (5-min TTL) via `getLicense()` / `isLicenseActive()`
 - **`context.tsx`** — `LicenseProvider` + `useLicense()` hook
@@ -243,6 +243,7 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 033: observation_notes (interviewer_observation_notes table)
 - 034: class_compositions (class_compositions table for Class Builder)
 - 035: math_dimension (math_score column on insight_profiles, math_problem task type)
+- 036: longitudinal (evaluator_calibration table, avg_math on cohort_benchmarks)
 `FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
 
 ### Demo Mode
@@ -351,6 +352,25 @@ Math task templates (3 variants per grade band, 9 total):
 
 Task selection randomized: session start picks one template per task type from the pool (Fisher-Yates shuffle). Candidates in the same grade band get different math problems.
 
+### Longitudinal Analytics
+
+Two tiers of multi-year intelligence:
+
+**Professional — Trends** (`/school/reports/trends`, feature: `prediction_trends`):
+- Year-over-year avg TRI across cycles, readiness distribution table, dimension averages with trend arrows (↑↓→), prediction accuracy over time
+- API: `GET /api/analytics/trends`
+
+**Enterprise — Institutional Memory** (`/school/reports/institutional`, feature: `institutional_memory`):
+- Multi-year summary (years active, total candidates, sessions, overall accuracy), evaluator calibration table (reviews, admits, thrived vs struggled, accuracy % per evaluator — requires 3+ outcomes), board-ready insight paragraph
+- DB: `evaluator_calibration` table (migration 036)
+- API: `GET /api/analytics/institutional`
+
+### Role Editors
+
+**Platform admin** (`/admin/tenants/[id]` → Users & Roles): Dropdown per user with all roles including platform_admin/school_admin. Remove button. API: `PATCH/DELETE /api/admin/roles`.
+
+**School admin** (`/school/team`): Role dropdown limited to evaluator/interviewer/grade_dean/learning_specialist. Cannot assign platform_admin or school_admin. API: `PATCH /api/school/team/[id]` with `new_role` field.
+
 ### Task Selection Logic
 
 `app/api/session/start/route.ts` — for task types with multiple templates, picks one randomly per type before shuffling order. This applies to ALL task types, not just math. Templates are grouped by `task_type`, one selected per group, then the selected set is shuffled for presentation order.
@@ -423,18 +443,25 @@ UI always shows individual grades (Grade 6, Grade 7, Grade 8, etc.), never grade
 
 `components/ui/GuidedTour.tsx` — Step-by-step tour engine with element targeting via CSS selectors, highlight ring overlay, progress dots, localStorage persistence. `components/tours/SchoolAdminTour.tsx` — 7-step welcome tour. `components/tours/EvaluatorTour.tsx` — 7-step tour. `components/ui/FeatureBadge.tsx` — "New" pulsing dot on sidebar items (Support Plans, Prediction Accuracy, Trial Health), auto-dismisses on click via localStorage. Trial banner tooltips (`components/tooltips/TrialBannerTooltips.tsx`) show on school dashboard for trial accounts.
 
-### Marketing Site
+### Marketing Landing Page
 
-`marketing/` is a separate CRA React app (not part of the Next.js platform). Deployed via ReactPress on the Inteliflow WordPress site (SiteGround).
+`app/lift/page.tsx` — LIFT landing page served at `lift.inteliflowai.com/lift`. No WordPress dependency — deployed via Vercel on git push.
 
-- **Build**: `cd marketing && npm run build` — outputs to `marketing/build/`
-- **Deploy**: Upload `marketing/build/` to `/wp-content/reactpress/apps/lift-admissions/build/` on SiteGround
-- **Structure**: Single `src/App.js` (~1500 lines), inline styles only (no Tailwind), React-only (no other deps)
-- **WordPress integration**: `usePageStyles()` injects CSS + DOM-walks all ancestors to force full-width rendering regardless of WP theme containers
-- **Images**: All in `marketing/public/`, served via `process.env.PUBLIC_URL`
-- **Lead capture**: "Request a Demo" / "Talk With Our Team" buttons open mailto to `lift@inteliflowai.com`. HighLevel webhook (`HL_WEBHOOK_URL` constant) ready — replace placeholder when available
-- **Pricing**: Annual-only (Professional $9,600/yr, Enterprise "Call Us!"), 30-day trial with all Enterprise features. "Buy Now" links to `lift.inteliflowai.com/pricing`
-- **Brand palette**: `BRAND` constant matches Inteliflow site (deep purple `#2b1460` background, `lift-app` CSS class prefix to avoid conflicts)
+- **Positioning**: "Learning Intelligence for Admissions. Built on pedagogy. Powered by AI."
+- **Structure**: Single `'use client'` page (~1350 lines), inline styles, `@ts-nocheck` (converted from CRA)
+- **Images**: `public/marketing/` (lift-logo, founders, hero images, compliance logos)
+- **Brand palette**: `BRAND` constant — teal-forward (`#0a1419` bg, `#14b8a6` primary, `#2dd4bf` accent)
+- **Sections**: Hero + animated demo, stats bar, how it works, 7 dimensions, 9 signals, enterprise features, year-round, founders, pricing (Professional $12k / Enterprise $18k), FAQ, contact forms, footer
+- **Lead capture**: HighLevel webhook + mailto fallback
+- **Animation**: 4-screen animated demo, 7s per slide, auto-loops
+- **Mobile**: Responsive at 1024px and 720px breakpoints. Grids → single column, nav → hamburger, animation visible below hero text
+- **Legacy**: `marketing/` CRA folder still exists but is no longer the primary deployment path
+
+### Legal Pages
+
+- **`/legal/privacy`** — Full privacy policy (13 sections: scope, data collection, AI disclosure, behavioral signals disclaimer, service providers, FERPA/COPPA/CCPA/GDPR, retention, children's privacy)
+- **`/legal/terms`** — Full terms of service (17 sections: subscription tiers, acceptable use, AI outputs disclaimer, IP, indemnification, limitation of liability, governing law Wyoming)
+- Both pages use LIFT teal dark theme, "← Back to LIFT" navigation, server components with metadata
 
 ### Animated Product Demo (Marketing)
 
