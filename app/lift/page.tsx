@@ -180,6 +180,7 @@ function usePageStyles() {
         .lift-hero-image-wrap { display: none !important; }
         .lift-desktop-nav { display: none !important; }
         .lift-mobile-btn { display: flex !important; }
+        .lift-header-cta { display: none !important; }
         .lift-grid-3 { grid-template-columns: 1fr !important; }
         .lift-grid-2 { grid-template-columns: 1fr !important; }
         .lift-pricing-grid { grid-template-columns: 1fr !important; }
@@ -187,17 +188,18 @@ function usePageStyles() {
         .lift-founders-grid { grid-template-columns: 1fr !important; }
         .lift-forms-grid { grid-template-columns: 1fr !important; }
         .lift-stats-row { flex-direction: column !important; gap: 16px !important; }
-        .lift-footer-inner { flex-direction: column !important; text-align: center !important; gap: 24px !important; }
-        .lift-footer-right { align-items: center !important; }
         .lift-cta-buttons { flex-direction: column !important; align-items: center !important; }
+        .lift-app h1 { font-size: 48px !important; letter-spacing: -1.5px !important; }
       }
       @media (max-width: 720px) {
-        .lift-app h1 { font-size: 42px !important; letter-spacing: -1.2px !important; }
-        .lift-app h2 { font-size: 30px !important; }
-        .lift-section { padding: 60px 20px !important; }
+        .lift-app h1 { font-size: 36px !important; letter-spacing: -1px !important; }
+        .lift-app h2 { font-size: 26px !important; }
+        .lift-section { padding: 48px 16px !important; }
         .lift-hero-buttons { flex-direction: column !important; }
         .lift-hero-buttons a, .lift-hero-buttons button { width: 100% !important; text-align: center !important; }
         .lift-dimensions-grid { grid-template-columns: 1fr !important; }
+        .lift-header-logo { height: 44px !important; }
+        .lift-stats-row { gap: 12px !important; padding: 20px 16px !important; }
       }
     `;
     document.head.appendChild(style);
@@ -341,9 +343,9 @@ function Header({ onOpen }) {
       }}
     >
       <div style={{
-        width: "min(1280px, calc(100% - 48px))",
+        maxWidth: 1280,
         margin: "0 auto",
-        padding: "16px 0",
+        padding: "16px 24px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -352,7 +354,7 @@ function Header({ onOpen }) {
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <a href="https://inteliflowai.com" title="Back to Inteliflow" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 999, border: `1px solid ${BRAND.line}`, background: BRAND.card, color: BRAND.muted, fontSize: 18, textDecoration: "none", flexShrink: 0 }}>&larr;</a>
         <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 60, width: "auto", objectFit: "contain" }} />
+          <img src={IMAGES.liftLogo} alt="LIFT" className="lift-header-logo" style={{ height: 60, width: "auto", objectFit: "contain" }} />
         </a>
       </div>
 
@@ -373,9 +375,11 @@ function Header({ onOpen }) {
       </nav>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <GradientButton href="https://lift.inteliflowai.com/register" style={{ padding: "10px 24px", fontSize: 14 }}>
-          Start Free Trial
-        </GradientButton>
+        <span className="lift-header-cta">
+          <GradientButton href="https://lift.inteliflowai.com/register" style={{ padding: "10px 24px", fontSize: 14 }}>
+            Start Free Trial
+          </GradientButton>
+        </span>
         <button
           className="lift-mobile-btn"
           onClick={onOpen}
@@ -627,7 +631,7 @@ function Hero() {
     <section style={{ position: "relative", overflow: "hidden", paddingTop: 0, width: "100%" }}>
       <Glow left={-120} top={-80} size={600} from={BRAND.blue} to={BRAND.purple} />
       <Glow right={-100} top={-60} size={500} from={BRAND.green} to={BRAND.blue} />
-      <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "56px 40px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
+      <div className="lift-hero-grid" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "56px 24px 64px", display: "grid", gridTemplateColumns: "1.02fr 0.98fr", gap: 64, alignItems: "center", position: "relative", zIndex: 1 }}>
         <div>
           <Label>For Independent, Boarding & Therapeutic Schools</Label>
           <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 76, lineHeight: 0.95, letterSpacing: -2.8, color: BRAND.white, marginBottom: 16, marginTop: 12 }}>
@@ -666,7 +670,7 @@ function StatsBar() {
   ];
   return (
     <div style={{ background: "rgba(255,255,255,0.08)", borderTop: `1px solid ${BRAND.line}`, borderBottom: `1px solid ${BRAND.line}`, width: "100%" }}>
-      <div className="lift-stats-row" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "28px 40px", display: "flex", justifyContent: "center", gap: 64, alignItems: "center" }}>
+      <div className="lift-stats-row" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", padding: "28px 24px", display: "flex", justifyContent: "center", gap: 64, alignItems: "center" }}>
         {stats.map((s, i) => (
           <div key={i} style={{ textAlign: "center" }}>
             <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 32, fontWeight: 700, color: BRAND.white }}>{s.value}</span>
