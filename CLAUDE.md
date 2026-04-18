@@ -542,7 +542,11 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **TRI label display mapping**: DB stores `emerging`/`developing`/`ready`/`thriving`. UI displays "Emerging Readiness"/"Developing Readiness"/"Strong Readiness" via `lib/utils/triLabel.ts`. The `displayTriLabel()` function handles the mapping. Do NOT use `capitalize` on raw DB labels.
 - **Email delivery**: Uses Resend API (not Nodemailer SMTP). Single env var `RESEND_API_KEY`. Sends from `lift@inteliflowai.com`. Domain verified in Resend dashboard.
 - **Brand colors**: Platform uses teal (`#14b8a6`) matching the LIFT logo — NOT indigo. Do not introduce `#6366f1` or `#818cf8` as primary colors. Use `bg-primary`, `text-primary`, `border-primary` Tailwind classes which resolve to teal via tokens.
+- **Cycle creation**: Academic year dropdown + term selector (Full Year/Fall/Winter/Spring/Summer). Auto-generates name like "2026-2027 Fall Admissions". No open/close dates.
 - **Cycle deletion**: Only allowed when cycle has zero candidates. DELETE `/api/school/cycles/[id]` deletes grade_band_templates first (FK constraint).
+- **Session pause intervals**: Options are 1hr/2hr/4hr/12hr/24hr/48hr (stored as int hours in `session_pause_limit_hours`).
+- **Support plan tier labels**: "No Plan" → "No additional support", "Independent" → "Monitor (30-day check-in)", "Standard" → "Light support (monthly)", "Enhanced" → "Structured (weekly)", "Intensive" → "Intensive (daily)".
+- **Waitlist fit notes**: Editable "Fit Notes" column on waitlist table (uses existing `internal_notes` field via PATCH). For school-specific factors (pitcher, legacy, musician, etc.).
 - **Role editing**: Platform admin can assign any role via `/api/admin/roles`. School admin can only assign evaluator/interviewer/grade_dean/learning_specialist via `/api/school/team/[id]` PATCH. Cannot assign platform_admin or school_admin from school team page.
 - **Math task randomization**: Session start picks one template per task_type from the pool. 3 math variants per grade band = different candidates get different problems. This applies to ALL task types with multiple templates.
 
