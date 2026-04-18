@@ -1279,24 +1279,37 @@ function CTASection() {
 
 function Footer() {
   return (
-    <footer style={{ borderTop: `1px solid ${BRAND.line}`, padding: "40px 40px 32px", background: "rgba(0,0,0,0.15)", width: "100%" }}>
-      <div className="lift-footer-inner" style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 40, marginBottom: 12, filter: "brightness(2.5)" }} />
-          <p style={{ fontSize: 14, color: BRAND.muted, maxWidth: 300, lineHeight: 1.6 }}>Learning intelligence for admissions. Built on pedagogy. Powered by AI.</p>
+    <footer style={{
+      background: BRAND.bg,
+      borderTop: `1px solid ${BRAND.line}`,
+      padding: "48px 24px",
+      width: "100%",
+    }}>
+      <div style={{
+        maxWidth: 1140, margin: "0 auto",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 20,
+      }}>
+        <img src={IMAGES.liftLogo} alt="LIFT" style={{ height: 56 }} />
+        <p style={{ fontSize: 14, color: BRAND.muted, textAlign: "center" }}>
+          Learning intelligence for admissions. Built on pedagogy. Powered by AI.
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 12, color: `${BRAND.muted}88` }}>An</span>
+          <img src={IMAGES.inteliflowLogo} alt="Inteliflow" style={{ height: 28, borderRadius: 4 }} />
+          <span style={{ fontSize: 12, color: `${BRAND.muted}88` }}>product</span>
         </div>
-        <div className="lift-footer-right" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 13, color: BRAND.muted }}>Part of the Inteliflow family</span>
-            <img src={IMAGES.inteliflowLogo} alt="Inteliflow" style={{ height: 24 }} />
-          </div>
-          <div style={{ display: "flex", gap: 20, fontSize: 13 }}>
-            <a href="https://inteliflowai.com/privacy-policy" style={{ color: BRAND.muted }} target="_blank" rel="noopener noreferrer">Privacy Policy</a>
-            <a href="https://inteliflowai.com/terms-of-service" style={{ color: BRAND.muted }} target="_blank" rel="noopener noreferrer">Terms of Service</a>
-            <a href="mailto:lift@inteliflowai.com" style={{ color: BRAND.muted }}>lift@inteliflowai.com</a>
-          </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>&copy; 2026 Inteliflow AI &middot; LIFT is a non-diagnostic learning intelligence platform</p>
+        <div style={{ display: "flex", gap: 24, fontSize: 13, color: BRAND.muted }}>
+          <a href="https://inteliflowai.com/privacy-policy" style={{ color: BRAND.muted, textDecoration: "underline", textUnderlineOffset: 3 }} target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+          <a href="https://inteliflowai.com/terms-of-service" style={{ color: BRAND.muted, textDecoration: "underline", textUnderlineOffset: 3 }} target="_blank" rel="noopener noreferrer">Terms of Service</a>
         </div>
+        <a href="mailto:lift@inteliflowai.com" style={{
+          fontSize: 14, color: BRAND.sky, fontWeight: 500,
+        }}>
+          lift@inteliflowai.com
+        </a>
+        <p style={{ fontSize: 12, color: `${BRAND.muted}66`, textAlign: "center" }}>
+          &copy; 2026 Inteliflow AI &middot; LIFT is a non-diagnostic learning intelligence platform
+        </p>
       </div>
     </footer>
   );
