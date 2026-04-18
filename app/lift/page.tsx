@@ -177,7 +177,7 @@ function usePageStyles() {
 
       @media (max-width: 1024px) {
         .lift-hero-grid { grid-template-columns: 1fr !important; }
-        .lift-hero-image-wrap { display: none !important; }
+        .lift-hero-image-wrap { justify-content: center !important; }
         .lift-desktop-nav { display: none !important; }
         .lift-mobile-btn { display: flex !important; }
         .lift-header-cta { display: none !important; }
@@ -186,6 +186,7 @@ function usePageStyles() {
         .lift-pricing-grid { grid-template-columns: 1fr !important; }
         .lift-transform-grid { grid-template-columns: 1fr !important; }
         .lift-founders-grid { grid-template-columns: 1fr !important; }
+        .lift-founders-grid img { margin-left: auto !important; margin-right: auto !important; display: block !important; }
         .lift-forms-grid { grid-template-columns: 1fr !important; }
         .lift-stats-row { flex-direction: column !important; gap: 16px !important; }
         .lift-cta-buttons { flex-direction: column !important; align-items: center !important; }
