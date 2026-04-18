@@ -1303,8 +1303,8 @@ function Footer() {
           <span style={{ fontSize: 12, color: `${BRAND.muted}88` }}>product</span>
         </div>
         <div style={{ display: "flex", gap: 24, fontSize: 13, color: BRAND.muted }}>
-          <a href="https://inteliflowai.com/privacy-policy" style={{ color: BRAND.muted, textDecoration: "underline", textUnderlineOffset: 3 }} target="_blank" rel="noopener noreferrer">Privacy Policy</a>
-          <a href="https://inteliflowai.com/terms-of-service" style={{ color: BRAND.muted, textDecoration: "underline", textUnderlineOffset: 3 }} target="_blank" rel="noopener noreferrer">Terms of Service</a>
+          <a href="/legal/privacy" style={{ color: BRAND.muted, textDecoration: "underline", textUnderlineOffset: 3 }}>Privacy Policy</a>
+          <a href="/legal/terms" style={{ color: BRAND.muted, textDecoration: "underline", textUnderlineOffset: 3 }}>Terms of Service</a>
         </div>
         <a href="mailto:lift@inteliflowai.com" style={{
           fontSize: 14, color: BRAND.sky, fontWeight: 500,
