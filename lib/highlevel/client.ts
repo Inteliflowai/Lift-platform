@@ -51,24 +51,37 @@ export async function upsertHLContact(
       ? searchData?.contact
       : searchData?.contacts?.[0];
 
+    // v2 (PIT) rejects unknown top-level fields; strip customField (v1-only shape)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { customField, ...contactBase } = contact;
+    const createPayload = isPIT()
+      ? { ...contactBase, locationId }
+      : { ...contact, locationId };
+
     if (existing) {
-      await fetch(`${getHLBase()}/contacts/${existing.id}`, {
+      const putRes = await fetch(`${getHLBase()}/contacts/${existing.id}`, {
         method: "PUT",
         headers: hlHeaders(),
-        body: JSON.stringify(contact),
+        body: JSON.stringify(isPIT() ? contactBase : contact),
       });
+      if (!putRes.ok) {
+        const text = await putRes.text().catch(() => "");
+        console.error("HL upsertContact PUT failed:", putRes.status, text);
+      }
       return existing.id;
     } else {
       const createRes = await fetch(`${getHLBase()}/contacts/`, {
         method: "POST",
         headers: hlHeaders(),
-        body: JSON.stringify({
-          ...contact,
-          locationId,
-        }),
+        body: JSON.stringify(createPayload),
       });
+      if (!createRes.ok) {
+        const text = await createRes.text().catch(() => "");
+        console.error("HL upsertContact POST failed:", createRes.status, text);
+        return null;
+      }
       const created = await createRes.json();
-      return created?.contact?.id ?? null;
+      return created?.contact?.id ?? created?.id ?? null;
     }
   } catch (err) {
     console.error("HL upsertContact failed:", err);
