@@ -144,9 +144,11 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 `lib/highlevel/` handles CRM sync (all no-op if `HL_API_KEY` not set):
 
-- **`client.ts`** — `upsertHLContact()`, `addHLTags()`, `removeHLTags()`, `moveHLPipelineStage()`
+- **`client.ts`** — `upsertHLContact()`, `addHLTags()`, `removeHLTags()`, `moveHLPipelineStage()`. Auto-detects v1 (legacy location key) vs v2 (PIT key starting with `pit-`) and switches base URL / payload shape accordingly. v2 payloads strip the v1-only `customField` key (v2 rejects unknown top-level fields with 422). On non-2xx, logs status + response body before returning null.
 - **`events.ts`** — `syncLicenseEventToHL()` maps license events to HL tags + pipeline stages
-- **`/api/integrations/hl-inbound`** — Receives landing page form submissions
+- **`capture.ts`** — `captureHLLead()` shared capture logic (upsert + tags + pipeline stage + internal notification email). Called by both the landing-page endpoint and the inbound webhook so they stay in lockstep.
+- **`/api/lift/lead`** — Public endpoint called by the marketing landing-page form. Protected by: origin allowlist (`lift.inteliflowai.com` + localhost), rate limit (5/IP/hr via `lib/rateLimit/middleware`), honeypot `website` field. **No shared secret** — the browser never holds an HL-capture secret.
+- **`/api/integrations/hl-inbound`** — External webhook endpoint for HighLevel (or other third-parties) to push leads into LIFT. **HMAC-only**: verifies `x-hl-signature` header against `HL_INBOUND_SECRET` using `timingSafeEqual`. The legacy plain-secret header is no longer accepted.
 
 `output/lift-hl-snapshot.json` — Complete HL automation snapshot (16 workflows, 18 tags, 11-stage pipeline, 40 emails).
 
@@ -549,6 +551,8 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **Waitlist fit notes**: Editable "Fit Notes" column on waitlist table (uses existing `internal_notes` field via PATCH). For school-specific factors (pitcher, legacy, musician, etc.).
 - **Role editing**: Platform admin can assign any role via `/api/admin/roles`. School admin can only assign evaluator/interviewer/grade_dean/learning_specialist via `/api/school/team/[id]` PATCH. Cannot assign platform_admin or school_admin from school team page.
 - **Math task randomization**: Session start picks one template per task_type from the pool. 3 math variants per grade band = different candidates get different problems. This applies to ALL task types with multiple templates.
+- **HL API v1 vs v2 payload shape**: v2 (PIT keys) rejects the v1-only `customField` top-level key with 422. `lib/highlevel/client.ts` auto-strips it on v2. If you ever need custom fields on v2, use `customFields` (plural) as an array of `{id, field_value}` with the HL field IDs.
+- **Landing-page lead capture**: Browser posts to `/api/lift/lead` — no shared secret, gated by origin allowlist + rate limit + honeypot. The prior flow shipped `HL_INBOUND_SECRET` to the client via a hardcoded fallback in `app/lift/page.tsx`; do not reintroduce any `NEXT_PUBLIC_*` lead-capture secret. `/api/integrations/hl-inbound` is now HMAC-only for external callers.
 
 ## Design Tokens
 
