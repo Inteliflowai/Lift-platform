@@ -1,99 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
-import { upsertHLContact, addHLTags, moveHLPipelineStage } from "@/lib/highlevel/client";
-import { sendUpgradeRequestEmail } from "@/lib/email";
+import { createHmac, timingSafeEqual } from "crypto";
+import { captureHLLead } from "@/lib/highlevel/capture";
 
-function getHLStages(): Record<string, string> {
+export const dynamic = "force-dynamic";
+
+function verifyHmac(rawBody: string, signature: string | null, secret: string): boolean {
+  if (!signature) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+  if (signature.length !== expected.length) return false;
   try {
-    return JSON.parse(process.env.HL_STAGE_IDS ?? "{}");
+    return timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
   } catch {
-    return {};
+    return false;
   }
-}
-
-function verifyRequest(rawBody: string, signature: string | null, secret: string | null): boolean {
-  if (!secret) return false;
-  // Support both HMAC signature and legacy plain secret
-  if (signature) {
-    const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-    return signature === expected;
-  }
-  return false;
 }
 
 export async function POST(req: NextRequest) {
   const secret = process.env.HL_INBOUND_SECRET;
+  if (!secret) {
+    return NextResponse.json({ error: "Server not configured" }, { status: 500 });
+  }
+
   const rawBody = await req.text();
+  const signature = req.headers.get("x-hl-signature");
 
-  // Accept HMAC signature (preferred) or legacy x-hl-secret header
-  const hmacSig = req.headers.get("x-hl-signature");
-  const legacySecret = req.headers.get("x-hl-secret");
-
-  const isValid = hmacSig
-    ? verifyRequest(rawBody, hmacSig, secret ?? null)
-    : legacySecret === secret;
-
-  if (!isValid) {
+  if (!verifyHmac(rawBody, signature, secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = JSON.parse(rawBody);
-  const {
-    first_name,
-    last_name,
-    email,
-    school_name,
-    role,
-    school_type,
-    estimated_applicants,
-    message,
-    form_type,
-    source,
-    tags,
-  } = body;
+  let body;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
-  if (!email) {
+  if (!body?.email) {
     return NextResponse.json({ error: "Email required" }, { status: 400 });
   }
 
-  // Upsert HL contact
-  const contactId = await upsertHLContact({
-    email,
-    firstName: first_name,
-    lastName: last_name,
-    name: [first_name, last_name].filter(Boolean).join(" "),
-    companyName: school_name,
-    source: source || "LIFT Landing Page",
-    customField: {
-      lift_school_type: school_type ?? "",
-      lift_estimated_applicants: estimated_applicants ?? "",
-      lift_role: role ?? "",
-    },
-  });
-
-  if (contactId) {
-    // Add tags
-    const allTags = ["lift-lead", ...(tags ?? [])];
-    if (form_type) allTags.push(`lift-form-${form_type}`);
-    await addHLTags(contactId, allTags);
-
-    // Move to Demo Requested stage
-    if (getHLStages()["Demo Requested"]) {
-      await moveHLPipelineStage(contactId, getHLStages()["Demo Requested"]);
-    }
-  }
-
-  // Send internal notification (fire-and-forget)
-  sendUpgradeRequestEmail({
-    schoolName: school_name ?? "Unknown School",
-    currentTier: "lead",
-    requestedTier: form_type ?? "demo",
-    billingPreference: "",
-    adminName: [first_name, last_name].filter(Boolean).join(" "),
-    adminEmail: email,
-    message: message ?? null,
-    tenantId: "",
-  }).catch((err) => console.error("HL inbound notification email failed:", err));
-
+  const { contactId } = await captureHLLead(body);
   return NextResponse.json({ success: true, contactId });
 }

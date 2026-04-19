@@ -46,8 +46,7 @@ const BRAND = {
   liftRose: "#f87171",
 };
 
-const HL_WEBHOOK_URL = "https://lift.inteliflowai.com/api/integrations/hl-inbound";
-const HL_INBOUND_SECRET = process.env.NEXT_PUBLIC_HL_INBOUND_SECRET || "LiftHL2026!Secret";
+const LEAD_ENDPOINT = "/api/lift/lead";
 
 const NAV_ITEMS = [
   { label: "How It Works", href: "#how-it-works" },
@@ -73,27 +72,30 @@ function buildMailtoUrl(formData, formType) {
 }
 
 async function submitToHL(formData, formType) {
-  if (!HL_WEBHOOK_URL || HL_WEBHOOK_URL.startsWith("REPLACE")) {
-    window.open(buildMailtoUrl(formData, formType), "_blank");
-    return true;
-  }
+  const parts = (formData.full_name || "").trim().split(/\s+/);
+  const first_name = parts[0] || "";
+  const last_name = parts.slice(1).join(" ");
   const payload = {
     ...formData,
+    first_name,
+    last_name,
     form_type: formType,
-    source: "admissions.inteliflowai.com",
+    source: "lift.inteliflowai.com",
     submitted_at: new Date().toISOString(),
     tags: ["lift-lead", formType.toLowerCase().replace(/\s+/g, "-")],
   };
-  const response = await fetch(HL_WEBHOOK_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-hl-secret": HL_INBOUND_SECRET,
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) throw new Error("HL submission failed");
-  return true;
+  try {
+    const response = await fetch(LEAD_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error("Lead submission failed");
+    return true;
+  } catch {
+    window.open(buildMailtoUrl(formData, formType), "_blank");
+    throw new Error("Lead submission failed");
+  }
 }
 
 /* ─── Global CSS injection ─── */
@@ -377,8 +379,8 @@ function Header({ onOpen }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <span className="lift-header-cta">
-          <GradientButton href="https://lift.inteliflowai.com/register" style={{ padding: "10px 24px", fontSize: 14 }}>
-            Start Free Trial
+          <GradientButton href="https://lift.inteliflowai.com/demo/new" style={{ padding: "10px 24px", fontSize: 14 }}>
+            Try Live Demo
           </GradientButton>
         </span>
         <button
@@ -425,8 +427,9 @@ function MobileMenu({ open, onClose }) {
             {item.label}{item.external ? " \u2197" : ""}
           </a>
         ))}
-        <div style={{ marginTop: 32 }}>
-          <GradientButton href="https://lift.inteliflowai.com/register" style={{ width: "100%", textAlign: "center" }}>Start Free Trial</GradientButton>
+        <div style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 12 }}>
+          <GradientButton href="https://lift.inteliflowai.com/demo/new" style={{ width: "100%", textAlign: "center" }}>Try Live Demo</GradientButton>
+          <a href="https://lift.inteliflowai.com/register" style={{ textAlign: "center", color: BRAND.muted, fontSize: 14, padding: "10px 0", textDecoration: "none" }}>Start free trial &rarr;</a>
         </div>
       </div>
     </>
@@ -947,15 +950,15 @@ function FoundersSection() {
       </div>
       <div className="lift-founders-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 32 }}>
         <Glass style={{ textAlign: "center" }}>
-          <img src={IMAGES.barbaraImg} alt="Barbara Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }} />
+          <img src={IMAGES.barbaraImg} alt="Barbara Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", display: "block", margin: "0 auto 20px", border: `3px solid ${BRAND.line}` }} />
           <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Barbara Leventhal</h3>
           <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Co-Founder &amp; Chief Learning Officer</p>
           <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
-            With over 25 years in education across three countries, Barbara brings deep expertise in curriculum design, student assessment, and learning support. Barbara leads LIFT's pedagogical framework ensuring every dimension is grounded in decades of real classroom insight.
+            With over 30 years in education across three countries, Barbara brings deep expertise in curriculum design, student assessment, and learning support. Barbara leads LIFT's pedagogical framework ensuring every dimension is grounded in decades of real classroom insight.
           </p>
         </Glass>
         <Glass style={{ textAlign: "center" }}>
-          <img src={IMAGES.marvinImg} alt="Marvin Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", marginBottom: 20, border: `3px solid ${BRAND.line}` }} />
+          <img src={IMAGES.marvinImg} alt="Marvin Leventhal" style={{ width: 130, height: 130, borderRadius: "50%", objectFit: "cover", display: "block", margin: "0 auto 20px", border: `3px solid ${BRAND.line}` }} />
           <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 24, color: BRAND.white, marginBottom: 4 }}>Marvin Leventhal</h3>
           <p style={{ color: BRAND.sky, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Co-Founder &amp; CEO</p>
           <p style={{ fontSize: 15, color: BRAND.muted, lineHeight: 1.7 }}>
@@ -1170,7 +1173,7 @@ function FAQSection() {
 /* ─── Inquiry Form ─── */
 
 function InquiryForm({ formType }) {
-  const [form, setForm] = useState({ full_name: "", school_name: "", email: "", role: "", school_type: "", message: "" });
+  const [form, setForm] = useState({ full_name: "", school_name: "", email: "", role: "", school_type: "", message: "", website: "" });
   const [status, setStatus] = useState("idle");
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleSubmit = async (e) => {
@@ -1179,7 +1182,7 @@ function InquiryForm({ formType }) {
     try {
       await submitToHL(form, formType);
       setStatus("success");
-      setForm({ full_name: "", school_name: "", email: "", role: "", school_type: "", message: "" });
+      setForm({ full_name: "", school_name: "", email: "", role: "", school_type: "", message: "", website: "" });
     } catch { setStatus("error"); }
   };
   const inputStyle = { width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${BRAND.line}`, borderRadius: 10, color: BRAND.white, fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", transition: "border-color 0.2s" };
@@ -1200,6 +1203,9 @@ function InquiryForm({ formType }) {
     <Glass>
       <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, color: BRAND.white, marginBottom: 20 }}>{formType}</h3>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }} aria-hidden="true">
+          <label>Website<input name="website" value={form.website} onChange={handleChange} tabIndex={-1} autoComplete="off" /></label>
+        </div>
         <div><label style={labelStyle}>Full Name *</label><input name="full_name" value={form.full_name} onChange={handleChange} required style={inputStyle} /></div>
         <div><label style={labelStyle}>School Name *</label><input name="school_name" value={form.school_name} onChange={handleChange} required style={inputStyle} /></div>
         <div><label style={labelStyle}>Work Email *</label><input name="email" type="email" value={form.email} onChange={handleChange} required style={inputStyle} /></div>
@@ -1250,10 +1256,12 @@ function FormsSection() {
   return (
     <Section id="contact">
       <Label>Get in Touch</Label>
-      <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 42, color: BRAND.white, textAlign: "center", marginBottom: 40 }}>Ready to see LIFT in action?</h2>
-      <div className="lift-forms-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, maxWidth: 900, margin: "0 auto" }}>
+      <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 42, color: BRAND.white, textAlign: "center", marginBottom: 12 }}>Ready to see LIFT in action?</h2>
+      <p style={{ color: BRAND.muted, fontSize: 16, textAlign: "center", marginBottom: 40, maxWidth: 560, margin: "0 auto 40px" }}>
+        Tell us about your school and we&apos;ll set up a walkthrough — or answer questions about trials, pricing, and rollout.
+      </p>
+      <div style={{ maxWidth: 560, margin: "0 auto" }}>
         <InquiryForm formType="Request a Demo" />
-        <InquiryForm formType="Talk With Our Team" />
       </div>
     </Section>
   );
@@ -1313,7 +1321,7 @@ function Footer() {
           lift@inteliflowai.com
         </a>
         <p style={{ fontSize: 12, color: `${BRAND.muted}66`, textAlign: "center" }}>
-          &copy; 2026 Inteliflow AI &middot; LIFT is a non-diagnostic learning intelligence platform
+          &copy; 2026 Inteliflow &middot; LIFT is a non-diagnostic learning intelligence platform
         </p>
       </div>
     </footer>
