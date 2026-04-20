@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { getLocale, getBrand } from "@/lib/i18n/config";
+import { LinkedInInsightTag } from "@/components/LinkedInInsightTag";
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -54,6 +55,7 @@ export default function RootLayout({
         >
           {children}
         </LocaleProvider>
+        <LinkedInInsightTag />
       </body>
     </html>
   );
