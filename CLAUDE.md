@@ -38,7 +38,10 @@ LIFT (Learning Insight for Transitions) is a non-diagnostic admissions insight p
 - **Archiver** — ZIP generation for FERPA data exports
 - **Lucide React** — Icons
 - **Sentry** — Error monitoring and performance tracking (`@sentry/nextjs`)
-- **Vitest** — Unit test framework (79 tests covering encryption, features, TRI, pricing, Stripe webhooks, licensing gate, rate limiting, token resolution, HL webhooks, trial intelligence)
+- **PostHog** — Product analytics + session replay on marketing surfaces only (`posthog-js`, shared Inteliflow project token)
+- **Google Analytics 4** — Marketing pageview tracking (ID `G-GW73K8W8NP`, marketing routes only)
+- **LinkedIn Insight Tag** — B2B retargeting on marketing surfaces (partner ID `9004938`, shared across Inteliflow)
+- **Vitest** — Unit test framework (116 tests covering encryption, features, TRI, pricing, Stripe webhooks, licensing gate, rate limiting, token resolution, HL webhooks, trial intelligence, marketing-path allow-list)
 
 ### Toast Notifications
 
@@ -397,6 +400,29 @@ Sidebar is hidden on mobile with hamburger toggle button. Overlay + close button
 
 Sentry (`@sentry/nextjs`) configured for client, server, and edge. Global error page at `app/global-error.tsx` reports to Sentry. Requires `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT` env vars.
 
+### Marketing Analytics
+
+Three trackers — GA4, LinkedIn Insight Tag, PostHog — fire **only on public marketing paths**. Never on authenticated dashboard surfaces, candidate assessment routes, or auth/credential flows. Privacy posture driven by FERPA/COPPA: authenticated URLs include candidate UUIDs and sometimes minor PII.
+
+- **`lib/analytics/marketingPaths.ts`** — `isPublicMarketingPath(pathname)` is the **single source of truth**. Allow-list (fails closed), not deny-list. Current allow-list: `/lift`, `/pricing`, `/register`, `/buy`, `/buy/success`, `/demo/new`, `/demo/expired`, `/legal/*`. Everything else is OFF — including `/`, `/login`, `/forgot-password`, `/reset-password`, `/confirm`, `/demo/[token]`, and all `(dashboard)` / `(candidate)` routes.
+- **`__tests__/marketing-paths.test.ts`** — 37 tests gate the predicate. Adding a marketing route requires both editing the predicate and adding tests; `npm test` runs via `vercel.json` `buildCommand` so CI catches regressions.
+- **PostHog wiring**: `app/providers.tsx` exports `PHProvider`, always wraps `<PostHogProvider>` (so `usePostHog()` works on any route) but only calls `posthog.init()` inside a `useEffect` gated by the predicate. Config: `person_profiles: 'identified_only'`, `autocapture: true`, `capture_pageview: false` (manual), `capture_pageleave: true`, `session_recording.maskAllInputs: true`.
+- **Manual `$pageview`**: `app/PostHogPageView.tsx` — Suspense-wrapped because inner component uses `useSearchParams` (would otherwise opt every page out of static generation). Duplicates the allow-list check inside the effect as defense-in-depth.
+- **GA4 / LinkedIn**: `components/GoogleAnalytics.tsx`, `components/LinkedInInsightTag.tsx` — both client components that render `next/script` tags only when the predicate returns true. Mounted in root layout.
+- **`components/analytics/AnalyticsHealthCard.tsx`** — diagnostic component reading PostHog via `usePostHog()` (NOT `window.posthog`). Two variants:
+  - **overlay**: mounted on `/lift`, renders only when `?debug=1` is present. Floating bottom-right panel.
+  - **card**: mounted inside `/admin/api-test`, always visible.
+  - Shows per-tracker ON/OFF + match-vs-expected (expected auto-derived from pathname). Green border = everything matches expected state. On dashboard routes OFF is the success state.
+- **Route-group isolation deviation**: the canonical CORE pattern mounts GA4/LinkedIn inside an `app/(public)/layout.tsx` for compile-time isolation. LIFT deliberately uses component-level gating instead because `(public)` mixes marketing pages (`/register`, `/pricing`, `/buy`) with credential flows (`/forgot-password`, `/reset-password`, `/confirm`) that must not fire analytics. The allow-list predicate gives the same privacy guarantee at runtime. See comment block at top of `lib/analytics/marketingPaths.ts`.
+
+### API & Tag Diagnostics
+
+`/admin/api-test` (platform admin only) — runs live probes against external APIs and reports analytics-tag state for the current browser.
+
+- **Server-side probes**: `GET /api/admin/api-test?service=<name>` or `?service=all`. Services: Supabase (tenants read), Anthropic (1-token Claude ping ~$0.00003), OpenAI (models.list), Stripe (balance.retrieve), HighLevel (location lookup, auto-detects v1/v2 API), Resend (domains list). All read-only where possible. Returns `{ service, status, latency_ms, detail }`.
+- **Client-side tag card**: `AnalyticsHealthCard` (card variant) reads `usePostHog().__loaded`, `window._linkedin_data_partner_ids`, `window.dataLayer`/`gtag`. Expected state on this page is OFF for all three — green border + "OFF / OK" badges indicates everything is working correctly.
+- Nav: platform sidebar → "API Test" (FlaskConical icon) under System Audit.
+
 ### Email Delivery Logging
 
 `email_logs` table records every email sent via `sendLiftEmail` — recipient, subject, status (sent/failed), error message. Platform admins can query for delivery issues.
@@ -487,6 +513,8 @@ Locale/Branding: `LIFT_LOCALE` (en|pt), `LIFT_BRAND_NAME`, `LIFT_BRAND_TAGLINE`,
 
 Sentry: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`.
 
+Marketing analytics: `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, `NEXT_PUBLIC_POSTHOG_HOST` (shared Inteliflow PostHog project). GA4 ID and LinkedIn partner ID are hardcoded in `components/GoogleAnalytics.tsx` and `components/LinkedInInsightTag.tsx`. Vercel env vars must be scoped to Production (and Preview if preview builds need tracking); `NEXT_PUBLIC_*` vars are inlined at build time, not runtime — a new deploy is required after adding them.
+
 Encryption: `ENCRYPTION_KEY` (32-byte hex for AES-256-GCM, used by SIS credential encryption).
 
 Optional: `LIFT_TEAM_EMAIL`, `LIFT_DEV_MODE`.
@@ -553,6 +581,10 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **Math task randomization**: Session start picks one template per task_type from the pool. 3 math variants per grade band = different candidates get different problems. This applies to ALL task types with multiple templates.
 - **HL API v1 vs v2 payload shape**: v2 (PIT keys) rejects the v1-only `customField` top-level key with 422. `lib/highlevel/client.ts` auto-strips it on v2. If you ever need custom fields on v2, use `customFields` (plural) as an array of `{id, field_value}` with the HL field IDs.
 - **Landing-page lead capture**: Browser posts to `/api/lift/lead` — no shared secret, gated by origin allowlist + rate limit + honeypot. The prior flow shipped `HL_INBOUND_SECRET` to the client via a hardcoded fallback in `app/lift/page.tsx`; do not reintroduce any `NEXT_PUBLIC_*` lead-capture secret. `/api/integrations/hl-inbound` is now HMAC-only for external callers.
+- **Analytics allow-list is authoritative**: `lib/analytics/marketingPaths.ts` is the **only** place that decides which routes fire GA4/LinkedIn/PostHog. Adding a new marketing page means editing that file AND `__tests__/marketing-paths.test.ts`. Do NOT introduce a separate deny-list or per-component path check — it creates two sources of truth that will drift.
+- **PostHog detection uses `usePostHog()`, not `window.posthog`**: `posthog-js >= 1.369` does not attach itself to `window` as a side effect of `init()`. Reading `window.posthog` falsely reports "not loaded" even when PostHog is firing. `AnalyticsHealthCard` and any future tracker diagnostics must use the React hook from `posthog-js/react`.
+- **`NEXT_PUBLIC_*` env vars are inlined at build time**: adding PostHog/GA4/analytics vars to Vercel after a deploy requires a new build for them to be present in the client bundle. The PHProvider silently no-ops if the token is missing — check Vercel env scope (Production + Preview if needed) after any credential rotation.
+- **PostHog `$pageview` is captured manually**: `app/providers.tsx` sets `capture_pageview: false`. `app/PostHogPageView.tsx` fires `posthog.capture('$pageview')` on pathname/searchParams change. Do NOT re-enable `capture_pageview` — it will double-fire with the manual capture, and the automatic version doesn't fire reliably on Next.js App Router client navigations anyway.
 
 ## Design Tokens
 
