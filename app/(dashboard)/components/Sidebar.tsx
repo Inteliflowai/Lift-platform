@@ -30,6 +30,7 @@ import {
   HeartHandshake,
   Activity,
   Columns3,
+  FlaskConical,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -43,6 +44,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Trial Health", href: "/admin/trials", icon: Activity, isNew: true },
     { label: "System Reports", href: "/admin/reports", icon: BarChart2 },
     { label: "System Audit", href: "/admin/audit", icon: ScrollText },
+    { label: "API Test", href: "/admin/api-test", icon: FlaskConical },
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
   school_admin: [
