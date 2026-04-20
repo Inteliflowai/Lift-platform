@@ -2,16 +2,15 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
+import { isPublicMarketingPath } from "@/lib/analytics/marketingPaths";
 
 const LINKEDIN_PARTNER_ID = "9004938";
 
-// Candidate session routes — never load tracking here. These serve minors
-// taking assessments. Keep FERPA/COPPA-sensitive paths free of ad pixels.
-const EXCLUDED_PREFIXES = ["/session", "/invite", "/consent"];
-
 export function LinkedInInsightTag() {
   const pathname = usePathname();
-  if (pathname && EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p))) {
+  // Allow-list only: trackers fire on public marketing paths, never on
+  // authenticated dashboard, candidate assessment, or auth/credential flows.
+  if (!isPublicMarketingPath(pathname)) {
     return null;
   }
 

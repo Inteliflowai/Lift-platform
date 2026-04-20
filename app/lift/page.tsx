@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { AnalyticsHealthCard } from "@/components/analytics/AnalyticsHealthCard";
 
 /* ════════════════════════════════════════════════════════════
    LIFT Marketing Landing Page
@@ -1359,6 +1360,7 @@ export default function LiftLandingPage() {
       <FormsSection />
       <CTASection />
       <Footer />
+      <AnalyticsHealthCard variant="overlay" />
     </div>
   );
 }

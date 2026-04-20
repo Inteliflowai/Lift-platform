@@ -1,31 +1,38 @@
-'use client';
+"use client";
 
-import posthog from 'posthog-js';
-import { PostHogProvider as PHProvider } from 'posthog-js/react';
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import posthog from "posthog-js";
+import { PostHogProvider } from "posthog-js/react";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { isPublicMarketingPath } from "@/lib/analytics/marketingPaths";
 
-// Candidate session routes — never load tracking here. These serve minors
-// taking assessments. Keep FERPA/COPPA-sensitive paths free of analytics.
-const EXCLUDED_PREFIXES = ['/session', '/invite', '/consent'];
-
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
+export function PHProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const excluded = !!pathname && EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
+  const allowed = isPublicMarketingPath(pathname);
 
   useEffect(() => {
-    if (excluded) return;
+    if (!allowed) return;
     const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
     if (!token) return;
-    posthog.init(token, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      defaults: '2026-01-30',
-      session_recording: {
-        maskAllInputs: true,
-      },
-    });
-  }, [excluded]);
+    try {
+      posthog.init(token, {
+        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+        person_profiles: "identified_only",
+        autocapture: true,
+        capture_pageview: false,
+        capture_pageleave: true,
+        session_recording: {
+          maskAllInputs: true,
+        },
+        defaults: "2026-01-30",
+      });
+    } catch (err) {
+      // PostHog init failures should never break the page render.
+      // eslint-disable-next-line no-console
+      console.warn("PostHog init failed", err);
+    }
+  }, [allowed]);
 
-  if (excluded) return <>{children}</>;
-  return <PHProvider client={posthog}>{children}</PHProvider>;
+  // Always wrap — usePostHog() works from any route, __loaded reflects state.
+  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }
