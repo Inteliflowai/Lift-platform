@@ -6,6 +6,7 @@ import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { getLocale, getBrand } from "@/lib/i18n/config";
 import { LinkedInInsightTag } from "@/components/LinkedInInsightTag";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { PostHogProvider } from "./providers";
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -54,7 +55,7 @@ export default function RootLayout({
           brandTagline={brand.tagline}
           hidePricing={brand.hidePricing}
         >
-          {children}
+          <PostHogProvider>{children}</PostHogProvider>
         </LocaleProvider>
         <LinkedInInsightTag />
         <GoogleAnalytics />
