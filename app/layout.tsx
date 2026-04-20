@@ -5,6 +5,7 @@ import "./globals.css";
 import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { getLocale, getBrand } from "@/lib/i18n/config";
 import { LinkedInInsightTag } from "@/components/LinkedInInsightTag";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -56,6 +57,7 @@ export default function RootLayout({
           {children}
         </LocaleProvider>
         <LinkedInInsightTag />
+        <GoogleAnalytics />
       </body>
     </html>
   );
