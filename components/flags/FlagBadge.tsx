@@ -1,6 +1,6 @@
 "use client";
 
-import type { CandidateFlag, FlagType } from "@/lib/flags/types";
+import type { CandidateFlag } from "@/lib/flags/types";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 // Per-flag card: severity badge, observational description, evidence block.
