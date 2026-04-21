@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
+import { MissionStatementBanner } from "@/components/director/MissionStatementBanner";
 import { SchoolAdminTour } from "@/components/tours/SchoolAdminTour";
 import { TrialBannerTooltips } from "@/components/tooltips/TrialBannerTooltips";
 import { t } from "@/lib/i18n/useLocale";
@@ -10,6 +11,12 @@ import { ensureDemoCandidates } from "@/lib/demo/seedDemoSchool";
 
 export default async function SchoolDashboard() {
   const { tenantId, tenant } = await getTenantContext();
+
+  const { data: settingsForNudge } = await supabaseAdmin
+    .from("tenant_settings")
+    .select("mission_statement")
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
 
   // Self-heal: ensure demo candidates exist for trial tenants that registered
   // before the full demo seeder was wired into registration
@@ -190,6 +197,9 @@ export default async function SchoolDashboard() {
 
       {/* Onboarding */}
       <OnboardingBanner />
+
+      {/* Mission-statement soft nudge (visible when unset; re-nudges every 14 days) */}
+      <MissionStatementBanner missionStatement={settingsForNudge?.mission_statement ?? null} />
 
       {/* Quick Stats */}
       <div data-tour="stat-cards" className="grid grid-cols-2 gap-4 lg:grid-cols-4">

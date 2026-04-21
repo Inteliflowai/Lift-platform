@@ -200,6 +200,26 @@ export async function POST(req: NextRequest) {
     pipelineErrors.push({ step: "briefing", error: err instanceof Error ? err.message : String(err) });
   }
 
+  // Step 5b: Defensible decision language (non-blocking, fire-and-forget)
+  // Generates three parent-safe rationale versions (admit/waitlist/decline),
+  // guardrail-validated in code, with safe-template fallback on rejection.
+  try {
+    const { generateAndPersistDefensibleLanguage } = await import(
+      "@/lib/director/defensibleLanguagePersist"
+    );
+    await generateAndPersistDefensibleLanguage({
+      candidateId: session.candidate_id,
+      trigger: "pipeline",
+      respectDriftThreshold: true,
+    });
+  } catch (err) {
+    // Never block pipeline on language generation.
+    pipelineErrors.push({
+      step: "defensible_language",
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   // Step 6: Cohort benchmarks (non-blocking)
   try {
     const { data: cand } = await supabaseAdmin

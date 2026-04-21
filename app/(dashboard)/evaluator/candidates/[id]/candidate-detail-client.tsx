@@ -18,8 +18,9 @@ import { BackButton } from "@/components/ui/BackButton";
 import { displayTriLabel } from "@/lib/utils/triLabel";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
+import { DefensibleLanguageCard } from "@/components/director/DefensibleLanguageCard";
 
-type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "application" | "outcomes" | "support_plan";
+type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "application" | "outcomes" | "support_plan" | "decision_language";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
 const DIMENSIONS = ["reading", "writing", "reasoning", "math", "reflection", "persistence", "support_seeking"] as const;
 
@@ -79,7 +80,14 @@ export function CandidateDetailClient({
   const showOutcomes = ["completed", "reviewed", "admitted", "waitlisted", "offered"].includes(candidateStatus);
   const showSupportPlan = ["admitted", "offered"].includes(candidateStatus);
   const showAppData = hasFeature(FEATURES.APPLICATION_DATA);
-  const tabs: Tab[] = ["overview", "responses", "signals", "review", "interview", ...(showAppData ? ["application" as Tab] : []), ...(showOutcomes ? ["outcomes" as Tab] : []), ...(showSupportPlan ? ["support_plan" as Tab] : [])];
+  const showDecisionLanguage = hasFeature(FEATURES.DEFENSIBLE_LANGUAGE) && showOutcomes;
+  const tabs: Tab[] = [
+    "overview", "responses", "signals", "review", "interview",
+    ...(showAppData ? ["application" as Tab] : []),
+    ...(showDecisionLanguage ? ["decision_language" as Tab] : []),
+    ...(showOutcomes ? ["outcomes" as Tab] : []),
+    ...(showSupportPlan ? ["support_plan" as Tab] : []),
+  ];
 
   return (
     <div className="space-y-6">
@@ -107,7 +115,7 @@ export function CandidateDetailClient({
         {tabs.map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-primary text-primary" : "text-muted hover:text-lift-text"}`}>
-            {t === "review" ? "My Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t === "application" ? "Application" : t}
+            {t === "review" ? "My Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t === "application" ? "Application" : t === "decision_language" ? "Decision Language" : t}
           </button>
         ))}
       </div>
@@ -163,6 +171,7 @@ export function CandidateDetailClient({
       )}
       {tab === "outcomes" && <OutcomesTab candidateId={candidate.id as string} profile={profile} />}
       {tab === "support_plan" && <SupportPlanTab candidateId={candidate.id as string} candidateName={`${candidate.first_name} ${candidate.last_name}`} />}
+      {tab === "decision_language" && <DefensibleLanguageCard candidateId={candidate.id as string} />}
     </div>
   );
 }

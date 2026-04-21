@@ -41,6 +41,7 @@ export async function PATCH(req: NextRequest) {
     "wl_powered_by_visible",
     "auto_invite_on_import",
     "invite_deadline_days",
+    "mission_statement",
   ];
 
   const updates: Record<string, unknown> = {};

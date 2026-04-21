@@ -18,6 +18,7 @@ type Settings = {
   delete_audio_after_transcription: boolean;
   auto_invite_on_import?: boolean;
   invite_deadline_days?: number;
+  mission_statement?: string | null;
 };
 
 export function SettingsClient({
@@ -66,6 +67,7 @@ export function SettingsClient({
         passage_reader_enabled: settings.passage_reader_enabled,
         auto_invite_on_import: settings.auto_invite_on_import,
         invite_deadline_days: settings.invite_deadline_days,
+        mission_statement: settings.mission_statement ?? null,
       }),
     });
 
@@ -82,6 +84,26 @@ export function SettingsClient({
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
+
+      {/* School mission — referenced by defensible decision language when set */}
+      <div className="space-y-3 rounded-lg border border-lift-border bg-surface p-5">
+        <div>
+          <p className="text-sm font-medium">School Mission</p>
+          <p className="text-xs text-muted">
+            Optional. When set, admissions decision language ties rationale to your mission.
+            If left blank, language phrases around your school name and cohort fit instead.
+          </p>
+        </div>
+        <textarea
+          value={settings.mission_statement ?? ""}
+          onChange={(e) =>
+            setSettings({ ...settings, mission_statement: e.target.value })
+          }
+          placeholder="e.g. Inquiry-driven learning that prepares thoughtful citizens."
+          rows={3}
+          className="w-full rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text outline-none focus:border-primary"
+        />
+      </div>
 
       <div className="space-y-5 rounded-lg border border-lift-border bg-surface p-5">
         {/* Default Language */}

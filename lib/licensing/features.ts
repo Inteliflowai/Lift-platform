@@ -23,6 +23,7 @@ export const FEATURES = {
   OBSERVATION_NOTES:           'observation_notes',
   CLASS_BUILDER:               'class_builder',
   PREDICTION_TRENDS:           'prediction_trends',
+  DEFENSIBLE_LANGUAGE:         'defensible_language',
 
   // Enterprise tier
   BENCHMARKING_NETWORK:        'benchmarking_network',
@@ -62,6 +63,7 @@ const PROFESSIONAL_FEATURES: Feature[] = [
   FEATURES.OBSERVATION_NOTES,
   FEATURES.CLASS_BUILDER,
   FEATURES.PREDICTION_TRENDS,
+  FEATURES.DEFENSIBLE_LANGUAGE,
 ];
 
 const ENTERPRISE_FEATURES: Feature[] = [

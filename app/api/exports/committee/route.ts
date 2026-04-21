@@ -168,6 +168,48 @@ export async function GET(req: NextRequest) {
     narrative = "Committee narrative could not be generated. Please refer to the dimension scores and evaluator notes above.";
   }
 
+  // Defensible decision language — show all three versions for committee deliberation
+  const escapeHtml = (s: string): string =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  const dlCache = (candidate.defensible_language_cache ?? {}) as {
+    admit?: string;
+    waitlist?: string;
+    decline?: string;
+    fallback_used?: boolean;
+    edited_versions?: Array<{ decision: "admit" | "waitlist" | "decline"; text: string; ts: string }>;
+  };
+  const latestEdit = (decision: "admit" | "waitlist" | "decline"): string | null => {
+    const edits = (dlCache.edited_versions ?? []).filter((e) => e.decision === decision);
+    return edits.length > 0 ? edits[edits.length - 1].text : null;
+  };
+  const dlAdmit = latestEdit("admit") ?? dlCache.admit ?? "";
+  const dlWaitlist = latestEdit("waitlist") ?? dlCache.waitlist ?? "";
+  const dlDecline = latestEdit("decline") ?? dlCache.decline ?? "";
+  const hasAnyLanguage = !!(dlAdmit || dlWaitlist || dlDecline);
+
+  const decisionLanguageSection = hasAnyLanguage
+    ? `<div class="narrative-section">
+    <div class="narrative-label">Decision Language (all three versions)</div>
+    ${dlCache.fallback_used ? `<div style="margin:8px 0 12px; padding:10px 12px; background:#fff4e5; border:1px solid #f59e0b; border-radius:6px; font-size:11px; color:#92400e;"><strong>Safe template used.</strong> Review before sending — AI generation did not pass content guardrails on at least one version.</div>` : ""}
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin:10px 0 18px;">
+      <div style="border:1px solid #d1fae5; border-radius:6px; padding:12px; background:#ecfdf5;">
+        <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#047857; margin-bottom:6px;">Admit</div>
+        <p style="font-size:12px; line-height:1.55; color:#064e3b; margin:0;">${escapeHtml(dlAdmit || "Not generated.")}</p>
+      </div>
+      <div style="border:1px solid #fde68a; border-radius:6px; padding:12px; background:#fffbeb;">
+        <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#b45309; margin-bottom:6px;">Waitlist</div>
+        <p style="font-size:12px; line-height:1.55; color:#78350f; margin:0;">${escapeHtml(dlWaitlist || "Not generated.")}</p>
+      </div>
+      <div style="border:1px solid #fecaca; border-radius:6px; padding:12px; background:#fef2f2;">
+        <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#b91c1c; margin-bottom:6px;">Decline</div>
+        <p style="font-size:12px; line-height:1.55; color:#7f1d1d; margin:0;">${escapeHtml(dlDecline || "Not generated.")}</p>
+      </div>
+    </div>
+    <p style="font-size:10px; color:#78716c; margin:0 0 16px;">Pre-drafted for committee use. Not for external use until committee review is complete.</p>
+  </div>`
+    : "";
+
   // Build HTML
   const schoolName = tenant?.name || "Our School";
   const logoUrl = settings?.wl_logo_dark_url || settings?.logo_url || "";
@@ -297,6 +339,7 @@ body { font-family: 'DM Sans', Arial, sans-serif; background: #fff; color: #1c19
     </div>
     <div style="padding-bottom:18px;"></div>
   </div>
+  ${decisionLanguageSection}
   <div class="ftr">
     <div class="ftr-left">
       <strong style="color:#1c1917;">${schoolName}</strong><br/>
