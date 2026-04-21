@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
+import { StartCommitteeSessionButton } from "@/components/committee/StartCommitteeSessionButton";
 
 interface Cycle {
   id: string;
@@ -47,6 +48,12 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [dryRun, setDryRun] = useState<{ total_stale: number; estimated_minutes: number; batch_size: number } | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [activeSession, setActiveSession] = useState<{
+    id: string;
+    name: string;
+    staged: number;
+  } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -69,6 +76,26 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Load active session for this cycle (for the resume banner)
+  useEffect(() => {
+    (async () => {
+      const params = new URLSearchParams({ status: "active" });
+      if (cycleId !== "all") params.set("cycle_id", cycleId);
+      const res = await fetch(`/api/school/committee/sessions?${params}`, { cache: "no-store" });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          sessions: Array<{ id: string; name: string; status: string; vote_counts: { staged: number } }>;
+        };
+        const active = data.sessions.find((s) => s.status === "active");
+        if (active) {
+          setActiveSession({ id: active.id, name: active.name, staged: active.vote_counts.staged });
+        } else {
+          setActiveSession(null);
+        }
+      }
+    })();
+  }, [cycleId]);
 
   const rows = payload?.rows ?? [];
   const counts = payload?.counts ?? { total: 0, ready: 0, stale: 0, missing: 0 };
@@ -163,7 +190,29 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
             edit, or download the admit / waitlist / decline rationale.
           </p>
         </div>
+        {selectedIds.size > 0 && cycleId !== "all" && !activeSession && (
+          <StartCommitteeSessionButton
+            tenantCycleId={cycleId}
+            selectedCandidateIds={Array.from(selectedIds)}
+          />
+        )}
       </div>
+
+      {/* Resume active session banner */}
+      {activeSession && (
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm text-primary sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <strong>Active committee session in progress:</strong> {activeSession.name} ·{" "}
+            {activeSession.staged} staged decision{activeSession.staged === 1 ? "" : "s"}
+          </div>
+          <Link
+            href={`/school/briefing/session/${activeSession.id}`}
+            className="shrink-0 rounded-md border border-primary/60 bg-primary/20 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/30"
+          >
+            Resume →
+          </Link>
+        </div>
+      )}
 
       {/* Stale-count banner */}
       {counts.stale > 0 && (
@@ -237,6 +286,25 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
           <table className="w-full text-left text-sm">
             <thead className="bg-surface/60 text-xs text-muted">
               <tr>
+                <th className="px-3 py-2" aria-label="Select for committee">
+                  {cycleId !== "all" && !activeSession && (
+                    <input
+                      type="checkbox"
+                      aria-label="Select all candidates ready for committee"
+                      checked={rows.length > 0 && rows.filter((r) => r.language_ready).every((r) => selectedIds.has(r.id))}
+                      onChange={(e) => {
+                        const next = new Set(selectedIds);
+                        if (e.target.checked) {
+                          for (const r of rows) if (r.language_ready) next.add(r.id);
+                        } else {
+                          for (const r of rows) next.delete(r.id);
+                        }
+                        setSelectedIds(next);
+                      }}
+                      className="h-4 w-4 accent-primary"
+                    />
+                  )}
+                </th>
                 <th className="px-4 py-2 font-medium">Candidate</th>
                 <th className="px-4 py-2 font-medium">Grade</th>
                 <th className="px-4 py-2 font-medium">Status</th>
@@ -249,6 +317,22 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
             <tbody className="divide-y divide-lift-border bg-surface">
               {rows.map((r) => (
                 <tr key={r.id} className="hover:bg-primary/5">
+                  <td className="px-3 py-2.5">
+                    {cycleId !== "all" && !activeSession && r.language_ready && (
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${r.first_name} ${r.last_name} for committee`}
+                        checked={selectedIds.has(r.id)}
+                        onChange={(e) => {
+                          const next = new Set(selectedIds);
+                          if (e.target.checked) next.add(r.id);
+                          else next.delete(r.id);
+                          setSelectedIds(next);
+                        }}
+                        className="h-4 w-4 accent-primary"
+                      />
+                    )}
+                  </td>
                   <td className="px-4 py-2.5 font-medium text-lift-text">
                     {[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}
                   </td>

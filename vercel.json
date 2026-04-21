@@ -1,4 +1,5 @@
 {
+  "buildCommand": "npm test && npm run build",
   "functions": {
     "app/api/pipeline/run/route.ts": { "maxDuration": 120 },
     "app/api/pipeline/score/route.ts": { "maxDuration": 60 },
@@ -7,6 +8,10 @@
     "app/api/pipeline/synthesize/route.ts": { "maxDuration": 60 },
     "app/api/exports/pdf/route.ts": { "maxDuration": 60 },
     "app/api/session/transcribe/route.ts": { "maxDuration": 30 },
-    "app/api/session/tts/route.ts": { "maxDuration": 30 }
-  }
+    "app/api/session/tts/route.ts": { "maxDuration": 30 },
+    "app/api/school/committee/sessions/[id]/commit/route.ts": { "maxDuration": 180 }
+  },
+  "crons": [
+    { "path": "/api/cron/committee-orphan-check", "schedule": "0 9 * * *" }
+  ]
 }

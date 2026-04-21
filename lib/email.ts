@@ -12,6 +12,40 @@ import {
 const APP = process.env.NEXT_PUBLIC_APP_URL || "https://lift.inteliflowai.com";
 const TEAM = process.env.LIFT_TEAM_EMAIL || "lift@inteliflowai.com";
 
+// ─── Committee Session Orphan Warning ───
+
+export async function sendCommitteeOrphanWarningEmail(params: {
+  to: string;
+  hostFirstName: string | null;
+  schoolName: string;
+  sessionName: string;
+  stagedVoteCount: number;
+  sessionDaysOpen: number;
+  link: string;
+}) {
+  const content = [
+    emailGreeting(params.hostFirstName ?? "there"),
+    emailParagraph(
+      `A committee session at <strong>${params.schoolName}</strong> has <strong>${params.stagedVoteCount} staged decision${params.stagedVoteCount === 1 ? "" : "s"}</strong> that haven't been committed yet.`,
+    ),
+    emailCallout(
+      `"${params.sessionName}" has been open for ${params.sessionDaysOpen} days. Review the staged decisions and either commit or discard before they become stale.`,
+    ),
+    emailButton("Review session", params.link),
+    emailParagraph(
+      `<span style="color:#9ca3af;font-size:13px;">Staged decisions don't propagate to student records until you commit them. If this session was abandoned intentionally, archive it from the session page to clear this reminder.</span>`,
+    ),
+    emailSignature(),
+  ].join("");
+
+  await sendLiftEmail({
+    to: params.to,
+    subject: `Committee session needs your attention: ${params.sessionName}`,
+    content,
+    options: { previewText: `${params.stagedVoteCount} staged decisions · ${params.sessionDaysOpen} days open`, showUnsubscribe: false },
+  });
+}
+
 // ─── Candidate Invite ───
 
 export async function sendInviteEmail(params: {
