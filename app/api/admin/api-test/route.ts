@@ -159,6 +159,191 @@ async function probeResend(): Promise<ProbeResult> {
   }
 }
 
+// LIFT subsystem probes — reach the tables + cron audit rows shipped in
+// migrations 037-040. Not endpoint smoke tests; these surface aggregate
+// system state so a platform admin can eyeball cross-tenant health.
+
+async function probeDefensibleLanguage(): Promise<ProbeResult> {
+  try {
+    const { value, ms } = await time(async () => {
+      const { count: cachedCount, error: err1 } = await supabaseAdmin
+        .from("candidates")
+        .select("id", { count: "exact", head: true })
+        .not("defensible_language_updated_at", "is", null);
+      if (err1) throw err1;
+      const { data: modelRows, error: err2 } = await supabaseAdmin
+        .from("candidates")
+        .select("defensible_language_model")
+        .not("defensible_language_model", "is", null)
+        .limit(1000);
+      if (err2) throw err2;
+      const models = new Set<string>();
+      for (const r of modelRows ?? []) {
+        if (r.defensible_language_model) models.add(r.defensible_language_model);
+      }
+      return { cachedCount: cachedCount ?? 0, models: Array.from(models) };
+    });
+    const modelLabel =
+      value.models.length === 0
+        ? "no model observed yet"
+        : value.models.length === 1
+        ? value.models[0]
+        : `${value.models.length} models in use`;
+    return {
+      service: "defensible_language",
+      status: "ok",
+      latency_ms: ms,
+      detail: `${value.cachedCount} candidates with cached language · ${modelLabel}`,
+    };
+  } catch (err) {
+    return {
+      service: "defensible_language",
+      status: "error",
+      latency_ms: 0,
+      detail: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+async function probeCommitteeSessions(): Promise<ProbeResult> {
+  try {
+    const { value, ms } = await time(async () => {
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+      const [activeRes, staleRes, stagedRes, lastWarnRes] = await Promise.all([
+        supabaseAdmin
+          .from("committee_sessions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "active"),
+        supabaseAdmin
+          .from("committee_sessions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "active")
+          .lt("started_at", fourteenDaysAgo),
+        supabaseAdmin
+          .from("committee_votes")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "staged"),
+        supabaseAdmin
+          .from("audit_logs")
+          .select("created_at")
+          .eq("action", "committee_session.orphan_warned")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      if (activeRes.error) throw activeRes.error;
+      if (staleRes.error) throw staleRes.error;
+      if (stagedRes.error) throw stagedRes.error;
+      return {
+        activeCount: activeRes.count ?? 0,
+        staleCount: staleRes.count ?? 0,
+        stagedVoteCount: stagedRes.count ?? 0,
+        lastWarn: lastWarnRes.data?.created_at ?? null,
+      };
+    });
+    const lastWarnText = value.lastWarn
+      ? `last orphan warning ${new Date(value.lastWarn).toISOString().slice(0, 10)}`
+      : "no orphan warnings yet";
+    return {
+      service: "committee_sessions",
+      status: "ok",
+      latency_ms: ms,
+      detail: `${value.activeCount} active (${value.staleCount} >14d) · ${value.stagedVoteCount} staged votes · ${lastWarnText}`,
+    };
+  } catch (err) {
+    return {
+      service: "committee_sessions",
+      status: "error",
+      latency_ms: 0,
+      detail: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+async function probeEnrollmentFlags(): Promise<ProbeResult> {
+  try {
+    const { value, ms } = await time(async () => {
+      const [activeRes, notableRes, lastRunRes] = await Promise.all([
+        supabaseAdmin
+          .from("candidate_flags")
+          .select("id", { count: "exact", head: true })
+          .is("resolved_at", null),
+        supabaseAdmin
+          .from("candidate_flags")
+          .select("id", { count: "exact", head: true })
+          .is("resolved_at", null)
+          .eq("severity", "notable"),
+        supabaseAdmin
+          .from("audit_logs")
+          .select("created_at, payload")
+          .eq("action", "enrollment_readiness_flags.evaluator_run")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      if (activeRes.error) throw activeRes.error;
+      if (notableRes.error) throw notableRes.error;
+      return {
+        activeCount: activeRes.count ?? 0,
+        notableCount: notableRes.count ?? 0,
+        lastRun: lastRunRes.data,
+      };
+    });
+    let runText = "cron has not run yet";
+    if (value.lastRun) {
+      const when = new Date(value.lastRun.created_at as string);
+      const hoursAgo = Math.round((Date.now() - when.getTime()) / (60 * 60 * 1000));
+      const p = (value.lastRun.payload ?? {}) as Record<string, number>;
+      runText = `last run ${hoursAgo}h ago · ${p.tenants_processed ?? 0} processed, ${p.tenants_skipped ?? 0} skipped, ${p.flags_raised ?? 0} raised`;
+    }
+    return {
+      service: "enrollment_flags",
+      status: "ok",
+      latency_ms: ms,
+      detail: `${value.activeCount} active (${value.notableCount} notable) · ${runText}`,
+    };
+  } catch (err) {
+    return {
+      service: "enrollment_flags",
+      status: "error",
+      latency_ms: 0,
+      detail: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+async function probeMissionStatements(): Promise<ProbeResult> {
+  try {
+    const { value, ms } = await time(async () => {
+      const [totalRes, setRes] = await Promise.all([
+        supabaseAdmin.from("tenants").select("id", { count: "exact", head: true }),
+        supabaseAdmin
+          .from("tenant_settings")
+          .select("tenant_id", { count: "exact", head: true })
+          .not("mission_statement", "is", null)
+          .neq("mission_statement", ""),
+      ]);
+      if (totalRes.error) throw totalRes.error;
+      if (setRes.error) throw setRes.error;
+      return { totalTenants: totalRes.count ?? 0, withMission: setRes.count ?? 0 };
+    });
+    const pct = value.totalTenants === 0 ? 0 : Math.round((value.withMission / value.totalTenants) * 100);
+    return {
+      service: "mission_statements",
+      status: "ok",
+      latency_ms: ms,
+      detail: `${value.withMission}/${value.totalTenants} tenants have a mission statement (${pct}%)`,
+    };
+  } catch (err) {
+    return {
+      service: "mission_statements",
+      status: "error",
+      latency_ms: 0,
+      detail: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
 const PROBES: Record<string, () => Promise<ProbeResult>> = {
   supabase: probeSupabase,
   anthropic: probeAnthropic,
@@ -166,6 +351,10 @@ const PROBES: Record<string, () => Promise<ProbeResult>> = {
   stripe: probeStripe,
   highlevel: probeHighLevel,
   resend: probeResend,
+  defensible_language: probeDefensibleLanguage,
+  committee_sessions: probeCommitteeSessions,
+  enrollment_flags: probeEnrollmentFlags,
+  mission_statements: probeMissionStatements,
 };
 
 export async function GET(req: NextRequest) {

@@ -41,7 +41,7 @@ LIFT (Learning Insight for Transitions) is a non-diagnostic admissions insight p
 - **PostHog** — Product analytics + session replay on marketing surfaces only (`posthog-js`, shared Inteliflow project token)
 - **Google Analytics 4** — Marketing pageview tracking (ID `G-GW73K8W8NP`, marketing routes only)
 - **LinkedIn Insight Tag** — B2B retargeting on marketing surfaces (partner ID `9004938`, shared across Inteliflow)
-- **Vitest** — Unit test framework (116 tests covering encryption, features, TRI, pricing, Stripe webhooks, licensing gate, rate limiting, token resolution, HL webhooks, trial intelligence, marketing-path allow-list)
+- **Vitest** — Unit test framework (303 tests + 1 skipped integration, covering encryption, features, TRI, pricing, Stripe webhooks, licensing gate, rate limiting, token resolution, HL webhooks, trial intelligence, marketing-path allow-list, defensible-language guardrails/cache/L2 persistence, stale-language detection, committee plan+commit, committee orphan sessions, enrollment-readiness flag planner/catalog). Integration test behind `RUN_AI_TESTS=1`.
 
 ### Toast Notifications
 
@@ -129,7 +129,7 @@ Pipeline failures never prevent session completion. Partial completions tracked 
 
 `lib/licensing/` implements a 2-tier subscription system (Professional $12,000/yr, Enterprise $18,000/yr) + 30-day trial (all Enterprise features minus white label):
 
-- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes, class_builder, prediction_trends. Enterprise-only: core_bridge, institutional_memory. Math dimension is not feature-gated — available to all tiers.
+- **`features.ts`** — Trial gets all Enterprise features EXCEPT white label/custom branding, capped at 25 sessions. No Essentials tier — removed in favor of 2-tier model. Professional features include: cohort_view, committee_report, application_data, observation_notes, class_builder, prediction_trends, defensible_language, enrollment_readiness_flags. Enterprise-only: core_bridge, institutional_memory. Math dimension is not feature-gated — available to all tiers.
 - **`gate.ts`** — `checkFeature()`, `requireFeature()`, `checkSessionLimit()`
 - **`resolver.ts`** — License cache (5-min TTL) via `getLicense()` / `isLicenseActive()`
 - **`context.tsx`** — `LicenseProvider` + `useLicense()` hook
@@ -249,6 +249,10 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 034: class_compositions (class_compositions table for Class Builder)
 - 035: math_dimension (math_score column on insight_profiles, math_problem task type)
 - 036: longitudinal (evaluator_calibration table, avg_math on cohort_benchmarks)
+- 037: defensible_language (defensible_language_cache jsonb + defensible_language_updated_at + signal_snapshot_hash + defensible_language_model on candidates; mission_statement on tenant_settings)
+- 038: stage2_upgrades (signal_snapshot_vector jsonb on candidates, mission_statement_updated_at on tenant_settings + DB trigger, idx_candidates_briefing_readiness)
+- 039: committee_sessions (committee_sessions, committee_votes tables; partial unique index on active session per cycle)
+- 040: enrollment_readiness_flags (candidate_flags table + post_admit_silence_days on tenant_settings)
 `FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
 
 ### Demo Mode
@@ -369,6 +373,56 @@ Two tiers of multi-year intelligence:
 - Multi-year summary (years active, total candidates, sessions, overall accuracy), evaluator calibration table (reviews, admits, thrived vs struggled, accuracy % per evaluator — requires 3+ outcomes), board-ready insight paragraph
 - DB: `evaluator_calibration` table (migration 036)
 - API: `GET /api/analytics/institutional`
+
+### Defensible Decision Language
+
+Generates three parent-safe rationale versions (admit/waitlist/decline) per decision-eligible candidate using Claude Sonnet 4.6. Never LLM judgment on the recommendation itself — language only. Feature-gated: `defensible_language` (Professional+ and trial).
+
+- **Engine**: `lib/ai/defensibleLanguage.ts` — generates all three versions in one call.
+- **Guardrail**: `lib/ai/forbiddenPhrases.ts` — 30+ pattern forbidden-phrase check. Rejection triggers regeneration; after 3 rejections, falls back to deterministic safe-template text.
+- **Cache key**: `lib/ai/signalHash.ts` — SHA-256 over a canonical 16-element vector (7 dimension scores + 9 enriched-signal severity codes) plus the raw vector stored as `signal_snapshot_vector` jsonb for L2 drift checks.
+- **Drift**: `lib/director/staleLanguageDetection.ts` — normalized-L2 distance vs stored vector, 10% threshold. Replaces prior hash-equality check (Stage 2 upgrade). Also stale if mission-statement `mission_statement_updated_at` changed after generation, or if language is template-fallback.
+- **Persistence**: `lib/director/defensibleLanguagePersist.ts` — cached directly on the `candidates` row as `defensible_language_cache` jsonb + `defensible_language_updated_at` + `signal_snapshot_hash` + `defensible_language_model` + `signal_snapshot_vector` (migrations 037 + 038). No separate table.
+- **Role split**: evaluator sees read-only draft (calibration); `school_admin` + `platform_admin` get copy/edit/download/regenerate. Pre-committee banner warns against external use before deliberation.
+- **Surfaces**: "Decision Language" tab on candidate detail (`components/director/DefensibleLanguageCard.tsx`); three-version panel appended to committee export HTML.
+- **Mission statement**: `tenant_settings.mission_statement` + `mission_statement_updated_at` (DB trigger — single source of truth, catches direct DB/migration updates too). `MissionStatementBanner` on school dashboard nudges empty-mission tenants, dismissible, re-nudges every 14 days.
+- **Audit**: every generate/reject/fallback/copy/edit/regenerate writes to `audit_logs` with `defensible_language.*` action types. Auto-regen on pipeline run when hash drifts; manual regen via admin button.
+- **API**: `GET/POST /api/school/candidates/[id]/defensible-language`, `POST /api/school/candidates/[id]/defensible-language/edit`, `POST /api/school/candidates/[id]/defensible-language/copy`.
+
+### Morning Briefing & Interviewer Prep
+
+Two surfaces that consume Defensible Language output.
+
+- **`/school/briefing`** (`school_admin` + `platform_admin`) — Morning Briefing. Table of decision-eligible candidates with language-readiness pills: **Ready** (hash + L2 match, mission current, not fallback) / **Stale** (drift or mission changed) / **Missing** (no row) / **Template** (fallback text, needs regen). Cycle + status filters. "Regenerate all stale" with dry-run preview → confirmation dialog (count + estimated time) → server-side batches of 10 via `Promise.allSettled` with 500ms inter-batch sleep. Rate limit: 1 bulk-regen per tenant per 60s (429 returns `retry_after_seconds`). API: `GET /api/school/briefing`, `POST /api/school/briefing/regenerate-stale`.
+- **Interviewer workspace** (`/interviewer`) — was a 9-line stub; now surfaces candidates where `candidate_assignments.assignment_type IN ('interview', 'both')`. Uses a compact `BriefingCard` variant (top-3 observations + top-3 questions) with inline "Expand full briefing" disclosure (`aria-expanded`/`aria-controls`). Mobile-first: single column below md, min-44px tap targets. API: `GET /api/interviewer/assigned`. Components: `components/interviewer/InterviewerPrepList.tsx`, `components/evaluator/BriefingCard.tsx`.
+
+### Committee Decision-Support Tool
+
+Live committee deliberation surface — stage-then-commit flow. Feature-gated: `defensible_language` (same gate as Stage 1).
+
+- **`/school/briefing/session/[id]`** — host records votes that live in `committee_votes` during deliberation (decisions: `admit`/`waitlist`/`decline`/`defer`; statuses: `staged`/`committed`/`held`). Commit writes each to `final_recommendations`, firing existing per-candidate CORE handoff + support plan + SIS sync. Commit uses bounded concurrency of 5 (`Promise.allSettled`) to avoid downstream saturation. `lib/committee/commitStagedVotes.ts`, `lib/committee/planCommitExecution.ts`.
+- **Single-host model**: only `school_admin` starts a session; other tenant admins observe read-only. Partial unique index enforces one active session per cycle. Host transfer callable by current host, another tenant admin (sick-host case), or `platform_admin`. `current_host_id` mutable; `started_by` immutable for provenance.
+- **`CandidateDeliberationCard`** — 3-column desktop layout (admit/waitlist/decline language side-by-side) with stale-language warning + one-click regenerate. `EndSessionDialog` previews staged decisions with per-candidate "Hold for next session" toggle; summary view after commit shows outcome + failure detail per vote.
+- **Polling**: 5s interval, auto-paused when `document.visibilityState !== 'visible'` via new `lib/hooks/useVisibilityAwarePolling.ts`. No Realtime plumbing.
+- **Rate limit**: 10 votes per 10s per host (catches double-clicks), 429 with `retry_after_seconds`. Overwriting a staged vote preserves prior in audit. Removing a candidate mid-session is blocked if any staged vote exists.
+- **Orphan-session cron**: daily at 09:00 UTC, emails hosts of sessions active >14 days with staged votes. 7-day re-warn cooldown. `/api/cron/committee-orphan-check`. `lib/committee/staleSessionCheck.ts`. First cron in LIFT — conventions documented in `CRONS.md`.
+- **Migration 039**. `vercel.json` includes the commit route (`maxDuration: 180`) and the cron entry.
+- **API**: `POST /api/school/committee/sessions` (start), `GET/PATCH/DELETE /api/school/committee/sessions/[id]`, `POST /api/school/committee/sessions/[id]/vote`, `POST /api/school/committee/sessions/[id]/transfer-host`, `POST /api/school/committee/sessions/[id]/commit`.
+
+### Enrollment Readiness Flags
+
+Seven **deterministic observation-based** flags on eligible candidates (completed through offered status). **Not predictions, not risk scores, not probabilities** — observations against real data sources. Feature-gated: `enrollment_readiness_flags` (Professional+ and trial). See `docs/enrollment-readiness-flags.md` for per-flag spec (every flag documents what it does NOT mean).
+
+- **Flags**: `consent_not_captured`, `invite_expired_unopened`, `assessment_abandoned`, `low_completion`, `late_cycle_admit`, `post_admit_silence`, `interviewer_unresponsive`.
+- **Three-layer observation-not-prediction enforcement**: (1) `candidate_flags` table comment in migration 040, (2) allowlist-backed grep over Stage 4 code (ship-gate), (3) user-exposed per-flag spec in `docs/enrollment-readiness-flags.md`. Feature was originally named "Withdrawal Risk Flags" — renamed during reconciliation; naming holds observation framing throughout.
+- **Planner**: `lib/flags/planner.ts` — pure function (fully unit-tested, 28 determinism tests: 7 flags × 4 scenarios — raise, resolve-on-clear, snooze-respect, escalation-re-raise).
+- **Evaluator**: `lib/flags/evaluator.ts` — emits audit on state-change only (raised/escalated/resolved/auto_resolved), NOT on stable daily refresh. Keeps `audit_logs` forensically useful over long-lived flags.
+- **Table**: `candidate_flags` (migration 040) preserves active + resolved history for year-two ML validation against `student_outcomes.withdrawal_reason`. Partial unique index on active rows. `computed_from` jsonb captures observational evidence at detection time.
+- **Manual resolution**: required reason + 1–90 day snooze (default 30). Escalation bypasses snooze. CORE handoff auto-resolves `consent_not_captured` with `resolution_type = auto_core_handoff`.
+- **Surfaces**: `/school/flags` triage page (admin-only), Flags column on `/school/briefing` with `FlagPill` + `FlagDetailDrawer`, flag pill on committee `CandidateDeliberationCard`. Interviewers do NOT see the `interviewer_unresponsive` flag pointed at their own work.
+- **Settings**: `tenant_settings.post_admit_silence_days` (default 14, range 1–90).
+- **Cron**: daily at 10:00 UTC (1-hour stagger from committee-orphan-check — stagger convention documented in `CRONS.md`). `maxDuration: 300`. `/api/cron/enrollment-readiness-flags-evaluate` calls `checkFeature()` per tenant and skips those without `ENROLLMENT_READINESS_FLAGS` in their license; `tenants_skipped` in the `evaluator_run` audit payload.
+- **API**: `GET/POST /api/school/flags`, `POST /api/school/flags/[id]/resolve`.
 
 ### Role Editors
 
@@ -585,6 +639,14 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **PostHog detection uses `usePostHog()`, not `window.posthog`**: `posthog-js >= 1.369` does not attach itself to `window` as a side effect of `init()`. Reading `window.posthog` falsely reports "not loaded" even when PostHog is firing. `AnalyticsHealthCard` and any future tracker diagnostics must use the React hook from `posthog-js/react`.
 - **`NEXT_PUBLIC_*` env vars are inlined at build time**: adding PostHog/GA4/analytics vars to Vercel after a deploy requires a new build for them to be present in the client bundle. The PHProvider silently no-ops if the token is missing — check Vercel env scope (Production + Preview if needed) after any credential rotation.
 - **PostHog `$pageview` is captured manually**: `app/providers.tsx` sets `capture_pageview: false`. `app/PostHogPageView.tsx` fires `posthog.capture('$pageview')` on pathname/searchParams change. Do NOT re-enable `capture_pageview` — it will double-fire with the manual capture, and the automatic version doesn't fire reliably on Next.js App Router client navigations anyway.
+- **Defensible Language is language only, never judgment**: `lib/ai/defensibleLanguage.ts` generates rationale text for admit/waitlist/decline — it does NOT pick the recommendation. The forbidden-phrase guardrail (`lib/ai/forbiddenPhrases.ts`) + deterministic safe-template fallback (after 3 rejections) exist specifically so the committee never sees unsafe/diagnostic/predictive language. Do not bypass either.
+- **Staleness uses L2, not hash equality**: Stage 2 replaced hash-equality with normalized-L2 distance over the 16-element signal vector (10% threshold). Every persist writes both the hash AND `signal_snapshot_vector` jsonb — drift checks read the vector directly. Do not revert to hash-only comparison; it masks meaningful drift.
+- **Committee sessions are single-host**: one active session per cycle (partial unique index on `committee_sessions`). `current_host_id` is mutable (host transfer); `started_by` is immutable for provenance. Other tenant admins observe read-only. Commit triggers CORE handoff + support plan + SIS sync per vote with bounded concurrency of 5 — do not raise concurrency without testing downstream rate limits.
+- **Committee polling uses visibility-aware hook**: `lib/hooks/useVisibilityAwarePolling.ts` pauses polling when `document.visibilityState !== 'visible'`. 5s interval. Do not replace with naive `setInterval` — it will hammer the API when tabs are backgrounded.
+- **Enrollment Readiness Flags are OBSERVATIONS, not predictions**: per the three-layer enforcement (migration table comment, ship-gate grep check, `docs/enrollment-readiness-flags.md`), all naming and copy must reinforce observed-not-predicted framing. Do not introduce `predict|risk|likely|probability` into Stage 4 code paths. The feature was renamed from "Withdrawal Risk Flags" during reconciliation specifically to hold this line.
+- **Flag evaluator audits state-changes only**: `lib/flags/evaluator.ts` writes audit rows only on raise/escalate/resolve/auto_resolve transitions, NOT on daily stable refresh. This keeps `audit_logs` forensically useful over long-lived flags. The daily cron still runs end-to-end — it just doesn't log no-op passes.
+- **Flag cron skips unlicensed tenants**: `/api/cron/enrollment-readiness-flags-evaluate` calls `checkFeature(tenant_id, ENROLLMENT_READINESS_FLAGS)` per tenant — skipped tenants show up in `tenants_skipped` in the `evaluator_run` audit payload. Prevents flag rows from being created in tenants whose UI doesn't surface them (e.g. post-downgrade).
+- **Cron stagger convention**: crons are staggered by ≥1 hour to avoid compute bursts. committee-orphan-check 09:00 UTC, enrollment-readiness-flags-evaluate 10:00 UTC. See `CRONS.md` before adding new crons.
 
 ## Design Tokens
 
