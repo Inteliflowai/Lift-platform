@@ -13,18 +13,33 @@ type Briefing = {
   confidence_explanation: string;
 };
 
+// Number of items surfaced in compact mode. The AI produces observations and
+// questions in a coherent order; we trust that order and take the first N.
+// Do NOT resort by length/dimension/priority — the pipeline has already
+// done the sequencing work and imposing a different sort introduces noise
+// without adding signal.
+const COMPACT_OBSERVATIONS = 3;
+const COMPACT_QUESTIONS = 3;
+
 export function BriefingCard({
   briefing,
   profileFinalized,
   onRegenerate,
+  variant = "full",
+  candidateId,
 }: {
   briefing: Briefing | null;
   profileFinalized?: boolean;
   onRegenerate?: () => void;
+  variant?: "full" | "compact";
+  candidateId?: string;
 }) {
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
   const [copied, setCopied] = useState<number | null>(null);
   const [regenerating, setRegenrating] = useState(false);
+  const [compactExpanded, setCompactExpanded] = useState(false);
+  const isCompact = variant === "compact";
+  const disclosureId = `briefing-full-${candidateId ?? "anon"}`;
 
   if (!briefing) {
     // Profile is finalized but no briefing was generated — show retry option
@@ -82,7 +97,10 @@ export function BriefingCard({
       <div>
         <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Key Observations</h4>
         <ul className="space-y-1">
-          {briefing.key_observations.map((obs, i) => (
+          {(isCompact && !compactExpanded
+            ? briefing.key_observations.slice(0, COMPACT_OBSERVATIONS)
+            : briefing.key_observations
+          ).map((obs, i) => (
             <li key={i} className="flex items-start gap-2 text-sm">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#6366f1]" />
               {obs}
@@ -95,7 +113,10 @@ export function BriefingCard({
       <div>
         <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Suggested Interview Questions</h4>
         <div className="space-y-1">
-          {(briefing.interview_questions as Question[]).map((q, i) => (
+          {(isCompact && !compactExpanded
+            ? (briefing.interview_questions as Question[]).slice(0, COMPACT_QUESTIONS)
+            : (briefing.interview_questions as Question[])
+          ).map((q, i) => (
             <div key={i} className="rounded-md border border-[#e5e5e5] bg-white">
               <button
                 onClick={() => setExpandedQ(expandedQ === i ? null : i)}
@@ -123,31 +144,53 @@ export function BriefingCard({
         </div>
       </div>
 
-      {/* Areas to Explore */}
-      <div>
-        <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Areas to Explore</h4>
-        <ul className="space-y-1">
-          {briefing.areas_to_explore.map((area, i) => (
-            <li key={i} className="text-sm text-muted">Consider asking about: <span className="text-[#1a1a2e]">{area}</span></li>
-          ))}
-        </ul>
-      </div>
+      {/* Compact-mode disclosure toggle */}
+      {isCompact && (
+        <button
+          type="button"
+          onClick={() => setCompactExpanded((v) => !v)}
+          aria-expanded={compactExpanded}
+          aria-controls={disclosureId}
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-[#6366f1]/30 bg-white px-3 py-2 text-sm font-medium text-[#6366f1] hover:bg-[#6366f1]/5"
+        >
+          {compactExpanded ? "Collapse full briefing" : "Expand full briefing"}
+          <ChevronDown
+            size={14}
+            className={`transition-transform ${compactExpanded ? "rotate-180" : ""}`}
+          />
+        </button>
+      )}
 
-      {/* Strengths to Confirm */}
-      <div>
-        <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Strengths to Confirm</h4>
-        <ul className="space-y-1">
-          {briefing.strengths_to_confirm.map((s, i) => (
-            <li key={i} className="text-sm text-muted">Look to validate: <span className="text-[#1a1a2e]">{s}</span></li>
-          ))}
-        </ul>
-      </div>
+      {/* Full-mode sections OR compact-expanded content */}
+      {(!isCompact || compactExpanded) && (
+        <div id={disclosureId} className="space-y-5">
+          {/* Areas to Explore */}
+          <div>
+            <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Areas to Explore</h4>
+            <ul className="space-y-1">
+              {briefing.areas_to_explore.map((area, i) => (
+                <li key={i} className="text-sm text-muted">Consider asking about: <span className="text-[#1a1a2e]">{area}</span></li>
+              ))}
+            </ul>
+          </div>
 
-      {/* Confidence Explanation */}
-      <div className="rounded-md bg-white border border-[#e5e5e5] px-3 py-2">
-        <h4 className="text-xs font-semibold text-muted mb-1">Why This Confidence Level</h4>
-        <p className="text-sm">{briefing.confidence_explanation}</p>
-      </div>
+          {/* Strengths to Confirm */}
+          <div>
+            <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Strengths to Confirm</h4>
+            <ul className="space-y-1">
+              {briefing.strengths_to_confirm.map((s, i) => (
+                <li key={i} className="text-sm text-muted">Look to validate: <span className="text-[#1a1a2e]">{s}</span></li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Confidence Explanation */}
+          <div className="rounded-md bg-white border border-[#e5e5e5] px-3 py-2">
+            <h4 className="text-xs font-semibold text-muted mb-1">Why This Confidence Level</h4>
+            <p className="text-sm">{briefing.confidence_explanation}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -190,15 +190,26 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
   const hasAnyLanguage = !!(payload.cache.admit || payload.cache.waitlist || payload.cache.decline);
 
   if (!hasAnyLanguage) {
+    const preCompletion = payload.status
+      ? ["invited", "consent_pending", "active"].includes(payload.status)
+      : false;
     return (
       <div className="rounded-lg border border-lift-border bg-surface p-6 space-y-3">
         <h3 className="text-sm font-semibold">Decision Language</h3>
-        <p className="text-sm text-muted">
-          Decision language will be generated automatically after the assessment pipeline
-          completes. If the pipeline has already finished for this candidate, you can trigger
-          a manual generation below.
-        </p>
-        {payload.permissions.can_regenerate && (
+        {preCompletion ? (
+          <p className="text-sm text-muted">
+            This candidate hasn&apos;t completed their assessment yet. Decision language is
+            generated automatically once the assessment pipeline finishes. Current status:{" "}
+            <span className="capitalize text-lift-text">{payload.status?.replace("_", " ")}</span>.
+          </p>
+        ) : (
+          <p className="text-sm text-muted">
+            Decision language will be generated automatically after the assessment pipeline
+            completes. If the pipeline has already finished for this candidate, you can trigger
+            a manual generation below.
+          </p>
+        )}
+        {!preCompletion && payload.permissions.can_regenerate && (
           <button
             onClick={handleRegenerate}
             disabled={regenerating}

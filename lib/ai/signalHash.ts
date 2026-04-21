@@ -82,6 +82,33 @@ export function canonicalVector(snapshot: SignalSnapshot): number[] {
   return [...dims, ...sigs];
 }
 
+// Alias exported for clarity at call sites that persist the vector rather
+// than hash it. Same implementation as canonicalVector; different name to
+// signal intent ("I'm about to store this in the DB").
+export function computeSignalSnapshotVector(snapshot: SignalSnapshot): number[] {
+  return canonicalVector(snapshot);
+}
+
+// Normalized L2 distance from two already-materialized vectors. Used by the
+// persist layer to check drift against the stored signal_snapshot_vector
+// without rebuilding a full SignalSnapshot.
+export function normalizedDistanceFromVectors(
+  vecA: number[],
+  vecB: number[],
+): number {
+  if (vecA.length !== vecB.length) {
+    // Defensive: incompatible vector lengths → treat as maximally different.
+    // Real-world cause: signal catalog changed between writes. Forces regen.
+    return 1.0;
+  }
+  let sumSq = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    const d = vecA[i] - vecB[i];
+    sumSq += d * d;
+  }
+  return Math.sqrt(sumSq) / MAX_POSSIBLE_L2;
+}
+
 export function computeSignalSnapshotHash(snapshot: SignalSnapshot): string {
   const vec = canonicalVector(snapshot);
   const canonical = vec.map((v) => v.toFixed(1)).join(",");

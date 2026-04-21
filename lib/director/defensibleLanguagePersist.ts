@@ -13,7 +13,16 @@ import {
   type DefensibleLanguageCache,
   type GenerationInputs,
 } from "@/lib/ai/defensibleLanguage";
-import { shouldRegenerate, type SignalSnapshot } from "@/lib/ai/signalHash";
+import {
+  computeSignalSnapshotVector,
+  normalizedDistanceFromVectors,
+  type SignalSnapshot,
+} from "@/lib/ai/signalHash";
+
+// Drift threshold for auto-regeneration: 10% normalized L2 distance.
+// Below this, cached language is considered current. See signalHash tests
+// for the boundary semantics.
+const DRIFT_THRESHOLD = 0.1;
 
 type Trigger = "pipeline" | "manual";
 
@@ -81,7 +90,7 @@ export async function generateAndPersistDefensibleLanguage(
   const { data: candidate } = await supabaseAdmin
     .from("candidates")
     .select(
-      "id, tenant_id, first_name, last_name, grade_applying_to, defensible_language_cache, signal_snapshot_hash",
+      "id, tenant_id, first_name, last_name, grade_applying_to, defensible_language_cache, signal_snapshot_hash, signal_snapshot_vector",
     )
     .eq("id", candidateId)
     .single();
@@ -145,25 +154,17 @@ export async function generateAndPersistDefensibleLanguage(
     enrichedSignals,
   };
 
-  // Drift-threshold check — only skip if caller opted in AND a previous cache exists.
-  if (respectDriftThreshold && candidate.signal_snapshot_hash) {
+  // Drift-threshold check — only skip if caller opted in AND a previous cache
+  // + stored vector exist. Uses normalized-L2 distance in the 16-dim space.
+  const newVector = computeSignalSnapshotVector(snapshot);
+  if (respectDriftThreshold && Array.isArray(candidate.signal_snapshot_vector)) {
     const priorCache = (candidate.defensible_language_cache ?? {}) as Partial<DefensibleLanguageCache>;
     if (priorCache.admit && priorCache.waitlist && priorCache.decline) {
-      // Re-derive the prior snapshot would require reverse-hashing, which
-      // we don't do. We use a simpler heuristic: if the hash stored on the
-      // candidate row matches the newly-computed one, content is unchanged
-      // and we skip. Any real change produces a different hash.
-      const { computeSignalSnapshotHash } = await import("@/lib/ai/signalHash");
-      const newHash = computeSignalSnapshotHash(snapshot);
-      if (newHash === candidate.signal_snapshot_hash) {
-        return { persisted: null, skipped: true, reason: "no_drift" };
+      const priorVector = candidate.signal_snapshot_vector as number[];
+      const distance = normalizedDistanceFromVectors(priorVector, newVector);
+      if (distance < DRIFT_THRESHOLD) {
+        return { persisted: null, skipped: true, reason: "drift_below_threshold" };
       }
-      // Hash differs — but check how much. We don't have the old snapshot
-      // for a full L2, so we rely on: hash-diff → regenerate.
-      // (The 10% threshold is a tuning knob — for now, any drift regenerates.
-      //  We can refine by persisting the canonical vector alongside the hash
-      //  in a follow-up.)
-      void shouldRegenerate; // future use
     }
   }
 
@@ -196,6 +197,7 @@ export async function generateAndPersistDefensibleLanguage(
       defensible_language_cache: merged,
       defensible_language_updated_at: merged.generated_at,
       signal_snapshot_hash: merged.signal_snapshot_hash,
+      signal_snapshot_vector: newVector,
       defensible_language_model: merged.model,
     })
     .eq("id", candidateId);
