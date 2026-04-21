@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
-import { FlagBadge, FLAG_LABELS } from "@/components/flags/FlagBadge";
+import { FlagBadge } from "@/components/flags/FlagBadge";
 import type { CandidateFlag, FlagType } from "@/lib/flags/types";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface Cycle {
   id: string;
@@ -42,6 +43,7 @@ const FLAG_TYPES: FlagType[] = [
 
 export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
   const { toast } = useToast();
+  const { t } = useLocale();
   const { hasFeature } = useLicense();
   const featureEnabled = hasFeature(FEATURES.ENROLLMENT_READINESS_FLAGS);
 
@@ -67,12 +69,12 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
         const data = (await res.json()) as Payload;
         setPayload(data);
       } else {
-        toast("Failed to load flags", "error");
+        toast(t("flags.load_failed"), "error");
       }
     } finally {
       setLoading(false);
     }
-  }, [severityFilter, flagTypeFilter, cycleId, toast]);
+  }, [severityFilter, flagTypeFilter, cycleId, toast, t]);
 
   useEffect(() => {
     load();
@@ -80,7 +82,7 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
 
   async function resolveFlag(flagId: string) {
     if (!resolveReason.trim()) {
-      toast("Resolution reason required", "error");
+      toast(t("flags.resolve.reason_required"), "error");
       return;
     }
     setSubmitting(true);
@@ -92,10 +94,10 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        toast(err.error ?? "Resolve failed", "error");
+        toast(err.error ?? t("flags.resolve.failure"), "error");
         return;
       }
-      toast("Flag resolved", "success");
+      toast(t("flags.resolve.success"), "success");
       setResolvingId(null);
       setResolveReason("");
       await load();
@@ -107,9 +109,9 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
   if (!featureEnabled) {
     return (
       <div className="rounded-lg border border-lift-border bg-surface p-6">
-        <h1 className="text-2xl font-bold">Flags</h1>
+        <h1 className="text-2xl font-bold">{t("flags.page.feature_disabled_title")}</h1>
         <p className="mt-2 text-sm text-muted">
-          Enrollment Readiness Flags are not enabled on this tier.
+          {t("flags.page.feature_disabled_body")}
         </p>
       </div>
     );
@@ -121,70 +123,68 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold">Enrollment Readiness Flags</h1>
+        <h1 className="text-2xl font-bold">{t("flags.page.title")}</h1>
         <p className="mt-1 text-sm text-muted">
-          Observed conditions that may need admissions-team attention. Each flag is raised
-          from real data on the candidate — never a prediction of outcome. See{" "}
-          <Link href="/docs/enrollment-readiness-flags" className="text-primary hover:underline">the per-flag spec</Link>{" "}
-          for every flag&apos;s raise condition.
+          {t("flags.page.subtitle")}{" "}
+          <Link href="/docs/enrollment-readiness-flags" className="text-primary hover:underline">{t("flags.page.spec_link")}</Link>
         </p>
       </div>
 
       {/* Filters + counts */}
       <div className="flex flex-col gap-3 rounded-lg border border-lift-border bg-surface p-4 sm:flex-row sm:items-end">
         <label className="flex flex-col gap-1 text-xs text-muted">
-          Severity
+          {t("flags.filter.severity")}
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value as typeof severityFilter)}
             className="min-h-[40px] rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text"
           >
-            <option value="all">All</option>
-            <option value="notable">Notable</option>
-            <option value="advisory">Advisory</option>
+            <option value="all">{t("flags.filter.all")}</option>
+            <option value="notable">{t("flags.filter.notable")}</option>
+            <option value="advisory">{t("flags.filter.advisory")}</option>
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
-          Flag type
+          {t("flags.filter.flag_type")}
           <select
             value={flagTypeFilter}
             onChange={(e) => setFlagTypeFilter(e.target.value as FlagType | "all")}
             className="min-h-[40px] rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text"
           >
-            <option value="all">All types</option>
-            {FLAG_TYPES.map((t) => (
-              <option key={t} value={t}>{FLAG_LABELS[t]}</option>
+            <option value="all">{t("flags.filter.all_types")}</option>
+            {FLAG_TYPES.map((ft) => (
+              <option key={ft} value={ft}>{t(`flags.label.${ft}`)}</option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
-          Cycle
+          {t("flags.filter.cycle")}
           <select
             value={cycleId}
             onChange={(e) => setCycleId(e.target.value)}
             className="min-h-[40px] rounded-md border border-lift-border bg-page-bg px-3 py-2 text-sm text-lift-text"
           >
-            <option value="all">All cycles</option>
+            <option value="all">{t("flags.filter.all_cycles")}</option>
             {cycles.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </label>
         <div className="ml-auto flex items-end gap-4 text-xs text-muted">
-          <span><strong className="text-rose-400">{counts.notable}</strong> notable</span>
-          <span><strong className="text-amber-400">{counts.advisory}</strong> advisory</span>
-          <span><strong className="text-lift-text">{counts.total}</strong> total</span>
+          <span><strong className="text-rose-400">{counts.notable}</strong> {t("flags.counts.notable_suffix")}</span>
+          <span><strong className="text-amber-400">{counts.advisory}</strong> {t("flags.counts.advisory_suffix")}</span>
+          <span><strong className="text-lift-text">{counts.total}</strong> {t("flags.counts.total_suffix")}</span>
         </div>
       </div>
 
       {/* Flag rows */}
       {loading ? (
         <div className="rounded-lg border border-lift-border bg-surface p-6">
-          <p className="text-sm text-muted">Loading…</p>
+          <p className="text-sm text-muted">{t("common.loading")}</p>
         </div>
       ) : rows.length === 0 ? (
         <div className="rounded-lg border border-lift-border bg-surface p-6">
-          <p className="text-sm text-muted">No active flags match the current filters.</p>
+          <p className="text-sm text-muted">{t("flags.empty.no_match")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -212,17 +212,17 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
                 {resolvingId === row.id && (
                   <div className="mt-2 space-y-2 rounded-md border border-primary/40 bg-primary/5 p-3">
                     <label className="block text-[11px] font-medium text-muted">
-                      Resolution reason (required)
+                      {t("flags.resolve.reason_label")}
                       <textarea
                         value={resolveReason}
                         onChange={(e) => setResolveReason(e.target.value)}
                         rows={2}
                         className="mt-1 w-full rounded border border-lift-border bg-surface px-2 py-1.5 text-xs text-lift-text"
-                        placeholder="e.g. Family confirmed by phone"
+                        placeholder={t("flags.resolve.reason_placeholder")}
                       />
                     </label>
                     <label className="block text-[11px] font-medium text-muted">
-                      Snooze: {snoozeDays} days
+                      {t("flags.resolve.snooze_label").replace("{days}", String(snoozeDays))}
                       <input
                         type="range"
                         min={1}
@@ -238,7 +238,7 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
                         disabled={submitting || !resolveReason.trim()}
                         className="flex-1 min-h-[36px] rounded bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50"
                       >
-                        {submitting ? "Resolving…" : "Resolve"}
+                        {submitting ? t("flags.action.resolving") : t("flags.action.resolve")}
                       </button>
                       <button
                         onClick={() => {
@@ -248,7 +248,7 @@ export function FlagsClient({ cycles }: { cycles: Cycle[] }) {
                         disabled={submitting}
                         className="flex-1 min-h-[36px] rounded border border-lift-border bg-surface px-3 py-1.5 text-xs text-muted"
                       >
-                        Cancel
+                        {t("common.cancel")}
                       </button>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { CandidateFlag, FlagSeverity } from "@/lib/flags/types";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 // Compact at-a-glance pill. Shows highest-severity tone with a "+N more"
 // suffix when the candidate has multiple active flags. Click opens the
@@ -22,6 +23,7 @@ function highestSeverity(flags: CandidateFlag[]): FlagSeverity | null {
 }
 
 export function FlagPill({ activeFlags, onClick, compact = false }: Props) {
+  const { t } = useLocale();
   if (activeFlags.length === 0) return null;
   const sev = highestSeverity(activeFlags);
 
@@ -30,8 +32,8 @@ export function FlagPill({ activeFlags, onClick, compact = false }: Props) {
       ? "bg-rose-500/15 text-rose-400 border-rose-500/40"
       : "bg-amber-500/15 text-amber-400 border-amber-500/40";
 
-  const label = sev === "notable" ? "needs attention" : "observation";
-  const suffix = activeFlags.length > 1 ? ` +${activeFlags.length - 1} more` : "";
+  const label = sev === "notable" ? t("flags.pill.needs_attention") : t("flags.pill.observation");
+  const suffix = activeFlags.length > 1 ? ` +${activeFlags.length - 1}` : "";
 
   return (
     <button

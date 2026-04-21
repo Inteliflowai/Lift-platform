@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BriefingCard } from "@/components/evaluator/BriefingCard";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Question = { question: string; rationale: string; dimension: string };
 
@@ -29,6 +30,7 @@ interface Assignment {
 }
 
 export function InterviewerPrepList() {
+  const { t } = useLocale();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function InterviewerPrepList() {
         const res = await fetch("/api/interviewer/assigned", { cache: "no-store" });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          setError(err.error ?? "Failed to load assignments");
+          setError(err.error ?? t("interviewer_prep.failure"));
           return;
         }
         const data = (await res.json()) as { assignments: Assignment[] };
@@ -48,12 +50,12 @@ export function InterviewerPrepList() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (
       <div className="rounded-lg border border-lift-border bg-surface p-6">
-        <p className="text-sm text-muted">Loading your assigned interviews…</p>
+        <p className="text-sm text-muted">{t("interviewer_prep.loading")}</p>
       </div>
     );
   }
@@ -70,8 +72,7 @@ export function InterviewerPrepList() {
     return (
       <div className="rounded-lg border border-lift-border bg-surface p-6">
         <p className="text-sm text-muted">
-          No candidates assigned for interview yet. Your school admin will assign candidates
-          as they complete their assessments and become ready for committee review.
+          {t("interviewer_prep.empty")}
         </p>
       </div>
     );
@@ -90,6 +91,7 @@ export function InterviewerPrepList() {
 }
 
 function AssignmentCard({ assignment }: { assignment: Assignment }) {
+  const { t } = useLocale();
   const fullName =
     [assignment.first_name, assignment.last_name].filter(Boolean).join(" ") || "Candidate";
   const profileFinalized = assignment.briefing !== null;
@@ -124,13 +126,13 @@ function AssignmentCard({ assignment }: { assignment: Assignment }) {
           href={`/evaluator/candidates/${assignment.candidate_id}`}
           className="flex min-h-[44px] flex-1 items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90"
         >
-          Open full profile
+          {t("interviewer_prep.open_profile")}
         </Link>
         <Link
           href={`/evaluator/candidates/${assignment.candidate_id}?tab=interview`}
           className="flex min-h-[44px] flex-1 items-center justify-center rounded-md border border-lift-border bg-surface px-3 py-2 text-sm font-medium text-lift-text hover:bg-primary/5 hover:text-primary"
         >
-          Enter rubric →
+          {t("interviewer_prep.enter_rubric")}
         </Link>
       </div>
     </div>
@@ -138,10 +140,11 @@ function AssignmentCard({ assignment }: { assignment: Assignment }) {
 }
 
 function AssignmentStatusPill({ status }: { status: string }) {
+  const { t } = useLocale();
   const label =
-    status === "completed" ? "Done"
-    : status === "in_progress" ? "In progress"
-    : "To do";
+    status === "completed" ? t("interviewer_prep.status.done")
+    : status === "in_progress" ? t("interviewer_prep.status.in_progress")
+    : t("interviewer_prep.status.todo");
   const className =
     status === "completed"
       ? "bg-emerald-500/10 text-emerald-400"

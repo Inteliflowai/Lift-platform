@@ -8,6 +8,7 @@ import {
   emailList,
   emailSignature,
 } from "@/lib/emails/templates/base";
+import { getLocale } from "@/lib/i18n/config";
 
 const APP = process.env.NEXT_PUBLIC_APP_URL || "https://lift.inteliflowai.com";
 const TEAM = process.env.LIFT_TEAM_EMAIL || "lift@inteliflowai.com";
@@ -23,26 +24,54 @@ export async function sendCommitteeOrphanWarningEmail(params: {
   sessionDaysOpen: number;
   link: string;
 }) {
-  const content = [
-    emailGreeting(params.hostFirstName ?? "there"),
-    emailParagraph(
-      `A committee session at <strong>${params.schoolName}</strong> has <strong>${params.stagedVoteCount} staged decision${params.stagedVoteCount === 1 ? "" : "s"}</strong> that haven't been committed yet.`,
-    ),
-    emailCallout(
-      `"${params.sessionName}" has been open for ${params.sessionDaysOpen} days. Review the staged decisions and either commit or discard before they become stale.`,
-    ),
-    emailButton("Review session", params.link),
-    emailParagraph(
-      `<span style="color:#9ca3af;font-size:13px;">Staged decisions don't propagate to student records until you commit them. If this session was abandoned intentionally, archive it from the session page to clear this reminder.</span>`,
-    ),
-    emailSignature(),
-  ].join("");
+  const isPt = getLocale() === "pt";
+  const fallbackGreeting = isPt ? "olá" : "there";
+  const voteWord = isPt
+    ? params.stagedVoteCount === 1 ? "decisão preliminar" : "decisões preliminares"
+    : `staged decision${params.stagedVoteCount === 1 ? "" : "s"}`;
+
+  const content = isPt
+    ? [
+        emailGreeting(params.hostFirstName ?? fallbackGreeting),
+        emailParagraph(
+          `Uma sessão de comitê em <strong>${params.schoolName}</strong> tem <strong>${params.stagedVoteCount} ${voteWord}</strong> que ainda não foram registradas em definitivo.`,
+        ),
+        emailCallout(
+          `"${params.sessionName}" está aberta há ${params.sessionDaysOpen} dias. Revise as decisões preliminares e registre-as ou descarte-as antes que fiquem desatualizadas.`,
+        ),
+        emailButton("Revisar sessão", params.link),
+        emailParagraph(
+          `<span style="color:#9ca3af;font-size:13px;">Decisões preliminares não chegam aos registros do(a) estudante até que sejam registradas em definitivo. Se esta sessão foi abandonada intencionalmente, arquive-a a partir da página da sessão para silenciar este lembrete.</span>`,
+        ),
+        emailSignature(),
+      ].join("")
+    : [
+        emailGreeting(params.hostFirstName ?? fallbackGreeting),
+        emailParagraph(
+          `A committee session at <strong>${params.schoolName}</strong> has <strong>${params.stagedVoteCount} ${voteWord}</strong> that haven't been committed yet.`,
+        ),
+        emailCallout(
+          `"${params.sessionName}" has been open for ${params.sessionDaysOpen} days. Review the staged decisions and either commit or discard before they become stale.`,
+        ),
+        emailButton("Review session", params.link),
+        emailParagraph(
+          `<span style="color:#9ca3af;font-size:13px;">Staged decisions don't propagate to student records until you commit them. If this session was abandoned intentionally, archive it from the session page to clear this reminder.</span>`,
+        ),
+        emailSignature(),
+      ].join("");
 
   await sendLiftEmail({
     to: params.to,
-    subject: `Committee session needs your attention: ${params.sessionName}`,
+    subject: isPt
+      ? `Sessão de comitê requer sua atenção: ${params.sessionName}`
+      : `Committee session needs your attention: ${params.sessionName}`,
     content,
-    options: { previewText: `${params.stagedVoteCount} staged decisions · ${params.sessionDaysOpen} days open`, showUnsubscribe: false },
+    options: {
+      previewText: isPt
+        ? `${params.stagedVoteCount} decisões preliminares · ${params.sessionDaysOpen} dias em aberto`
+        : `${params.stagedVoteCount} staged decisions · ${params.sessionDaysOpen} days open`,
+      showUnsubscribe: false,
+    },
   });
 }
 

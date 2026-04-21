@@ -84,6 +84,77 @@ export const FORBIDDEN_PATTERNS: readonly ForbiddenPattern[] = [
   { pattern: /\bgifted\b/i,                             category: "iq_deficit" },
   { pattern: /\bdeficit\b/i,                            category: "iq_deficit" },
   { pattern: /\bintellectual(?:ly)? (?:gifted|limited|impaired)\b/i, category: "iq_deficit" },
+
+  // ----------------------------------------------------------------------
+  // PORTUGUESE (Brazilian) variants
+  // ----------------------------------------------------------------------
+  // Mirrors the categories above for the EduInsights/PT deployment. Word
+  // boundaries (\b) work even with internal diacritics (ç, ã, õ, é) because
+  // PT words still start and end with ASCII letters in nearly all cases.
+  // Patterns are case-insensitive; gender suffix variants (-o/-a, -os/-as)
+  // are unioned in a single regex where the masculine and feminine forms
+  // would otherwise duplicate.
+
+  // Comparative framing (PT)
+  // PT contractions: "a + os = aos", "a + as = às", "a + o = ao", "a + a = à".
+  // Word boundaries (\b) ensure the longer contractions match before "a"
+  // because "a" only matches when followed by non-word char.
+  { pattern: /\bcomparad[oa]s? (?:a|ao|aos|à|às|com)\b/i, category: "comparative" },
+  { pattern: /\bem compara[çc][ãa]o (?:a|ao|aos|à|às|com)\b/i, category: "comparative" },
+  { pattern: /\bem rela[çc][ãa]o (?:a|ao|aos|à|às) (?:outros?|colegas?|pares|demais|outras?|alunos?)\b/i, category: "comparative" },
+  { pattern: /\b(?:melhor|pior|superior|inferior) (?:que|do que|a|ao|aos|à|às) (?:os |as )?(?:colegas?|pares|outros?|demais|alunos?|a maioria)\b/i, category: "comparative" },
+  { pattern: /\b(?:mais|menos) (?:forte|fraco)s? (?:que|do que|a|ao|aos|à|às) (?:os |as )?(?:colegas?|pares|outros?|demais)\b/i, category: "comparative" },
+  { pattern: /\bno (?:n[íi]vel )?(?:topo|superior|inferior) (?:do|de|da)\b/i, category: "comparative" },
+  { pattern: /\b(?:no|na) (?:percentil|quartil)\b/i,    category: "comparative" },
+  { pattern: /\bsupera (?:os|as)? ?(?:colegas?|pares|outros?|demais)\b/i, category: "comparative" },
+
+  // Protected class (PT)
+  { pattern: /\b(?:ra[çc]a|racial|etnia|origem [eé]tnica|background [eé]tnico)\b/i, category: "protected_class" },
+  { pattern: /\b(?:religi[ãa]o|religios[oa]s?|f[ée] (?:crist[ãa]|judaica|muçulmana|evang[ée]lica|cat[óo]lica))\b/i, category: "protected_class" },
+  { pattern: /\borigem nacional\b/i,                    category: "protected_class" },
+  { pattern: /\b(?:gay|l[ée]sbica|bissexual|transg[ée]nero|LGBTQ\+?|orienta[çc][ãa]o sexual|identidade de g[êe]nero)\b/i, category: "protected_class" },
+
+  // Medical / disability (PT)
+  { pattern: /\bdiagn[óo]stic[oa]s?\b/i,                category: "medical_disability" },
+  { pattern: /\bdiagnosticad[oa]s?\b/i,                 category: "medical_disability" },
+  { pattern: /\bdefici[êe]nci(?:a|as)\b/i,              category: "medical_disability" },
+  { pattern: /\bdeficient[ea]s?\b/i,                    category: "medical_disability" },
+  { pattern: /\b(?:transtorno|dist[úu]rbio)s?\b/i,      category: "medical_disability" },
+  { pattern: /\bnecessidades especiais\b/i,             category: "medical_disability" },
+  { pattern: /\bTDAH\b/,                                category: "medical_disability" },
+  { pattern: /\bautis(?:mo|ta)s?\b/i,                   category: "medical_disability" },
+  { pattern: /\bdislex(?:ia|[íi]c[oa])s?\b/i,           category: "medical_disability" },
+  { pattern: /\bPEI\b/,                                 category: "medical_disability", note: "Plano Educacional Individualizado" },
+  { pattern: /\bplano de (?:adapta[çc][ãa]o|acomoda[çc][ãa]o)\b/i, category: "medical_disability" },
+  { pattern: /\bneurodivergent[ea]s?\b/i,               category: "medical_disability" },
+  { pattern: /\bsa[úu]de mental\b/i,                    category: "medical_disability" },
+
+  // Financial (PT)
+  { pattern: /\bbolsa(?:s)? (?:de )?(?:estudos?|integral|parcial)\b/i, category: "financial" },
+  { pattern: /\baux[íi]lio financeiro\b/i,              category: "financial" },
+  { pattern: /\b(?:mensalidade|anuidade)s?\b/i,         category: "financial" },
+  { pattern: /\b(?:baixa|alta|m[ée]dia) renda\b/i,      category: "financial" },
+  { pattern: /\babastad[oa]s?\b/i,                      category: "financial" },
+  { pattern: /\b(?:n[ãa]o |sem )(?:pode|podem|tem|t[êe]m) (?:condi[çc][õo]es|como) (?:de )?pagar\b/i, category: "financial" },
+  { pattern: /\bnecessidade de bolsa\b/i,               category: "financial" },
+  { pattern: /\bsocioecon[ôo]mic[oa]s?\b/i,             category: "financial" },
+
+  // Family structure (PT)
+  { pattern: /\b(?:m[ãa]e|pai)s? solteir[oa]s?\b/i,     category: "family_structure" },
+  { pattern: /\bpais (?:divorciados?|separados?)\b/i,   category: "family_structure" },
+  { pattern: /\b(?:lar|fam[íi]lia|casa) (?:com|de) dois pais\b/i, category: "family_structure" },
+  { pattern: /\b(?:fam[íi]lia reconstitu[íi]da|padrasto|madrasta)\b/i, category: "family_structure" },
+  { pattern: /\bado(?:tad|tiv)[oa]s?\b/i,               category: "family_structure" },
+  { pattern: /\b(?:lar adotivo|ado[çc][ãa]o tempor[áa]ria|fam[íi]lia adotiva)\b/i, category: "family_structure" },
+
+  // IQ / deficit framing (PT)
+  { pattern: /\bQI\b/,                                  category: "iq_deficit" },
+  { pattern: /\b(?:abaixo|acima) da m[ée]dia\b/i,       category: "iq_deficit" },
+  { pattern: /\batrasad[oa]s? (?:em rela[çc][ãa]o (?:aos? |às? )?(?:colegas?|pares)|no n[íi]vel|na s[ée]rie)\b/i, category: "iq_deficit" },
+  { pattern: /\b(?:aluno|estudante)s? lent[oa]s?\b/i,   category: "iq_deficit" },
+  { pattern: /\b(?:superdotad|talentos|prodígios?)[oa]s?\b/i, category: "iq_deficit" },
+  { pattern: /\bd[ée]ficit\b/i,                         category: "iq_deficit" },
+  { pattern: /\bintelectualmente (?:superdotad[oa]s?|limitad[oa]s?|comprometid[oa]s?)\b/i, category: "iq_deficit" },
 ];
 
 export interface GuardrailResult {

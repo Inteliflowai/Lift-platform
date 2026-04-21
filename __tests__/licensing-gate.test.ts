@@ -4,13 +4,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockSelect = vi.fn();
 const mockEq = vi.fn();
 const mockSingle = vi.fn();
-const mockFrom = vi.fn(() => ({ select: mockSelect }));
-const mockRpc = vi.fn().mockResolvedValue({ data: null, error: null });
+const mockFrom = vi.fn<(table: string) => unknown>(() => ({ select: mockSelect }));
+const mockRpc = vi.fn<(name: string, args?: unknown) => Promise<unknown>>().mockResolvedValue({
+  data: null,
+  error: null,
+});
 
 vi.mock("@/lib/supabase/admin", () => ({
   supabaseAdmin: {
-    from: (...args: any[]) => mockFrom(...args),
-    rpc: (...args: any[]) => mockRpc(...args),
+    from: (table: string) => mockFrom(table),
+    rpc: (name: string, args?: unknown) => mockRpc(name, args),
   },
 }));
 

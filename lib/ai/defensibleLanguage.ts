@@ -18,6 +18,7 @@ import {
   computeSignalSnapshotHash,
   type SignalSnapshot,
 } from "./signalHash";
+import { getLocale, type Locale } from "@/lib/i18n/config";
 
 // Sonnet 4.6 — tightly constrained output, much cheaper than Opus at the
 // same quality for this specific task. Keep Opus on the main scoring and
@@ -27,8 +28,9 @@ export const DEFENSIBLE_LANGUAGE_MODEL = "claude-sonnet-4-6";
 
 // Prompt version — bumps trigger cache regeneration on next pipeline run.
 // Update when the prompt text, constraints, or output format changes in a
-// way that would materially alter past outputs.
-export const DEFENSIBLE_LANGUAGE_PROMPT_VERSION = "dl-v1.0";
+// way that would materially alter past outputs. v1.1 adds locale-aware
+// (pt/en) prompt selection.
+export const DEFENSIBLE_LANGUAGE_PROMPT_VERSION = "dl-v1.1";
 
 const MAX_ATTEMPTS_PER_DECISION = 3; // 1 initial + 2 regenerations before fallback
 
@@ -85,11 +87,24 @@ export interface DefensibleLanguageCache {
 export function safeFallbackTemplate(
   decision: DecisionType,
   inputs: GenerationInputs,
+  localeOverride?: Locale,
 ): string {
-  const first = inputs.candidateFirstName || "The candidate";
-  const school = inputs.schoolName || "the school";
-  const grade = inputs.gradeApplyingTo ? `Grade ${inputs.gradeApplyingTo}` : "the applied grade";
+  const locale = localeOverride ?? getLocale();
+  const first = inputs.candidateFirstName || (locale === "pt" ? "O candidato" : "The candidate");
+  const school = inputs.schoolName || (locale === "pt" ? "a escola" : "the school");
 
+  if (locale === "pt") {
+    const grade = inputs.gradeApplyingTo ? `${inputs.gradeApplyingTo}º ano` : "o ano pretendido";
+    if (decision === "admit") {
+      return `${first} concluiu uma avaliação completa de prontidão para o ${grade} em ${school}. As evidências da avaliação sustentam uma recomendação de admissão, e a equipe de admissões está satisfeita em avançar com ${first} no processo. A equipe aguarda com interesse os próximos passos com ${first} e a família.`;
+    }
+    if (decision === "waitlist") {
+      return `${first} concluiu uma avaliação completa de prontidão para o ${grade} em ${school}. As evidências sustentam a inclusão de ${first} na lista de espera enquanto a equipe de admissões continua a analisar o grupo. A família será notificada assim que a equipe tiver mais informações sobre vagas disponíveis.`;
+    }
+    return `${first} concluiu uma avaliação completa de prontidão para o ${grade} em ${school}. Após análise cuidadosa, a equipe de admissões decidiu não estender uma oferta neste momento. A decisão reflete um juízo sobre o ajuste com o grupo atual e o programa da escola, e a equipe de admissões agradece o envolvimento de ${first} ao longo do processo.`;
+  }
+
+  const grade = inputs.gradeApplyingTo ? `Grade ${inputs.gradeApplyingTo}` : "the applied grade";
   if (decision === "admit") {
     return `${first} has completed a full readiness assessment for ${grade} at ${school}. The evidence from the assessment supports a recommendation of admission, and the admissions team is pleased to move ${first} forward in the process. The team looks forward to working with ${first} and the family on the next steps.`;
   }
@@ -101,7 +116,48 @@ export function safeFallbackTemplate(
 
 // ---- Prompt builder -------------------------------------------------------
 
-function buildPrompt(decision: DecisionType, inputs: GenerationInputs): string {
+function buildPrompt(decision: DecisionType, inputs: GenerationInputs, locale: Locale): string {
+  if (locale === "pt") {
+    const missionLine = inputs.missionStatement?.trim()
+      ? `Missão da escola: "${inputs.missionStatement.trim()}"`
+      : `A declaração de missão da escola não está cadastrada; formule a justificativa em torno do programa e do ajuste ao grupo de ${inputs.schoolName}, sem inventar linguagem de missão.`;
+
+    const decisionFraming =
+      decision === "admit"
+        ? "Esta é a versão ADMITIR — escreva uma justificativa positiva e acolhedora que afirme o ajuste."
+        : decision === "waitlist"
+          ? "Esta é a versão LISTA DE ESPERA — escreva uma justificativa equilibrada que reconheça os pontos fortes e explique que a equipe de admissões continua a analisar o grupo. Voltada para o futuro."
+          : "Esta é a versão NÃO ADMITIR — escreva uma justificativa voltada para o futuro, focada no ajuste e não em déficit. Respeitosa e definitiva. Nunca peça desculpas pela decisão.";
+
+    return `Você está redigindo uma justificativa de decisão de admissão para ${inputs.schoolName} — especificamente a versão ${decision === "admit" ? "ADMITIR" : decision === "waitlist" ? "LISTA DE ESPERA" : "NÃO ADMITIR"} para um(a) estudante chamado(a) ${inputs.candidateFirstName} candidato(a) ao ${inputs.gradeApplyingTo}º ano.
+
+${decisionFraming}
+
+${missionLine}
+
+EVIDÊNCIAS DA AVALIAÇÃO:
+- Principais pontos fortes observados: ${inputs.topStrengths.join(", ") || "(nenhum identificado)"}
+- Áreas ainda em desenvolvimento: ${inputs.developingAreas.join(", ") || "(nenhuma identificada)"}
+- Observações comportamentais: ${inputs.behavioralEvidence.length > 0 ? inputs.behavioralEvidence.join("; ") : "(sem sinais comportamentais notáveis)"}
+
+RESTRIÇÕES (estritas):
+1. Total de 3 a 5 frases. Sem listas, títulos ou despedida.
+2. Referencie evidências ESPECÍFICAS da avaliação acima — nunca traços genéricos.
+3. A redação deve, quando possível, conectar-se à missão da escola ou ao ajuste ao grupo.
+4. Linguagem segura para os responsáveis: NÃO inclua nada do seguinte:
+   - Comparações com outros candidatos ou colegas (nada de "comparado a/com", "melhor/pior que", "acima/abaixo da média", linguagem de percentil ou quartil)
+   - Referências a classe protegida (raça, etnia, religião, origem nacional, orientação sexual, identidade de gênero)
+   - Especulação médica ou de deficiência (nada de "diagnóstico", "transtorno", "necessidades especiais", "TDAH", "autismo", "dislexia", "PEI", "neurodivergente", "saúde mental")
+   - Comentário financeiro (nada de "bolsa", "mensalidade", "renda", "pode pagar", "socioeconômico")
+   - Comentário sobre estrutura familiar (nada de "mãe/pai solteiro(a)", "pais divorciados", "família reconstituída", "adotado(a)", "lar adotivo")
+   - Enquadramento de QI (nada de "QI", "superdotado", "lento", "déficit", "atrasado em relação aos colegas")
+5. As versões de NÃO ADMITIR e LISTA DE ESPERA DEVEM ser voltadas para o futuro — focadas em ajuste, não em déficit.
+6. Escreva em terceira pessoa ("${inputs.candidateFirstName}", "o(a) estudante", "ele(a)"). Não use segunda pessoa.
+7. Esta justificativa deve ser autossuficiente e defensável se questionada por um responsável, membro do conselho ou advogado.
+
+Produza APENAS o parágrafo de justificativa. Sem preâmbulo, sem ressalvas, sem markdown.`;
+  }
+
   const missionLine = inputs.missionStatement?.trim()
     ? `The school's mission: "${inputs.missionStatement.trim()}"`
     : `The school's mission statement is not on file; phrase rationale around ${inputs.schoolName}'s program and cohort fit without inventing mission language.`;
@@ -147,6 +203,7 @@ Output ONLY the rationale paragraph. No preamble, no caveats, no markdown.`;
 async function generateOneDecision(
   decision: DecisionType,
   inputs: GenerationInputs,
+  locale: Locale,
 ): Promise<GenerationAttempt> {
   const client = getAnthropicClient();
   const rejected: GenerationAttempt["rejected"] = [];
@@ -158,7 +215,7 @@ async function generateOneDecision(
         client.messages.create({
           model: DEFENSIBLE_LANGUAGE_MODEL,
           max_tokens: 400,
-          messages: [{ role: "user", content: buildPrompt(decision, inputs) }],
+          messages: [{ role: "user", content: buildPrompt(decision, inputs, locale) }],
         }),
       );
       const content = response.content[0];
@@ -195,7 +252,7 @@ async function generateOneDecision(
     decision,
     attempts: MAX_ATTEMPTS_PER_DECISION,
     rejected,
-    final_text: safeFallbackTemplate(decision, inputs),
+    final_text: safeFallbackTemplate(decision, inputs, locale),
     fallback_used: true,
   };
 }
@@ -209,11 +266,13 @@ export interface GenerationResult {
 
 export async function generateDefensibleLanguage(
   inputs: GenerationInputs,
+  localeOverride?: Locale,
 ): Promise<GenerationResult> {
+  const locale = localeOverride ?? getLocale();
   const [admit, waitlist, decline] = await Promise.all([
-    generateOneDecision("admit", inputs),
-    generateOneDecision("waitlist", inputs),
-    generateOneDecision("decline", inputs),
+    generateOneDecision("admit", inputs, locale),
+    generateOneDecision("waitlist", inputs, locale),
+    generateOneDecision("decline", inputs, locale),
   ]);
 
   const cache: DefensibleLanguageCache = {

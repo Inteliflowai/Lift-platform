@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 // Soft nudge encouraging schools to fill in their mission_statement, which
 // defensible decision language references when set. Dismissible, but
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function MissionStatementBanner({ missionStatement }: Props) {
+  const { t } = useLocale();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -53,21 +55,20 @@ export function MissionStatementBanner({ missionStatement }: Props) {
   return (
     <div className="flex items-start justify-between gap-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-primary">Add your school mission statement</p>
+        <p className="text-sm font-medium text-primary">{t("mission_banner.title")}</p>
         <p className="mt-1 text-xs text-muted">
-          Decision-language rationale ties to your mission when this field is set. Without it,
-          language falls back to generic school-name phrasing.{" "}
+          {t("mission_banner.body")}{" "}
           <Link href="/school/settings" className="font-medium text-primary hover:underline">
-            Add it in Settings →
+            {t("mission_banner.cta")}
           </Link>
         </p>
       </div>
       <button
         onClick={handleDismiss}
-        aria-label="Dismiss"
+        aria-label={t("mission_banner.dismiss")}
         className="text-xs text-muted hover:text-lift-text"
       >
-        Dismiss
+        {t("mission_banner.dismiss")}
       </button>
     </div>
   );

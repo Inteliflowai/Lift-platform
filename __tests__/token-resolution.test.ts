@@ -3,11 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockSingle = vi.fn();
 const mockEq = vi.fn(() => ({ single: mockSingle }));
 const mockSelect = vi.fn(() => ({ eq: mockEq }));
-const mockFrom = vi.fn(() => ({ select: mockSelect }));
+const mockFrom = vi.fn<(table: string) => unknown>(() => ({ select: mockSelect }));
 
 vi.mock("@/lib/supabase/admin", () => ({
   supabaseAdmin: {
-    from: (...args: any[]) => mockFrom(...args),
+    from: (table: string) => mockFrom(table),
   },
 }));
 
