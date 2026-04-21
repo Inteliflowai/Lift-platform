@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
 import type { DecisionType } from "@/lib/committee/types";
+import type { CandidateFlag } from "@/lib/flags/types";
+import { FlagPill } from "@/components/flags/FlagPill";
+import { FlagDetailDrawer } from "@/components/flags/FlagDetailDrawer";
 
 type Decision = DecisionType;
 
@@ -66,6 +69,18 @@ export function CandidateDeliberationCard({
   const [sideNotes, setSideNotes] = useState(candidate.vote?.side_notes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [flags, setFlags] = useState<CandidateFlag[]>([]);
+  const [flagsDrawerOpen, setFlagsDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch(`/api/school/flags?candidate_id=${candidate.id}`, { cache: "no-store" });
+      if (res.ok) {
+        const data = (await res.json()) as { rows: CandidateFlag[] };
+        setFlags(data.rows);
+      }
+    })();
+  }, [candidate.id]);
 
   const cache = candidate.defensible_language_cache;
   const languageStale = Boolean(
@@ -163,12 +178,31 @@ export function CandidateDeliberationCard({
             )}
           </p>
         </div>
-        {candidate.vote && (
-          <span className={`shrink-0 rounded px-2 py-1 text-[11px] font-medium ${DECISION_META[candidate.vote.decision].pill}`}>
-            {DECISION_META[candidate.vote.decision].label} · {candidate.vote.status}
-          </span>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          <FlagPill
+            activeFlags={flags}
+            onClick={() => setFlagsDrawerOpen(true)}
+          />
+          {candidate.vote && (
+            <span className={`rounded px-2 py-1 text-[11px] font-medium ${DECISION_META[candidate.vote.decision].pill}`}>
+              {DECISION_META[candidate.vote.decision].label} · {candidate.vote.status}
+            </span>
+          )}
+        </div>
       </div>
+
+      {flagsDrawerOpen && (
+        <FlagDetailDrawer
+          candidateName={name}
+          activeFlags={flags}
+          canResolve={isHost}
+          onClose={() => setFlagsDrawerOpen(false)}
+          onResolved={() => {
+            setFlagsDrawerOpen(false);
+            onVoteChanged(); // refresh parent state
+          }}
+        />
+      )}
 
       {/* Stale-language warning */}
       {languageStale && (

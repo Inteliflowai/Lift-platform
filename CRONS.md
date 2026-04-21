@@ -45,6 +45,17 @@ export async function GET(req: NextRequest) {
 | Path | Schedule | Purpose |
 |---|---|---|
 | `/api/cron/committee-orphan-check` | `0 9 * * *` (daily 09:00 UTC) | Emails committee hosts when a session has been active with staged votes for >14 days. 7-day re-warn cooldown. |
+| `/api/cron/enrollment-readiness-flags-evaluate` | `0 10 * * *` (daily 10:00 UTC) | Evaluates all tenants' eligible candidates against the 7-flag catalog; raises, escalates, and auto-resolves flags as underlying conditions change. Audit on state-change only. |
+
+## Schedule stagger convention
+
+New crons stagger at least 1 hour from existing crons on the same day. Current pattern:
+
+- 09:00 UTC — `committee-orphan-check`
+- 10:00 UTC — `enrollment-readiness-flags-evaluate`
+- (next addition should land at 11:00 UTC or later)
+
+Prevents a cron-minute stampede that could spike memory or rate limits at the top of an hour.
 
 ## Testing a cron locally
 

@@ -6,6 +6,9 @@ import { useToast } from "@/components/ui/Toast";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
 import { StartCommitteeSessionButton } from "@/components/committee/StartCommitteeSessionButton";
+import { FlagPill } from "@/components/flags/FlagPill";
+import { FlagDetailDrawer } from "@/components/flags/FlagDetailDrawer";
+import type { CandidateFlag } from "@/lib/flags/types";
 
 interface Cycle {
   id: string;
@@ -54,6 +57,8 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
     name: string;
     staged: number;
   } | null>(null);
+  const [flagsByCandidate, setFlagsByCandidate] = useState<Record<string, CandidateFlag[]>>({});
+  const [drawerCandidate, setDrawerCandidate] = useState<{ id: string; name: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,6 +81,26 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Fetch active flags for every candidate in the current result set
+  useEffect(() => {
+    (async () => {
+      if (!payload || payload.rows.length === 0) {
+        setFlagsByCandidate({});
+        return;
+      }
+      const res = await fetch(`/api/school/flags`, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { rows: Array<CandidateFlag & { candidate: { id: string } }> };
+      const grouped: Record<string, CandidateFlag[]> = {};
+      for (const f of data.rows) {
+        const id = f.candidate.id;
+        if (!grouped[id]) grouped[id] = [];
+        grouped[id].push(f);
+      }
+      setFlagsByCandidate(grouped);
+    })();
+  }, [payload]);
 
   // Load active session for this cycle (for the resume banner)
   useEffect(() => {
@@ -310,6 +335,7 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
                 <th className="px-4 py-2 font-medium">Status</th>
                 <th className="px-4 py-2 font-medium">TRI</th>
                 <th className="px-4 py-2 font-medium">Language</th>
+                <th className="px-4 py-2 font-medium">Flags</th>
                 <th className="px-4 py-2 font-medium">Last updated</th>
                 <th className="px-4 py-2" />
               </tr>
@@ -344,6 +370,15 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
                   <td className="px-4 py-2.5">
                     <LanguagePill row={r} />
                   </td>
+                  <td className="px-4 py-2.5">
+                    <FlagPill
+                      activeFlags={flagsByCandidate[r.id] ?? []}
+                      onClick={() => setDrawerCandidate({
+                        id: r.id,
+                        name: [r.first_name, r.last_name].filter(Boolean).join(" ") || "Candidate",
+                      })}
+                    />
+                  </td>
                   <td className="px-4 py-2.5 text-xs text-muted">
                     {r.defensible_language_updated_at
                       ? new Date(r.defensible_language_updated_at).toLocaleDateString()
@@ -362,6 +397,20 @@ export function BriefingPageClient({ cycles }: { cycles: Cycle[] }) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Flag detail drawer */}
+      {drawerCandidate && (
+        <FlagDetailDrawer
+          candidateName={drawerCandidate.name}
+          activeFlags={flagsByCandidate[drawerCandidate.id] ?? []}
+          canResolve={true}
+          onClose={() => setDrawerCandidate(null)}
+          onResolved={() => {
+            setDrawerCandidate(null);
+            load();
+          }}
+        />
       )}
 
       {/* Confirmation dialog */}

@@ -238,6 +238,16 @@ export async function POST(req: NextRequest) {
       payload: { core_student_id: data.core_student_id },
     });
 
+    // Auto-resolve any active consent_not_captured flag — handoff to CORE
+    // means the student has been enrolled in the sister system, so consent
+    // is captured somewhere and this flag should no longer nag the admin.
+    try {
+      const { autoResolveOnCoreHandoff } = await import("@/lib/flags/resolve");
+      await autoResolveOnCoreHandoff(candidate_id);
+    } catch (err) {
+      console.error("[core-handoff] auto-resolve flag failed (non-critical):", err);
+    }
+
     return NextResponse.json({ ok: true, core_student_id: data.core_student_id });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);

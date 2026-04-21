@@ -32,6 +32,7 @@ import {
   Columns3,
   FlaskConical,
   ClipboardCheck,
+  Flag,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -56,6 +57,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { label: "Analytics", href: "/school/analytics", icon: BarChart2, desc: "Session stats, TRI distribution, and cycle analytics" },
     { label: "Cohort", href: "/school/cohort", icon: Columns3, desc: "Side-by-side candidate comparison across the cohort", feature: FEATURES.COHORT_VIEW },
     { label: "Briefing", href: "/school/briefing", icon: ClipboardCheck, desc: "Decision-ready candidates with pre-drafted language", feature: FEATURES.DEFENSIBLE_LANGUAGE, isNew: true },
+    { label: "Flags", href: "/school/flags", icon: Flag, desc: "Observed conditions needing admissions attention", feature: FEATURES.ENROLLMENT_READINESS_FLAGS, isNew: true },
     { label: "Waitlist", href: "/school/waitlist", icon: ListOrdered, desc: "Waitlisted candidates ranked by TRI score", feature: FEATURES.WAITLIST_INTELLIGENCE },
     { label: "Re-Applications", href: "/school/reapplication", icon: RotateCcw, desc: "Returning applicants with prior-to-current comparison", feature: FEATURES.REAPPLICATION_INTELLIGENCE },
     { label: "Prediction Accuracy", href: "/school/reports/accuracy", icon: Target, desc: "Compare TRI predictions against real student outcomes", feature: FEATURES.OUTCOME_TRACKING },

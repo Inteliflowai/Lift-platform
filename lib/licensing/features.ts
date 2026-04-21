@@ -24,6 +24,7 @@ export const FEATURES = {
   CLASS_BUILDER:               'class_builder',
   PREDICTION_TRENDS:           'prediction_trends',
   DEFENSIBLE_LANGUAGE:         'defensible_language',
+  ENROLLMENT_READINESS_FLAGS:  'enrollment_readiness_flags',
 
   // Enterprise tier
   BENCHMARKING_NETWORK:        'benchmarking_network',
@@ -64,6 +65,7 @@ const PROFESSIONAL_FEATURES: Feature[] = [
   FEATURES.CLASS_BUILDER,
   FEATURES.PREDICTION_TRENDS,
   FEATURES.DEFENSIBLE_LANGUAGE,
+  FEATURES.ENROLLMENT_READINESS_FLAGS,
 ];
 
 const ENTERPRISE_FEATURES: Feature[] = [
