@@ -253,7 +253,7 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 038: stage2_upgrades (signal_snapshot_vector jsonb on candidates, mission_statement_updated_at on tenant_settings + DB trigger, idx_candidates_briefing_readiness)
 - 039: committee_sessions (committee_sessions, committee_votes tables; partial unique index on active session per cycle)
 - 040: enrollment_readiness_flags (candidate_flags table + post_admit_silence_days on tenant_settings)
-`FULL_MIGRATION_PT.sql` contains concatenated migrations for new Supabase instances (needs updating for 019+).
+`FULL_MIGRATION_PT.sql` is the concatenated bootstrap bundle for **fresh** Supabase instances **only** — do NOT run on an existing populated DB. The 001-018 portion uses bare `CREATE TABLE` and will fail with `42P07: relation already exists` on re-run, leaving the DB in an unknown partial state. For catch-up on an existing instance, identify missing migrations via a schema-readiness probe and apply individual migration files (in numeric order), not the bundle.
 
 ### Demo Mode
 
