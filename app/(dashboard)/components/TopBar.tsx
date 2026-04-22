@@ -97,13 +97,15 @@ export function TopBar({
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/5"
         >
           {avatar ? (
-            <Image
-              src={avatar}
-              alt="Avatar"
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-full object-cover"
-            />
+            <div className="relative h-8 w-8 overflow-hidden rounded-full">
+              <Image
+                src={avatar}
+                alt="Avatar"
+                fill
+                sizes="32px"
+                className="object-cover"
+              />
+            </div>
           ) : (
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#14b8a6] to-[#2dd4bf] text-xs font-bold text-white">
               {initials}
@@ -122,13 +124,15 @@ export function TopBar({
               <div className="flex items-center gap-3">
                 <div className="relative group">
                   {avatar ? (
-                    <Image
-                      src={avatar}
-                      alt="Avatar"
-                      width={40}
-                      height={40}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
+                    <div className="relative h-10 w-10 overflow-hidden rounded-full">
+                      <Image
+                        src={avatar}
+                        alt="Avatar"
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    </div>
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#14b8a6] to-[#2dd4bf] text-sm font-bold text-white">
                       {initials}

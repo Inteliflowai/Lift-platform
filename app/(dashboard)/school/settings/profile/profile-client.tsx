@@ -93,13 +93,15 @@ export function ProfileClient({
         <div className="flex flex-col items-center">
           <div className="relative group">
             {avatar ? (
-              <Image
-                src={avatar}
-                alt="Avatar"
-                width={96}
-                height={96}
-                className="h-24 w-24 rounded-full object-cover"
-              />
+              <div className="relative h-24 w-24 overflow-hidden rounded-full">
+                <Image
+                  src={avatar}
+                  alt="Avatar"
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
+              </div>
             ) : (
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#14b8a6] to-[#2dd4bf] text-2xl font-bold text-white">
                 {initials}
