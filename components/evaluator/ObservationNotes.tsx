@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 import { MessageSquarePlus } from "lucide-react";
 
 interface ObsNote {
@@ -40,6 +40,7 @@ function sentimentStyle(s: string | null) {
 }
 
 export function ObservationNotes({ candidateId, observations, interviewQuestions }: Props) {
+  const TOOLTIPS = useTooltipContent();
   const [notes, setNotes] = useState<ObsNote[]>([]);
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");

@@ -111,7 +111,7 @@ export function Sidebar({
   };
 }) {
   const pathname = usePathname();
-  const { t, brandName } = useLocale();
+  const { t, brandName, locale } = useLocale();
   const { hasFeature } = useLicense();
 
   // Translation map for nav labels
@@ -193,8 +193,8 @@ export function Sidebar({
           />
         ) : (
           <Image
-            src="/LIFT-LOGO.png"
-            alt="LIFT"
+            src={locale === "pt" ? "/EDUINSIGHTS-LOGO.png" : "/LIFT-LOGO.png"}
+            alt={locale === "pt" ? "EduInsights" : "LIFT"}
             width={144}
             height={144}
             priority

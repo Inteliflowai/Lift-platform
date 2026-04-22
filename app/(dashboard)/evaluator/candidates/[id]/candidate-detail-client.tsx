@@ -10,7 +10,7 @@ import { SynthesisPanel } from "@/components/evaluator/SynthesisPanel";
 import { RubricForm } from "@/components/interviewer/RubricForm";
 import { RadarChart } from "@/components/RadarChart";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 import { ApplicationDataPanel } from "@/components/evaluator/ApplicationDataPanel";
 import { ObservationNotes } from "@/components/evaluator/ObservationNotes";
 import { useToast } from "@/components/ui/Toast";
@@ -183,6 +183,7 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
   benchmarks: Record<string, unknown> | null;
 }) {
   const p = profile;
+  const TOOLTIPS = useTooltipContent();
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailVal, setEmailVal] = useState(inviteEmail || "");
   const { toast } = useToast();

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { BackButton } from "@/components/ui/BackButton";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 
 interface CycleTrend {
   cycle_id: string;
@@ -31,6 +31,7 @@ const triColor = (n: number) =>
   n >= 75 ? "#10b981" : n >= 50 ? "#14b8a6" : "#f59e0b";
 
 export default function TrendsPage() {
+  const TOOLTIPS = useTooltipContent();
   const [trends, setTrends] = useState<CycleTrend[]>([]);
   const [loading, setLoading] = useState(true);
 

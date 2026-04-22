@@ -1,13 +1,14 @@
 "use client";
 
 import { Tooltip } from "@/components/ui/Tooltip";
-import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 import { useLicense } from "@/lib/licensing/context";
 import { useTooltips } from "@/lib/tooltips/useTooltips";
 
 export function TrialBannerTooltips() {
   const { tier, status } = useLicense();
   const { dismissedIds, dismiss } = useTooltips();
+  const TOOLTIPS = useTooltipContent();
 
   const isTrial = tier === "trial" || status === "trialing";
   if (!isTrial) return null;

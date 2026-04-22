@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 import { ClipboardList } from "lucide-react";
 
 interface ApplicationData {
@@ -55,6 +55,7 @@ export function ApplicationDataPanel({
   completionPct,
   gradeBand,
 }: Props) {
+  const TOOLTIPS = useTooltipContent();
   const [data, setData] = useState<ApplicationData>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);

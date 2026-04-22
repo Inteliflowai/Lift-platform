@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
 import { ClassBuilder } from "@/components/cohort/ClassBuilder";
@@ -150,6 +150,7 @@ function MiniTRIGauge({ score }: { score: number }) {
 
 export function CohortClient() {
   useLocale(); // ensure locale context is available
+  const TOOLTIPS = useTooltipContent();
   const { hasFeature } = useLicense();
   const [rows, setRows] = useState<CohortRow[]>([]);
   const [stats, setStats] = useState<CohortStats | null>(null);

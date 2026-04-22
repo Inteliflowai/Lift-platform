@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { TOOLTIPS } from "@/lib/tooltips/content";
+import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 import {
   computeComposition,
   type CohortRowForComposition,
@@ -31,6 +31,7 @@ const DIMS = [
 ] as const;
 
 export function ClassBuilder({ rows, cycleId, hasCoreAccess, onClose }: ClassBuilderProps) {
+  const TOOLTIPS = useTooltipContent();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [confirmModal, setConfirmModal] = useState(false);
