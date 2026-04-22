@@ -1,4 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getLocale } from "@/lib/i18n/config";
+import { ensureDemoCandidatesPt } from "./seedDemoSchoolPt";
 
 const DEMO_SLUG = "lift-demo";
 
@@ -127,6 +129,14 @@ export async function getDemoTenantId(): Promise<string> {
 }
 
 export async function ensureDemoCandidates(tenantId: string): Promise<void> {
+  // Locale dispatch: PT deployments get PT-localized demo content (Brazilian
+  // names, PT task responses matching seed-pt-tasks.ts templates, PT briefings
+  // and narratives). The shape and downstream tables are identical to the EN
+  // path, so the dashboard auto-load behavior is preserved.
+  if (getLocale() === "pt") {
+    return ensureDemoCandidatesPt(tenantId);
+  }
+
   // Check if demo candidates with full data already exist
   const { count: profileCount } = await supabaseAdmin
     .from("insight_profiles")
