@@ -35,7 +35,14 @@
       "Bash(awk -F= '{print $1}')",
       "Bash(MSYS_NO_PATHCONV=1 robocopy . 'd:\\\\lift' /E /XD node_modules .next /NFL /NDL /R:1 /W:1 /MT:16)",
       "Bash(echo \"exit_code=$?\")",
-      "Bash(xargs -I {} grep -l candidate_assignments supabase/migrations/{})"
+      "Bash(xargs -I {} grep -l candidate_assignments supabase/migrations/{})",
+      "Bash(command -v vercel)",
+      "Bash(vercel --version)",
+      "Bash(vercel whoami *)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel ls *)",
+      "Bash(vercel env *)",
+      "Bash(vercel link *)"
     ]
   }
 }
