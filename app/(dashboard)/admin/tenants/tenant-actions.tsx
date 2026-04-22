@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function TenantActions({
   tenantId,
@@ -22,15 +23,24 @@ export function TenantActions({
   }
 
   return (
-    <button
-      onClick={toggleStatus}
-      className={`text-xs font-medium ${
-        status === "active"
-          ? "text-warning hover:text-warning/80"
-          : "text-success hover:text-success/80"
-      }`}
-    >
-      {status === "active" ? "Suspend" : "Reactivate"}
-    </button>
+    <div className="flex items-center gap-3">
+      <button
+        onClick={toggleStatus}
+        className={`text-xs font-medium ${
+          status === "active"
+            ? "text-warning hover:text-warning/80"
+            : "text-success hover:text-success/80"
+        }`}
+      >
+        {status === "active" ? "Suspend" : "Reactivate"}
+      </button>
+      <Link
+        href={`/admin/tenants/${tenantId}/reset`}
+        className="text-xs font-medium text-review hover:text-review/80"
+        title="Reset data or delete this tenant entirely"
+      >
+        Delete
+      </Link>
+    </div>
   );
 }

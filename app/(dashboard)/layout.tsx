@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { getLicense, isLicenseActive, getTrialDaysRemaining } from "@/lib/licensing/resolver";
 import { checkSessionLimit } from "@/lib/licensing/gate";
 import { TrialBanner } from "@/components/licensing/TrialBanner";
+import { DemoBanner } from "@/components/licensing/DemoBanner";
 import { TenantThemeProvider, type TenantBranding } from "@/lib/theming/TenantTheme";
 
 export default async function DashboardLayout({
@@ -137,11 +138,7 @@ export default async function DashboardLayout({
               <a href="/settings/account" className="underline hover:no-underline">Change it now →</a>
             </div>
           )}
-          {isDemo && (
-            <div className="flex h-10 items-center justify-center bg-[#f59e0b] text-[13px] font-medium text-[#78350f]">
-              Demo Mode — All candidates and data on this account are synthetic. No real student information is present.
-            </div>
-          )}
+          {isDemo && <DemoBanner />}
           <TopBar
             email={user.email!}
             fullName={profile?.full_name}
