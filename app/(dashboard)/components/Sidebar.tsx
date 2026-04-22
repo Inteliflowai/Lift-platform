@@ -193,7 +193,7 @@ export function Sidebar({
           />
         ) : (
           <Image
-            src={locale === "pt" ? "/EDUINSIGHTS-LOGO.png" : "/LIFT-LOGO.png"}
+            src={locale === "pt" ? "/eduinsights-logo.png" : "/LIFT-LOGO.png"}
             alt={locale === "pt" ? "EduInsights" : "LIFT"}
             width={144}
             height={144}
