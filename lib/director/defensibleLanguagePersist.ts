@@ -18,6 +18,7 @@ import {
   normalizedDistanceFromVectors,
   type SignalSnapshot,
 } from "@/lib/ai/signalHash";
+import { getLocale, type Locale } from "@/lib/i18n/config";
 
 // Drift threshold for auto-regeneration: 10% normalized L2 distance.
 // Below this, cached language is considered current. See signalHash tests
@@ -46,7 +47,7 @@ interface Profile {
   learning_support_signal_id: string | null;
 }
 
-const DIM_LABELS: Record<string, string> = {
+const DIM_LABELS_EN: Record<string, string> = {
   reading_score: "reading comprehension",
   writing_score: "written expression",
   reasoning_score: "reasoning",
@@ -56,7 +57,17 @@ const DIM_LABELS: Record<string, string> = {
   support_seeking_score: "asking for support when needed",
 };
 
-const SIGNAL_HUMANIZATION: Record<string, string> = {
+const DIM_LABELS_PT: Record<string, string> = {
+  reading_score: "compreensão leitora",
+  writing_score: "expressão escrita",
+  reasoning_score: "raciocínio",
+  math_score: "raciocínio matemático",
+  reflection_score: "pensamento reflexivo",
+  persistence_score: "persistência",
+  support_seeking_score: "pedir apoio quando necessário",
+};
+
+const SIGNAL_HUMANIZATION_EN: Record<string, string> = {
   extended_reading_time: "took additional time on dense reading passages",
   repeated_passage_rereading: "re-read passages multiple times before responding",
   high_written_expression_revision: "revised written responses extensively",
@@ -68,18 +79,40 @@ const SIGNAL_HUMANIZATION: Record<string, string> = {
   limited_metacognitive_expression: "focused on task answers rather than explaining process",
 };
 
+const SIGNAL_HUMANIZATION_PT: Record<string, string> = {
+  extended_reading_time: "demorou mais tempo em passagens de leitura densas",
+  repeated_passage_rereading: "releu passagens várias vezes antes de responder",
+  high_written_expression_revision: "revisou extensivamente as respostas escritas",
+  reasoning_expression_gap: "raciocinou com solidez, mas expressou essas ideias com mais hesitação por escrito",
+  limited_written_output: "produziu respostas escritas mais curtas do que o típico para a série",
+  variable_task_pacing: "trabalhou em ritmo variável entre as tarefas",
+  task_completion_difficulty: "trabalhou para concluir algumas tarefas dentro do tempo disponível",
+  low_support_seeking_under_challenge: "trabalhou de forma independente em vez de buscar dicas sob desafio",
+  limited_metacognitive_expression: "focou nas respostas das tarefas em vez de explicar o processo",
+};
+
+function dimLabels(locale: Locale): Record<string, string> {
+  return locale === "pt" ? DIM_LABELS_PT : DIM_LABELS_EN;
+}
+
+function signalHumanization(locale: Locale): Record<string, string> {
+  return locale === "pt" ? SIGNAL_HUMANIZATION_PT : SIGNAL_HUMANIZATION_EN;
+}
+
 function pickTopDimensions(
   profile: Profile,
   side: "top" | "bottom",
   n: number,
+  locale: Locale,
 ): string[] {
+  const labels = dimLabels(locale);
   const entries = (Object.entries(profile) as Array<[string, number | null]>)
-    .filter(([k, v]) => k in DIM_LABELS && typeof v === "number")
+    .filter(([k, v]) => k in labels && typeof v === "number")
     .sort(([, a], [, b]) =>
       side === "top" ? (b as number) - (a as number) : (a as number) - (b as number),
     )
     .slice(0, n);
-  return entries.map(([k]) => DIM_LABELS[k]);
+  return entries.map(([k]) => labels[k]);
 }
 
 export async function generateAndPersistDefensibleLanguage(
@@ -168,21 +201,26 @@ export async function generateAndPersistDefensibleLanguage(
     }
   }
 
+  const locale = getLocale();
+  const signalTextMap = signalHumanization(locale);
+  const fallbackFirst = locale === "pt" ? "O(a) candidato(a)" : "The candidate";
+  const fallbackSchool = locale === "pt" ? "a escola" : "the school";
+
   const inputs: GenerationInputs = {
-    candidateFirstName: candidate.first_name ?? "The candidate",
+    candidateFirstName: candidate.first_name ?? fallbackFirst,
     candidateLastName: candidate.last_name ?? "",
     gradeApplyingTo: candidate.grade_applying_to ?? "",
-    schoolName: tenant?.name ?? "the school",
+    schoolName: tenant?.name ?? fallbackSchool,
     missionStatement: settings?.mission_statement ?? null,
-    topStrengths: pickTopDimensions(profile, "top", 2),
-    developingAreas: pickTopDimensions(profile, "bottom", 1),
+    topStrengths: pickTopDimensions(profile, "top", 2, locale),
+    developingAreas: pickTopDimensions(profile, "bottom", 1, locale),
     behavioralEvidence: enrichedSignals
       .filter((s) => s.severity !== null)
-      .map((s) => SIGNAL_HUMANIZATION[s.id] ?? s.id.replace(/_/g, " ")),
+      .map((s) => signalTextMap[s.id] ?? s.id.replace(/_/g, " ")),
     signalSnapshot: snapshot,
   };
 
-  const { cache, perDecision } = await generateDefensibleLanguage(inputs);
+  const { cache, perDecision } = await generateDefensibleLanguage(inputs, locale);
 
   const priorEdits = (
     (candidate.defensible_language_cache as Partial<DefensibleLanguageCache> | undefined)
