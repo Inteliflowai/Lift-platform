@@ -7,11 +7,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Eye, EyeOff } from "lucide-react";
 import { Suspense } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 const inputClass =
   "w-full rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none transition-all focus:border-[#6366f1] focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)]";
 
 function ResetForm() {
+  const { t, locale, brandName } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [supabase] = useState(() =>
@@ -92,11 +94,11 @@ function ResetForm() {
     setError(null);
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("auth.reset_too_short"));
       return;
     }
     if (password !== confirm) {
-      setError("Passwords do not match.");
+      setError(t("auth.reset_mismatch"));
       return;
     }
 
@@ -116,34 +118,40 @@ function ResetForm() {
   return (
     <div className="relative z-10 w-full max-w-[400px] px-4 login-card-enter">
       <div className="mb-8 flex justify-center">
-        <Image src="/LIFT-LOGO.png" alt="LIFT" width={80} height={80} priority className="h-20 w-20 rounded-2xl object-contain" />
+        <Image
+          src={locale === "pt" ? "/eduinsights-logo.png" : "/LIFT-LOGO.png"}
+          alt={brandName}
+          width={80}
+          height={80}
+          priority
+          className="h-20 w-20 rounded-2xl object-contain"
+        />
       </div>
 
       <div className="glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-10 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px]">
         <h1 className="text-center font-[family-name:var(--font-display)] text-xl font-bold text-white">
-          Set new password
+          {t("auth.reset_title")}
         </h1>
 
         {expired && !sessionReady && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-[#f43f5e]">This reset link has expired or is invalid.</p>
+            <p className="text-sm text-[#f43f5e]">{t("auth.reset_body")}</p>
             <Link href="/forgot-password" className="mt-2 inline-block text-xs text-[#6366f1] hover:underline">
-              Request a new one
+              {t("auth.forgot_password_link")}
             </Link>
           </div>
         )}
 
         {success && (
           <div className="mt-6 rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 p-4 text-center">
-            <p className="text-sm text-[#10b981]">Password updated successfully!</p>
-            <p className="mt-1 text-xs text-white/40">Redirecting to login...</p>
+            <p className="text-sm text-[#10b981]">{t("auth.reset_success")}</p>
           </div>
         )}
 
         {sessionReady && !success && (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/50">New password</label>
+              <label className="mb-1.5 block text-xs font-medium text-white/50">{t("auth.reset_new_password")}</label>
               <div className="relative">
                 <input
                   type={showPw ? "text" : "password"}
@@ -159,7 +167,7 @@ function ResetForm() {
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/50">Confirm password</label>
+              <label className="mb-1.5 block text-xs font-medium text-white/50">{t("auth.reset_confirm_password")}</label>
               <input
                 type="password"
                 value={confirm}
@@ -174,7 +182,7 @@ function ResetForm() {
               disabled={loading}
               className="w-full rounded-xl bg-[#6366f1] py-3 text-sm font-semibold text-white hover:bg-[#4f46e5] disabled:opacity-50"
             >
-              {loading ? "Updating..." : "Update Password"}
+              {loading ? t("auth.reset_saving") : t("auth.reset_submit")}
             </button>
           </form>
         )}
@@ -182,7 +190,7 @@ function ResetForm() {
         {checking && !sessionReady && !expired && (
           <div className="mt-6 flex flex-col items-center gap-2">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#6366f1] border-t-transparent" />
-            <p className="text-xs text-white/40">Verifying reset link...</p>
+            <p className="text-xs text-white/40">{t("common.loading")}</p>
           </div>
         )}
       </div>

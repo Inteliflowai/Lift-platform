@@ -29,7 +29,7 @@ function BackgroundSlideshow() {
 }
 
 function LoginForm() {
-  const { t, brandName, hidePricing } = useLocale();
+  const { t, brandName, hidePricing, locale } = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -81,11 +81,17 @@ function LoginForm() {
     <div className="relative z-10 w-full max-w-[400px] login-card-enter">
       <div className={`glow-border rounded-[20px] border border-white/10 bg-[rgba(15,15,19,0.85)] p-12 shadow-[0_24px_60px_rgba(0,0,0,0.4)] backdrop-blur-[20px] backdrop-saturate-[1.4] ${shaking ? "shake" : ""}`}>
         <div className="flex justify-center mb-2">
-          <Image src="/LIFT-LOGO.png" alt={brandName} width={180} height={180} priority
-            className="h-[168px] w-[168px] rounded-2xl object-contain" />
+          <Image
+            src={locale === "pt" ? "/eduinsights-logo.png" : "/LIFT-LOGO.png"}
+            alt={brandName}
+            width={180}
+            height={180}
+            priority
+            className="h-[168px] w-[168px] rounded-2xl object-contain"
+          />
         </div>
         <p className="mt-1 text-center font-[family-name:var(--font-body)] text-sm tracking-wide text-white/40">
-          Admissions intelligence. Built for the humans who decide.
+          {t("auth.login_tagline")}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">

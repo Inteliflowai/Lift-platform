@@ -1,6 +1,7 @@
 import { resolveInviteToken } from "@/lib/token";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
+import { t } from "@/lib/i18n/useLocale";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +16,10 @@ export default async function InviteLandingPage({
     return (
       <div className="flex flex-col items-center py-16 text-center">
         <h1 className="text-2xl font-bold text-review">
-          This link is no longer valid
+          {t("invite.invalid_title")}
         </h1>
         <p className="mt-3 text-muted">
-          This invitation may have expired or already been used. Please contact
-          your school&apos;s admissions office for a new link.
+          {t("invite.invalid_body")}
         </p>
       </div>
     );
@@ -38,25 +38,23 @@ export default async function InviteLandingPage({
   return (
     <div className="flex flex-col items-center py-12 text-center">
       <h1 className="text-3xl font-bold">
-        Welcome, {candidate.first_name}!
+        {t("invite.welcome_prefix")}, {candidate.first_name}!
       </h1>
       <p className="mt-4 max-w-md text-muted">
-        <span className="font-medium text-lift-text">{tenant.name}</span> has
-        invited you to complete the LIFT experience — a short set of reading,
-        writing, and reasoning activities.
+        <span className="font-medium text-lift-text">{tenant.name}</span>{" "}
+        {t("invite.invited_body_prefix")}
       </p>
       <p className="mt-3 max-w-md text-sm text-muted">
-        This is not a test. There are no right or wrong answers. We&apos;re
-        interested in how you think and approach different tasks.
+        {t("invite.not_a_test")}
       </p>
       <p className="mt-2 max-w-md text-sm text-muted">
-        It typically takes 30-50 minutes. You can pause and come back if needed.
+        {t("invite.duration_hint")}
       </p>
       <Link
         href={`/consent/${params.token}`}
         className="mt-8 rounded-lg bg-primary px-8 py-3 text-lg font-semibold text-white transition-opacity hover:opacity-90"
       >
-        Get Started
+        {t("invite.cta")}
       </Link>
     </div>
   );
