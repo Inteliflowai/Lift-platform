@@ -37,42 +37,59 @@ type Session = {
   completion_pct: number;
 };
 
-const UX_CONFIG = {
-  "6-7": {
-    textClass: "text-lg",
-    padding: "p-6",
-    progressLabel: (cur: number, total: number) => {
-      const pct = Math.round((cur / total) * 100);
-      if (pct >= 50) return "You're more than halfway there!";
-      if (pct >= 25) return "Great job — keep going!";
-      return "You've got this!";
-    },
-    maxHints: 2,
-    hintLabel: "Need a hint?",
-    encouragement: [
-      "Nice work!",
-      "You're doing great!",
-      "Keep it up!",
-      "Awesome thinking!",
-    ],
-  },
-  "8": {
-    textClass: "text-base",
-    padding: "p-5",
-    progressLabel: (cur: number, total: number) => `Question ${cur} of ${total}`,
-    maxHints: 3,
-    hintLabel: "Hint",
-    encouragement: [],
-  },
-  "9-11": {
-    textClass: "text-sm",
-    padding: "p-4",
-    progressLabel: () => "",
-    maxHints: 3,
-    hintLabel: "Hint",
-    encouragement: [],
-  },
+// UX config — labels/encouragement are resolved at render time via t() so
+// they respect the current locale. Keeping the shape the same as before
+// so callers don't need to change.
+type UxEntry = {
+  textClass: string;
+  padding: string;
+  progressLabel: (cur: number, total: number) => string;
+  maxHints: number;
+  hintLabel: string;
+  encouragement: string[];
 };
+
+function buildUxConfig(t: (key: string) => string): Record<"6-7" | "8" | "9-11", UxEntry> {
+  return {
+    "6-7": {
+      textClass: "text-lg",
+      padding: "p-6",
+      progressLabel: (cur, total) => {
+        const pct = Math.round((cur / total) * 100);
+        if (pct >= 50) return t("session_ui.progress_halfway");
+        if (pct >= 25) return t("session_ui.progress_keep_going");
+        return t("session_ui.progress_got_this");
+      },
+      maxHints: 2,
+      hintLabel: t("session_ui.hint_need"),
+      encouragement: [
+        t("session_ui.encouragement_nice"),
+        t("session_ui.encouragement_great"),
+        t("session_ui.encouragement_keep"),
+        t("session_ui.encouragement_awesome"),
+      ],
+    },
+    "8": {
+      textClass: "text-base",
+      padding: "p-5",
+      progressLabel: (cur, total) =>
+        t("session_ui.question_of_total")
+          .replace("{current}", String(cur))
+          .replace("{total}", String(total)),
+      maxHints: 3,
+      hintLabel: t("session_ui.hint_label"),
+      encouragement: [],
+    },
+    "9-11": {
+      textClass: "text-sm",
+      padding: "p-4",
+      progressLabel: () => "",
+      maxHints: 3,
+      hintLabel: t("session_ui.hint_label"),
+      encouragement: [],
+    },
+  };
+}
 
 export function SessionClient({
   token,
@@ -94,7 +111,7 @@ export function SessionClient({
   existingSession: Session | null;
 }) {
   const { t } = useLocale();
-  const ux = UX_CONFIG[gradeBand];
+  const ux = buildUxConfig(t)[gradeBand];
   const [session, setSession] = useState<Session | null>(existingSession);
   const [tasks, setTasks] = useState<TaskInstance[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -303,7 +320,7 @@ export function SessionClient({
           {t("session.paused_desc")}
         </p>
         <p className="mt-1 text-sm text-muted">
-          Check your inbox at {candidateEmail}.
+          {t("session_ui.check_inbox_at")} {candidateEmail}.
         </p>
       </div>
     );
@@ -365,7 +382,7 @@ export function SessionClient({
             onClick={handlePause}
             className="ml-4 rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted hover:text-lift-text"
           >
-            Pause
+            {t("session_ui.pause")}
           </button>
         )}
       </div>
@@ -430,7 +447,7 @@ function TaskRenderer({
   taskInstanceId,
 }: {
   template: TaskTemplate;
-  ux: (typeof UX_CONFIG)[keyof typeof UX_CONFIG];
+  ux: UxEntry;
   onSubmit: (response: string) => void;
   onKeyStroke: () => void;
   onBackspace: () => void;
@@ -445,6 +462,7 @@ function TaskRenderer({
   sessionToken: string;
   taskInstanceId: string;
 }) {
+  const { t } = useLocale();
   const [response, setResponse] = useState("");
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [hintsShown, setHintsShown] = useState(0);
@@ -505,7 +523,7 @@ function TaskRenderer({
             value={response}
             onChange={(e) => setResponse(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your response here..."
+            placeholder={t("session_ui.placeholder_response")}
             className="w-full min-h-[80px] rounded-lg border border-lift-border bg-surface p-4 text-lift-text outline-none focus:border-primary resize-y"
           />
           <WordCountAndSubmit
@@ -532,11 +550,11 @@ function TaskRenderer({
             taskType="short_response" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
             sessionToken={sessionToken} taskInstanceId={taskInstanceId}
             value={response} onChange={setResponse} onKeyDown={handleKeyDown}
-            placeholder="Type your response..." minHeight="80px"
+            placeholder={t("session_ui.placeholder_short")} minHeight="80px"
           />
           <p className="text-xs text-muted">
-            {wordCount} words{" "}
-            <span className="text-muted/60">(aim for 3-10 sentences)</span>
+            {wordCount} {t("session_ui.word_count_suffix")}{" "}
+            <span className="text-muted/60">{t("session_ui.word_count_hint_sentences")}</span>
           </p>
           <WordCountAndSubmit
             hints={hints}
@@ -562,9 +580,9 @@ function TaskRenderer({
             taskType="extended_writing" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
             sessionToken={sessionToken} taskInstanceId={taskInstanceId}
             value={response} onChange={setResponse} onKeyDown={handleKeyDown}
-            placeholder="Write your response here. Take your time..." minHeight="200px"
+            placeholder={t("session_ui.placeholder_extended")} minHeight="200px"
           />
-          <p className="text-xs text-muted">{wordCount} words</p>
+          <p className="text-xs text-muted">{wordCount} {t("session_ui.word_count_suffix")}</p>
           <WordCountAndSubmit
             hints={hints}
             hintsShown={hintsShown}
@@ -587,14 +605,14 @@ function TaskRenderer({
           )}
           <div className="rounded-md bg-primary/5 border border-primary/20 p-3">
             <p className="text-xs text-primary">
-              There are no right or wrong answers. Share your honest thoughts.
+              {t("session_ui.reflection_encouragement")}
             </p>
           </div>
           <VoiceResponseInput
             taskType="reflection" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
             sessionToken={sessionToken} taskInstanceId={taskInstanceId}
             value={response} onChange={setResponse} onKeyDown={handleKeyDown}
-            placeholder="Reflect and share your thoughts..." minHeight="120px"
+            placeholder={t("session_ui.placeholder_reflect")} minHeight="120px"
           />
           <WordCountAndSubmit
             hints={hints}
@@ -638,7 +656,7 @@ function TaskRenderer({
                       taskType="scenario" gradeBand={gradeBand} voiceEnabled={voiceEnabled}
                       sessionToken={sessionToken} taskInstanceId={taskInstanceId}
                       value={response} onChange={setResponse} onKeyDown={handleKeyDown}
-                      placeholder="Your response..." minHeight="80px"
+                      placeholder={t("session_ui.placeholder_scenario")} minHeight="80px"
                     />
                   )}
                 </div>
@@ -668,7 +686,7 @@ function TaskRenderer({
           {stages.map((stage, i) => (
             <div key={i} className="space-y-2">
               <p className="font-medium">
-                Step {i + 1}: {stage.label}
+                {t("session_ui.step_prefix")} {i + 1}: {stage.label}
               </p>
               <p className="text-sm text-muted">{stage.prompt}</p>
               <textarea
@@ -752,7 +770,7 @@ function TaskRenderer({
           )}
           <div>
             <label className="mb-1 block text-sm text-muted">
-              Show your work — explain how you got your answer
+              {t("session_ui.show_your_work_label")}
             </label>
             <textarea
               value={responses["work"] ?? ""}
@@ -760,7 +778,7 @@ function TaskRenderer({
                 setResponses((prev) => ({ ...prev, work: e.target.value }))
               }
               onKeyDown={handleKeyDown}
-              placeholder="Explain your thinking step by step..."
+              placeholder={t("session_ui.placeholder_work")}
               className="w-full min-h-[100px] rounded-lg border border-lift-border bg-surface p-4 text-lift-text outline-none focus:border-primary resize-y"
             />
           </div>
@@ -800,19 +818,19 @@ function TaskRenderer({
             <p className="font-medium">{template.content.prompt}</p>
           )}
           <div>
-            <label className="mb-1 block text-sm text-muted">Your answer</label>
+            <label className="mb-1 block text-sm text-muted">{t("session_ui.your_answer_label")}</label>
             <input
               type="text"
               value={response}
               onChange={(e) => setResponse(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="What comes next?"
+              placeholder={t("session_ui.placeholder_pattern_answer")}
               className="w-full rounded-lg border border-lift-border bg-surface p-3 text-lift-text outline-none focus:border-primary"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm text-muted">
-              Explain how you figured it out
+              {t("session_ui.explain_figure_out_label")}
             </label>
             <textarea
               value={responses["explanation"] ?? ""}
@@ -823,7 +841,7 @@ function TaskRenderer({
                 }))
               }
               onKeyDown={handleKeyDown}
-              placeholder="Describe the pattern you noticed..."
+              placeholder={t("session_ui.placeholder_pattern_explain")}
               className="w-full min-h-[80px] rounded-lg border border-lift-border bg-surface p-4 text-lift-text outline-none focus:border-primary resize-y"
             />
           </div>
@@ -848,7 +866,7 @@ function TaskRenderer({
     default:
       return (
         <div className="py-8 text-center">
-          <p className="text-muted">Unknown task type: {template.task_type}</p>
+          <p className="text-muted">{t("session_ui.unknown_task_type")} {template.task_type}</p>
         </div>
       );
   }
@@ -873,6 +891,7 @@ function WordCountAndSubmit({
   disabled: boolean;
   submitting: boolean;
 }) {
+  const { t } = useLocale();
   return (
     <div>
       {/* Show revealed hints */}
@@ -905,7 +924,7 @@ function WordCountAndSubmit({
           disabled={disabled}
           className="rounded-lg bg-primary px-6 py-2.5 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {submitting ? "Saving..." : "Continue"}
+          {submitting ? t("session_ui.saving") : t("session_ui.continue")}
         </button>
       </div>
     </div>

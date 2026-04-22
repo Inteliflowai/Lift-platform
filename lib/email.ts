@@ -122,18 +122,35 @@ export async function sendTeamInviteEmail(params: {
   role: string;
   link: string;
 }) {
-  const content = [
-    emailGreeting("there"),
-    emailParagraph(`You've been invited to join <strong>${params.schoolName}</strong> on LIFT as a <strong>${params.role}</strong>.`),
-    emailButton("Accept Invitation", params.link),
-    emailSignature(),
-  ].join("");
+  const isPt = getLocale() === "pt";
+  const brand = isPt ? "EduInsights" : "LIFT";
+
+  const content = isPt
+    ? [
+        emailGreeting("olá"),
+        emailParagraph(`Você foi convidado(a) a se juntar a <strong>${params.schoolName}</strong> na ${brand} como <strong>${params.role}</strong>.`),
+        emailButton("Aceitar Convite", params.link),
+        emailSignature(),
+      ].join("")
+    : [
+        emailGreeting("there"),
+        emailParagraph(`You've been invited to join <strong>${params.schoolName}</strong> on ${brand} as a <strong>${params.role}</strong>.`),
+        emailButton("Accept Invitation", params.link),
+        emailSignature(),
+      ].join("");
 
   await sendLiftEmail({
     to: params.to,
-    subject: `${params.schoolName} — You're Invited to LIFT`,
+    subject: isPt
+      ? `${params.schoolName} — Você está convidado(a) para a ${brand}`
+      : `${params.schoolName} — You're Invited to ${brand}`,
     content,
-    options: { previewText: `Join ${params.schoolName} on LIFT`, showUnsubscribe: false },
+    options: {
+      previewText: isPt
+        ? `Junte-se a ${params.schoolName} na ${brand}`
+        : `Join ${params.schoolName} on ${brand}`,
+      showUnsubscribe: false,
+    },
   });
 }
 
@@ -146,32 +163,58 @@ export async function sendWelcomeEmail(params: {
   trialEndsAt: Date;
   dashboardUrl: string;
 }) {
-  const endStr = params.trialEndsAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const isPt = getLocale() === "pt";
+  const brand = isPt ? "EduInsights" : "LIFT";
+  const endStr = params.trialEndsAt.toLocaleDateString(isPt ? "pt-BR" : "en-US", { year: "numeric", month: "long", day: "numeric" });
 
-  const content = [
-    emailGreeting(params.firstName),
-    emailParagraph(`Your LIFT account for <strong>${params.schoolName}</strong> is ready. You have 30 days to explore everything LIFT has to offer — at no cost and with no credit card required.`),
-    emailDivider(),
-    emailParagraph("<strong>Your trial includes:</strong>"),
-    emailList([
-      "Up to 25 candidate sessions",
-      "Full evaluator workspace and AI-powered reports",
-      "Transition Readiness Index (TRI) scoring",
-      "Learning Support Signals panel",
-      "Evaluator Intelligence — pre-interview briefings",
-      "English and Portuguese report generation",
-    ]),
-    emailParagraph(`Your trial ends on <strong>${endStr}</strong>.`),
-    emailButton("Go to My Dashboard", params.dashboardUrl),
-    emailParagraph("Questions? Reply to this email — we're here to help."),
-    emailSignature(),
-  ].join("");
+  const content = isPt
+    ? [
+        emailGreeting(params.firstName),
+        emailParagraph(`Sua conta ${brand} para <strong>${params.schoolName}</strong> está pronta. Você tem 30 dias para explorar tudo o que a ${brand} oferece — sem custo e sem necessidade de cartão.`),
+        emailDivider(),
+        emailParagraph("<strong>Seu período de teste inclui:</strong>"),
+        emailList([
+          "Até 25 sessões de candidato(a)",
+          "Espaço completo do(a) avaliador(a) e relatórios gerados por IA",
+          "Pontuação TRI (Índice de Prontidão para Transição)",
+          "Painel de Sinais de Apoio à Aprendizagem",
+          "Inteligência do(a) Avaliador(a) — briefings pré-entrevista",
+          "Geração de relatórios em português e inglês",
+        ]),
+        emailParagraph(`Seu período de teste termina em <strong>${endStr}</strong>.`),
+        emailButton("Ir para o Painel", params.dashboardUrl),
+        emailParagraph("Dúvidas? Responda a este e-mail — estamos aqui para ajudar."),
+        emailSignature(),
+      ].join("")
+    : [
+        emailGreeting(params.firstName),
+        emailParagraph(`Your ${brand} account for <strong>${params.schoolName}</strong> is ready. You have 30 days to explore everything ${brand} has to offer — at no cost and with no credit card required.`),
+        emailDivider(),
+        emailParagraph("<strong>Your trial includes:</strong>"),
+        emailList([
+          "Up to 25 candidate sessions",
+          "Full evaluator workspace and AI-powered reports",
+          "Transition Readiness Index (TRI) scoring",
+          "Learning Support Signals panel",
+          "Evaluator Intelligence — pre-interview briefings",
+          "English and Portuguese report generation",
+        ]),
+        emailParagraph(`Your trial ends on <strong>${endStr}</strong>.`),
+        emailButton("Go to My Dashboard", params.dashboardUrl),
+        emailParagraph("Questions? Reply to this email — we're here to help."),
+        emailSignature(),
+      ].join("");
 
   await sendLiftEmail({
     to: params.to,
-    subject: `Welcome to LIFT, ${params.firstName}! Your 30-day trial starts now.`,
+    subject: isPt
+      ? `Bem-vindo(a) à ${brand}, ${params.firstName}! Seu período de teste de 30 dias começa agora.`
+      : `Welcome to ${brand}, ${params.firstName}! Your 30-day trial starts now.`,
     content,
-    options: { previewText: "Your 30-day free trial is active", showUnsubscribe: false },
+    options: {
+      previewText: isPt ? "Seu teste gratuito de 30 dias está ativo" : "Your 30-day free trial is active",
+      showUnsubscribe: false,
+    },
   });
 }
 
@@ -273,28 +316,50 @@ export async function sendActivationEmail(params: {
   sessionsLimit: number | null;
   dashboardUrl: string;
 }) {
-  const endStr = params.periodEndsAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const isPt = getLocale() === "pt";
+  const brand = isPt ? "EduInsights" : "LIFT";
+  const endStr = params.periodEndsAt.toLocaleDateString(isPt ? "pt-BR" : "en-US", { year: "numeric", month: "long", day: "numeric" });
 
-  const content = [
-    emailGreeting(params.firstName),
-    emailCallout(`Your LIFT <strong>${params.tierLabel}</strong> plan for <strong>${params.schoolName}</strong> is now active.`, "success"),
-    emailParagraph("<strong>Plan details:</strong>"),
-    emailList([
-      `Plan: ${params.tierLabel}`,
-      `Annual fee: $${params.annualAmount.toLocaleString()}`,
-      `Active until: ${endStr}`,
-      params.sessionsLimit ? `Sessions: ${params.sessionsLimit} per year` : "Sessions: Unlimited",
-    ]),
-    emailParagraph("Your invoice will follow separately. If you have any questions, reply to this email."),
-    emailButton("Go to Dashboard", params.dashboardUrl),
-    emailSignature(),
-  ].join("");
+  const content = isPt
+    ? [
+        emailGreeting(params.firstName),
+        emailCallout(`Seu plano ${brand} <strong>${params.tierLabel}</strong> para <strong>${params.schoolName}</strong> está ativo.`, "success"),
+        emailParagraph("<strong>Detalhes do plano:</strong>"),
+        emailList([
+          `Plano: ${params.tierLabel}`,
+          `Valor anual: US$ ${params.annualAmount.toLocaleString()}`,
+          `Ativo até: ${endStr}`,
+          params.sessionsLimit ? `Sessões: ${params.sessionsLimit} por ano` : "Sessões: Ilimitadas",
+        ]),
+        emailParagraph("A fatura virá em separado. Se tiver dúvidas, responda a este e-mail."),
+        emailButton("Ir para o Painel", params.dashboardUrl),
+        emailSignature(),
+      ].join("")
+    : [
+        emailGreeting(params.firstName),
+        emailCallout(`Your ${brand} <strong>${params.tierLabel}</strong> plan for <strong>${params.schoolName}</strong> is now active.`, "success"),
+        emailParagraph("<strong>Plan details:</strong>"),
+        emailList([
+          `Plan: ${params.tierLabel}`,
+          `Annual fee: $${params.annualAmount.toLocaleString()}`,
+          `Active until: ${endStr}`,
+          params.sessionsLimit ? `Sessions: ${params.sessionsLimit} per year` : "Sessions: Unlimited",
+        ]),
+        emailParagraph("Your invoice will follow separately. If you have any questions, reply to this email."),
+        emailButton("Go to Dashboard", params.dashboardUrl),
+        emailSignature(),
+      ].join("");
 
   await sendLiftEmail({
     to: params.to,
-    subject: `Your LIFT ${params.tierLabel} plan is now active — welcome aboard!`,
+    subject: isPt
+      ? `Seu plano ${brand} ${params.tierLabel} está ativo — bem-vindo(a)!`
+      : `Your ${brand} ${params.tierLabel} plan is now active — welcome aboard!`,
     content,
-    options: { previewText: `${params.tierLabel} plan activated`, showUnsubscribe: false },
+    options: {
+      previewText: isPt ? `Plano ${params.tierLabel} ativado` : `${params.tierLabel} plan activated`,
+      showUnsubscribe: false,
+    },
   });
 }
 

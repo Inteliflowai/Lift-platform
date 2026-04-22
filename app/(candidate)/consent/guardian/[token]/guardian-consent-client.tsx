@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function GuardianConsentClient({
   token,
@@ -17,6 +18,7 @@ export function GuardianConsentClient({
   guardianName: string;
   guardianId?: string;
 }) {
+  const { t } = useLocale();
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -43,10 +45,11 @@ export function GuardianConsentClient({
   if (done) {
     return (
       <div className="py-16 text-center">
-        <h1 className="text-2xl font-bold text-success">Thank You!</h1>
+        <h1 className="text-2xl font-bold text-success">{t("guardian.thank_you")}</h1>
         <p className="mt-3 max-w-md mx-auto text-muted">
-          You&apos;ve given consent for {candidateFirstName} to participate in
-          the LIFT experience at {schoolName}. They can now begin their session.
+          {t("guardian.thank_you_body")
+            .replace(/\{name\}/g, candidateFirstName)
+            .replace("{school}", schoolName)}
         </p>
       </div>
     );
@@ -54,29 +57,34 @@ export function GuardianConsentClient({
 
   return (
     <div className="mx-auto max-w-lg space-y-6 py-8">
-      <h1 className="text-2xl font-bold">Guardian Consent</h1>
+      <h1 className="text-2xl font-bold">{t("guardian.title")}</h1>
       <p className="text-muted">
-        Hello {guardianName}, {schoolName} has invited{" "}
-        <span className="font-medium text-lift-text">{candidateFirstName}</span>{" "}
-        to complete the LIFT experience as part of their admissions process.
+        {t("guardian.intro")
+          .replace("{guardian}", guardianName)
+          .replace("{school}", schoolName)
+          .split("{name}")
+          .map((part, i, arr) => (
+            <span key={i}>
+              {part}
+              {i < arr.length - 1 && (
+                <span className="font-medium text-lift-text">{candidateFirstName}</span>
+              )}
+            </span>
+          ))}
       </p>
 
       <div className="space-y-4 rounded-lg border border-lift-border bg-surface p-5">
-        <h2 className="font-semibold">What is LIFT?</h2>
+        <h2 className="font-semibold">{t("guardian.what_is_lift_title")}</h2>
         <p className="text-sm text-muted">
-          LIFT is a set of short activities that explore how students approach
-          reading, writing, and reasoning tasks. It is not a test — there are no
-          right or wrong answers.
+          {t("guardian.what_is_lift_body")}
         </p>
 
         <div className="rounded-md border border-warning/30 bg-warning/5 p-4">
           <h3 className="text-sm font-semibold text-warning">
-            Non-Diagnostic Disclaimer
+            {t("guardian.disclaimer_title")}
           </h3>
           <p className="mt-1 text-xs text-muted">
-            LIFT does not diagnose, screen for, or identify any clinical,
-            medical, or learning condition. All insights are reviewed by
-            qualified human evaluators before any admissions decision is made.
+            {t("guardian.disclaimer_body")}
           </p>
         </div>
       </div>
@@ -89,9 +97,7 @@ export function GuardianConsentClient({
           className="mt-1 h-4 w-4 rounded border-lift-border"
         />
         <span className="text-sm">
-          I give consent for {candidateFirstName} to participate in the LIFT
-          experience. I understand this is not a diagnosis or clinical
-          assessment.
+          {t("guardian.agree_checkbox").replace("{name}", candidateFirstName)}
         </span>
       </label>
 
@@ -100,7 +106,7 @@ export function GuardianConsentClient({
         disabled={!agreed || loading}
         className="w-full rounded-lg bg-primary py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
-        {loading ? "Submitting..." : "I Consent"}
+        {loading ? t("guardian.submitting") : t("guardian.submit")}
       </button>
     </div>
   );
