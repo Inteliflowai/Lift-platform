@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useLicense } from "@/lib/licensing/context";
 import { ChevronUp } from "lucide-react";
 
@@ -48,6 +49,7 @@ function getBannerStyle(daysRemaining: number) {
 
 export function TrialBanner() {
   const license = useLicense();
+  const pathname = usePathname();
   const [minimized, setMinimized] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -62,6 +64,11 @@ export function TrialBanner() {
     setMinimized(next);
     localStorage.setItem("lift-trial-banner-minimized", String(next));
   }
+
+  // Platform admins viewing /admin/* surfaces shouldn't see a trial countdown
+  // pulled from whichever tenant license context happens to load — they're
+  // operating cross-tenant, not running a trial themselves.
+  if (pathname?.startsWith("/admin")) return null;
 
   if (!mounted || license.status !== "trialing") return null;
 
