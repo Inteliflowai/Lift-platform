@@ -16,9 +16,11 @@ import {
   TableOfContents,
 } from "../components/HelpUI";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { InterviewerHelpPt } from "./pt";
 
 export default function InterviewerHelp() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  if (locale === "pt") return <InterviewerHelpPt />;
   const toc = [
     { id: "cases", label: "Your Cases" },
     { id: "preparing", label: "Preparing for an Interview" },

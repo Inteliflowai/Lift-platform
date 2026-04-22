@@ -25,9 +25,11 @@ import {
 } from "../components/HelpUI";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { BackButton } from "@/components/ui/BackButton";
+import { SchoolAdminHelpPt } from "./pt";
 
 export default function SchoolAdminHelp() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  if (locale === "pt") return <SchoolAdminHelpPt />;
 
   const toc = [
     { id: "dashboard", label: t("help.dashboard.title") },

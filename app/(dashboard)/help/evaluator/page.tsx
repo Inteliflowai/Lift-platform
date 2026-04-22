@@ -19,9 +19,11 @@ import {
   TableOfContents,
 } from "../components/HelpUI";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { EvaluatorHelpPt } from "./pt";
 
 export default function EvaluatorHelp() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  if (locale === "pt") return <EvaluatorHelpPt />;
   const toc = [
     { id: "queue", label: "Your Review Queue" },
     { id: "candidate-review", label: "Reviewing a Candidate" },

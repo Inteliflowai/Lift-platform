@@ -19,9 +19,11 @@ import {
   TableOfContents,
 } from "../components/HelpUI";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { AdminHelpPt } from "./pt";
 
 export default function AdminHelp() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  if (locale === "pt") return <AdminHelpPt />;
   const toc = [
     { id: "overview", label: "Admin Dashboard" },
     { id: "tenants", label: "Managing Tenants" },
