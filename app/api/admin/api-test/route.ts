@@ -225,9 +225,9 @@ async function probeCommitteeSessions(): Promise<ProbeResult> {
           .eq("status", "staged"),
         supabaseAdmin
           .from("audit_logs")
-          .select("created_at")
+          .select("occurred_at")
           .eq("action", "committee_session.orphan_warned")
-          .order("created_at", { ascending: false })
+          .order("occurred_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
       ]);
@@ -238,7 +238,7 @@ async function probeCommitteeSessions(): Promise<ProbeResult> {
         activeCount: activeRes.count ?? 0,
         staleCount: staleRes.count ?? 0,
         stagedVoteCount: stagedRes.count ?? 0,
-        lastWarn: lastWarnRes.data?.created_at ?? null,
+        lastWarn: lastWarnRes.data?.occurred_at ?? null,
       };
     });
     const lastWarnText = value.lastWarn
@@ -275,9 +275,9 @@ async function probeEnrollmentFlags(): Promise<ProbeResult> {
           .eq("severity", "notable"),
         supabaseAdmin
           .from("audit_logs")
-          .select("created_at, payload")
+          .select("occurred_at, payload")
           .eq("action", "enrollment_readiness_flags.evaluator_run")
-          .order("created_at", { ascending: false })
+          .order("occurred_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
       ]);
@@ -291,7 +291,7 @@ async function probeEnrollmentFlags(): Promise<ProbeResult> {
     });
     let runText = "cron has not run yet";
     if (value.lastRun) {
-      const when = new Date(value.lastRun.created_at as string);
+      const when = new Date(value.lastRun.occurred_at as string);
       const hoursAgo = Math.round((Date.now() - when.getTime()) / (60 * 60 * 1000));
       const p = (value.lastRun.payload ?? {}) as Record<string, number>;
       runText = `last run ${hoursAgo}h ago · ${p.tenants_processed ?? 0} processed, ${p.tenants_skipped ?? 0} skipped, ${p.flags_raised ?? 0} raised`;
