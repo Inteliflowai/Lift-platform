@@ -138,7 +138,7 @@ export default async function DashboardLayout({
               <a href="/settings/account" className="underline hover:no-underline">Change it now →</a>
             </div>
           )}
-          {isDemo && <DemoBanner />}
+          {isDemo && primaryRole !== "platform_admin" && <DemoBanner />}
           <TopBar
             email={user.email!}
             fullName={profile?.full_name}

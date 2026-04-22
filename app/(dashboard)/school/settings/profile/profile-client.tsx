@@ -136,11 +136,14 @@ export function ProfileClient({
 
         {/* Full Name */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-lift-text">
+          <label htmlFor="profile-full-name" className="mb-1 block text-sm font-medium text-lift-text">
             Full name
           </label>
           <input
+            id="profile-full-name"
+            name="full_name"
             type="text"
+            autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="w-full rounded-lg border border-lift-border bg-page-bg px-4 py-3 text-sm text-lift-text outline-none focus:border-primary"
@@ -149,11 +152,14 @@ export function ProfileClient({
 
         {/* Email (read-only) */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-lift-text">
+          <label htmlFor="profile-email" className="mb-1 block text-sm font-medium text-lift-text">
             Email
           </label>
           <input
+            id="profile-email"
+            name="email"
             type="email"
+            autoComplete="email"
             value={email}
             disabled
             className="w-full rounded-lg border border-lift-border bg-lift-border/20 px-4 py-3 text-sm text-muted cursor-not-allowed"
@@ -165,10 +171,12 @@ export function ProfileClient({
 
         {/* Role (read-only) */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-lift-text">
+          <label htmlFor="profile-role" className="mb-1 block text-sm font-medium text-lift-text">
             Your role in LIFT
           </label>
           <input
+            id="profile-role"
+            name="role"
             type="text"
             value={role.replace("_", " ")}
             disabled
