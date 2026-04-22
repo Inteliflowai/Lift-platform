@@ -1,141 +1,28 @@
 -- ============================================================
--- LIFT — PT Catch-Up Bundle (migrations 020 → 040)
+-- LIFT — PT Catch-Up Bundle (migrations 022 → 040)
 -- ============================================================
 --
 -- Built 2026-04-21 to bring the EduInsights PT Supabase from
--- migration 019 (where the Brazilian rep stopped) up through 040
+-- migration 021 (last applied by the Brazilian rep) up through 040
 -- (current head as of commit b7739e7).
+--
+-- Probe confirmed: 020 (waitlist_entries, reapplication_records)
+-- and 021 (student_outcomes, prediction_accuracy) are fully applied.
+-- This bundle contains migrations 022-040 ONLY — 19 migrations.
 --
 -- HOW TO USE:
 -- 1. Paste this entire file into the Supabase SQL editor for
 --    the EduInsights project.
--- 2. Click Run. Each migration is wrapped in BEGIN; ... COMMIT;
---    so a failure in any single migration auto-rolls-back that
---    migration only — subsequent migrations still attempt.
--- 3. After completion, re-run Query 1 (schema readiness probe).
---    Every row should be ✅.
+-- 2. Click Run. All 19 migrations should apply cleanly since
+--    none have been previously attempted.
+-- 3. After completion, re-run Query 1. Every row should be ✅.
 --
--- SAFE TO RE-RUN: any migration that already applied will fail
--- inside its BEGIN block, roll back, and the next migration
--- still gets a clean attempt. Whole-file paste-and-run is OK.
+-- NOTE: each migration is wrapped in BEGIN; ... COMMIT; for
+-- atomic safety. If any single migration fails, only that one
+-- rolls back — but Supabase SQL editor halts on first error,
+-- so subsequent migrations won't auto-attempt. If you hit an
+-- error, paste the error back to Claude for diagnosis.
 -- ============================================================
-
-
--- ------------------------------------------------------------
--- 020_waitlist_reapplication.sql
--- ------------------------------------------------------------
-BEGIN;
--- Waitlist Intelligence
-create table waitlist_entries (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid references tenants(id) on delete cascade,
-  candidate_id uuid references candidates(id) on delete cascade,
-  cycle_id uuid references application_cycles(id),
-  rank_position int,                     -- auto-computed from TRI + review
-  tri_score numeric(5,2),                -- snapshot at time of waitlisting
-  recommendation_tier text,              -- evaluator's recommendation
-  evaluator_notes text,
-  status text default 'waitlisted' check (status in ('waitlisted','offered','accepted','declined','expired')),
-  offered_at timestamptz,
-  responded_at timestamptz,
-  offer_expires_at timestamptz,
-  internal_notes text,                   -- admin notes
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-alter table waitlist_entries enable row level security;
-create policy "tenant_isolation" on waitlist_entries for all using (
-  tenant_id in (select tenant_id from user_tenant_roles where user_id = auth.uid())
-  or exists (select 1 from user_tenant_roles where user_id = auth.uid() and role = 'platform_admin')
-);
-
--- Re-application Intelligence
-create table reapplication_records (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid references tenants(id) on delete cascade,
-  candidate_id uuid references candidates(id) on delete cascade,
-  prior_cycle_id uuid references application_cycles(id),
-  prior_session_id uuid references sessions(id),
-  prior_tri_score numeric(5,2),
-  prior_recommendation text,
-  current_cycle_id uuid references application_cycles(id),
-  current_session_id uuid references sessions(id),
-  current_tri_score numeric(5,2),
-  tri_delta numeric(5,2),                -- current - prior
-  dimension_deltas jsonb,                -- { reading: +5, writing: -2, ... }
-  evaluator_summary text,                -- AI-generated comparison narrative
-  flagged_for_review boolean default false,
-  created_at timestamptz default now()
-);
-
-alter table reapplication_records enable row level security;
-create policy "tenant_isolation" on reapplication_records for all using (
-  tenant_id in (select tenant_id from user_tenant_roles where user_id = auth.uid())
-  or exists (select 1 from user_tenant_roles where user_id = auth.uid() and role = 'platform_admin')
-);
-
-COMMIT;
-
-
--- ------------------------------------------------------------
--- 021_outcomes.sql
--- ------------------------------------------------------------
-BEGIN;
--- Outcome tracking
-create table student_outcomes (
-  id uuid primary key default gen_random_uuid(),
-  candidate_id uuid references candidates(id) on delete cascade,
-  tenant_id uuid references tenants(id) on delete cascade,
-  academic_year text not null,
-  term text check (term in ('fall','spring','full_year')),
-  recorded_by uuid references users(id),
-  gpa numeric(4,2),
-  gpa_scale numeric(4,2) default 4.0,
-  academic_standing text check (academic_standing in ('excellent','good','satisfactory','needs_support','probation')),
-  tutoring_sessions_per_week numeric(4,1),
-  counseling_engaged boolean,
-  learning_support_plan_active boolean,
-  social_adjustment text check (social_adjustment in ('thriving','settled','adjusting','struggling')),
-  extracurricular_engaged boolean,
-  retained boolean default true,
-  withdrawal_reason text,
-  advisor_notes text,
-  recorded_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create table prediction_accuracy (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid references tenants(id) on delete cascade,
-  cycle_id uuid references application_cycles(id),
-  grade_band text,
-  sample_size int,
-  tri_accuracy_pct numeric(5,2),
-  high_tri_retention_pct numeric(5,2),
-  low_tri_support_pct numeric(5,2),
-  strongest_predictor text,
-  weakest_predictor text,
-  summary_narrative text,
-  computed_at timestamptz default now(),
-  unique(tenant_id, cycle_id, grade_band)
-);
-
-alter table candidates add column if not exists latest_outcome_id uuid references student_outcomes(id);
-alter table candidates add column if not exists outcome_count int default 0;
-
-alter table student_outcomes enable row level security;
-alter table prediction_accuracy enable row level security;
-create policy "tenant_isolation" on student_outcomes for all using (
-  tenant_id in (select tenant_id from user_tenant_roles where user_id = auth.uid())
-  or exists (select 1 from user_tenant_roles where user_id = auth.uid() and role = 'platform_admin')
-);
-create policy "tenant_isolation" on prediction_accuracy for all using (
-  tenant_id in (select tenant_id from user_tenant_roles where user_id = auth.uid())
-  or exists (select 1 from user_tenant_roles where user_id = auth.uid() and role = 'platform_admin')
-);
-
-COMMIT;
 
 
 -- ------------------------------------------------------------
