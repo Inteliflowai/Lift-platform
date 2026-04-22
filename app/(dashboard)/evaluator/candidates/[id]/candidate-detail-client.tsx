@@ -73,8 +73,10 @@ export function CandidateDetailClient({
   schoolType?: string;
 }) {
   const router = useRouter();
+  const { t } = useLocale();
   const [tab, setTab] = useState<Tab>("overview");
   const { hasFeature } = useLicense();
+  const tabLabel = (tKey: Tab): string => t(`eval_detail.tab_${tKey === "decision_language" ? "decision_language" : tKey === "support_plan" ? "support_plan" : tKey}`);
 
   const candidateStatus = candidate.status as string;
   const showOutcomes = ["completed", "reviewed", "admitted", "waitlisted", "offered"].includes(candidateStatus);
@@ -91,14 +93,14 @@ export function CandidateDetailClient({
 
   return (
     <div className="space-y-6">
-      <BackButton label="Candidates" />
+      <BackButton label={t("eval_detail.back_to_candidates")} />
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">
             {candidate.first_name as string} {candidate.last_name as string}
           </h1>
           <p className="text-sm text-muted">
-            Grade {candidate.grade_applying_to as string}
+            {t("eval_detail.grade_label")} {candidate.grade_applying_to as string}
             {candidate.gender ? <span className="ml-2 capitalize">{String(candidate.gender).replace("_", " ")}</span> : null}
           </p>
         </div>
@@ -112,10 +114,10 @@ export function CandidateDetailClient({
       </div>
 
       <div className="flex gap-1 border-b border-lift-border">
-        {tabs.map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-primary text-primary" : "text-muted hover:text-lift-text"}`}>
-            {t === "review" ? "My Review" : t === "interview" ? "Interview Notes" : t === "support_plan" ? "Support Plan" : t === "application" ? "Application" : t === "decision_language" ? "Decision Language" : t}
+        {tabs.map((tb) => (
+          <button key={tb} onClick={() => setTab(tb)}
+            className={`px-4 py-2 text-sm font-medium ${tab === tb ? "border-b-2 border-primary text-primary" : "text-muted hover:text-lift-text"}`}>
+            {tabLabel(tb)}
           </button>
         ))}
       </div>
@@ -184,6 +186,7 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
 }) {
   const p = profile;
   const TOOLTIPS = useTooltipContent();
+  const { t } = useLocale();
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailVal, setEmailVal] = useState(inviteEmail || "");
   const { toast } = useToast();
@@ -196,10 +199,10 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
       body: JSON.stringify({ invite_id: inviteId, email: emailVal.trim() }),
     });
     if (res.ok) {
-      toast("Email updated");
+      toast(t("eval_detail.toast_email_updated"));
       setEditingEmail(false);
     } else {
-      toast("Failed to update email", "error");
+      toast(t("eval_detail.toast_email_failed"), "error");
     }
   }
 
@@ -215,22 +218,22 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
               <input type="email" value={emailVal} onChange={(e) => setEmailVal(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") saveEmail(); if (e.key === "Escape") setEditingEmail(false); }}
                 className="w-48 rounded border border-primary bg-page-bg px-2 py-0.5 text-xs outline-none" autoFocus />
-              <button onClick={saveEmail} className="text-[10px] font-medium text-success">Save</button>
-              <button onClick={() => setEditingEmail(false)} className="text-[10px] text-muted">Cancel</button>
+              <button onClick={saveEmail} className="text-[10px] font-medium text-success">{t("common.save")}</button>
+              <button onClick={() => setEditingEmail(false)} className="text-[10px] text-muted">{t("common.cancel")}</button>
             </span>
           ) : (
             <span className="group">
               {inviteEmail || "—"}
               {inviteId && (
                 <button onClick={() => { setEditingEmail(true); setEmailVal(inviteEmail || ""); }}
-                  className="ml-1.5 text-[10px] text-primary opacity-0 group-hover:opacity-100">Edit</button>
+                  className="ml-1.5 text-[10px] text-primary opacity-0 group-hover:opacity-100">{t("common.edit")}</button>
               )}
             </span>
           )}
         </div>
-        <div><span className="text-muted">Invite Sent:</span> {inviteSentAt ? new Date(inviteSentAt).toLocaleDateString() : "—"}</div>
-        <div><span className="text-muted">Completed:</span> {sessions[0]?.completed_at ? new Date(sessions[0].completed_at).toLocaleDateString() : "—"}</div>
-        <div><span className="text-muted">CORE Sync:</span>{" "}
+        <div><span className="text-muted">{t("eval_detail.header_invite_sent")}</span> {inviteSentAt ? new Date(inviteSentAt).toLocaleDateString() : "—"}</div>
+        <div><span className="text-muted">{t("eval_detail.header_completed")}</span> {sessions[0]?.completed_at ? new Date(sessions[0].completed_at).toLocaleDateString() : "—"}</div>
+        <div><span className="text-muted">{t("eval_detail.header_core_sync")}</span>{" "}
           <CoreSyncBadge status={candidate.core_sync_status as string} syncAt={candidate.core_sync_at as string | null} coreStudentId={candidate.core_student_id as string | null} candidateId={candidate.id as string} />
         </div>
       </div>
@@ -245,15 +248,15 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
             summary={p.tri_summary as string | null}
           />
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 -mt-2">
-            <p className="text-xs font-semibold text-primary mb-1">What is TRI?</p>
+            <p className="text-xs font-semibold text-primary mb-1">{t("eval_detail.tri_what_title")}</p>
             <p className="text-xs text-muted leading-relaxed">
-              The <strong>Transition Readiness Index (TRI)</strong> is a composite score (0-100) measuring readiness across 6 dimensions: Reading (20%), Writing (20%), Reasoning (20%), Reflection (15%), Persistence (15%), and Support Seeking (10%). Scores are adjusted for AI confidence and learning support signals.
+              {t("eval_detail.tri_what_body")}
             </p>
             <div className="flex flex-wrap gap-3 mt-2 text-[10px]">
-              <span className="text-review">Emerging (0-39)</span>
-              <span className="text-warning">Developing (40-59)</span>
-              <span className="text-primary">Ready (60-79)</span>
-              <span className="text-success">Thriving (80-100)</span>
+              <span className="text-review">{t("eval_detail.tri_band_emerging")}</span>
+              <span className="text-warning">{t("eval_detail.tri_band_developing")}</span>
+              <span className="text-primary">{t("eval_detail.tri_band_ready")}</span>
+              <span className="text-success">{t("eval_detail.tri_band_thriving")}</span>
             </div>
           </div>
         </>
@@ -277,7 +280,7 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
       {p && (
         <>
           <div className="space-y-3">
-            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold">Dimension Scores</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold">{t("eval_detail.dimension_scores_title")}</h2>
             {DIMENSIONS.map((dim) => {
               const score = p[`${dim}_score`] as number | null;
               const val = score != null ? Math.round(Number(score)) : null;
@@ -299,20 +302,20 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
                     )}
                   </div>
                   <span className={`w-10 text-right text-sm font-bold ${diffColor}`}>{val ?? "—"}</span>
-                  {bmVal != null && <span className="w-16 text-[10px] text-muted">avg {bmVal}</span>}
+                  {bmVal != null && <span className="w-16 text-[10px] text-muted">{t("eval_detail.avg_prefix")} {bmVal}</span>}
                 </div>
               );
             })}
             {benchmarks && (
               <p className="text-[10px] text-muted mt-1">
-                Compared to {String(benchmarks.candidate_count ?? 0)} candidates in this cycle · Grade {candidate.grade_band as string}
+                {t("eval_detail.compared_to_prefix")} {String(benchmarks.candidate_count ?? 0)} {t("eval_detail.candidates_in_cycle")} · {t("eval_detail.grade_label")} {candidate.grade_band as string}
               </p>
             )}
           </div>
 
           <div className="flex gap-3 text-sm">
-            <span>Confidence: <span className="font-bold">{String(p.overall_confidence ?? 0)}%</span></span>
-            {p.requires_human_review ? <span className="rounded-full bg-review/10 px-2 py-0.5 text-xs text-review">Needs Review</span> : null}
+            <span>{t("eval_detail.confidence_prefix")} <span className="font-bold">{String(p.overall_confidence ?? 0)}%</span></span>
+            {p.requires_human_review ? <span className="rounded-full bg-review/10 px-2 py-0.5 text-xs text-review">{t("eval_detail.needs_review_pill")}</span> : null}
           </div>
 
           {((p.low_confidence_flags as string[])?.length > 0 || (p.unusual_pattern_flags as string[])?.length > 0) && (
@@ -325,53 +328,54 @@ function OverviewTab({ candidate, profile, inviteSentAt, inviteEmail, inviteId, 
 
           {p.internal_narrative && (
             <div className="rounded-lg border border-lift-border bg-surface p-4">
-              <h3 className="mb-2 text-sm font-semibold">Internal Report</h3>
+              <h3 className="mb-2 text-sm font-semibold">{t("eval_detail.internal_report")}</h3>
               <div className="text-sm text-muted whitespace-pre-wrap">{p.internal_narrative as string}</div>
             </div>
           )}
           {p.placement_guidance && (
             <div className="rounded-lg border border-lift-border bg-surface p-4">
-              <h3 className="mb-2 text-sm font-semibold">Placement Guidance</h3>
+              <h3 className="mb-2 text-sm font-semibold">{t("eval_detail.placement_guidance")}</h3>
               <div className="text-sm text-muted whitespace-pre-wrap">{p.placement_guidance as string}</div>
             </div>
           )}
         </>
       )}
-      {!p && <p className="text-muted py-4">No insight profile available.</p>}
+      {!p && <p className="text-muted py-4">{t("eval_detail.no_insight_profile")}</p>}
     </div>
   );
 }
 
 function ResponsesTab({ responses }: { responses: unknown[] }) {
+  const { t } = useLocale();
   const items = responses as { id: string; sequence_order: number; task_templates: { title: string; task_type: string }; response_text: { response_body: string; word_count: number; submitted_at: string; response_features: { revision_depth: number }[] }[] }[];
 
   return (
     <div className="space-y-4">
-      {items.map((t) => {
-        const rt = t.response_text?.[0];
+      {items.map((item) => {
+        const rt = item.response_text?.[0];
         const rf = rt?.response_features?.[0];
         return (
-          <div key={t.id} className="rounded-lg border border-lift-border bg-surface p-4 space-y-2">
+          <div key={item.id} className="rounded-lg border border-lift-border bg-surface p-4 space-y-2">
             <div className="flex justify-between">
-              <h3 className="text-sm font-semibold">{t.task_templates?.title ?? "Task"}</h3>
-              <span className="text-xs text-muted">{t.task_templates?.task_type?.replace(/_/g, " ")}</span>
+              <h3 className="text-sm font-semibold">{item.task_templates?.title ?? "Task"}</h3>
+              <span className="text-xs text-muted">{item.task_templates?.task_type?.replace(/_/g, " ")}</span>
             </div>
             {rt ? (
               <>
                 <div className="text-sm whitespace-pre-wrap rounded-md bg-page-bg p-3 border border-lift-border">{rt.response_body}</div>
                 <div className="flex gap-4 text-xs text-muted">
-                  <span>{rt.word_count} words</span>
-                  {rf && <span>Revision depth: {rf.revision_depth}%</span>}
+                  <span>{rt.word_count} {t("session_ui.word_count_suffix")}</span>
+                  {rf && <span>{rf.revision_depth}%</span>}
                   <span>{rt.submitted_at ? new Date(rt.submitted_at).toLocaleString() : ""}</span>
                 </div>
               </>
             ) : (
-              <p className="text-xs text-muted">No response</p>
+              <p className="text-xs text-muted">{t("eval_detail.no_response")}</p>
             )}
           </div>
         );
       })}
-      {items.length === 0 && <p className="text-muted py-4">No responses.</p>}
+      {items.length === 0 && <p className="text-muted py-4">{t("eval_detail.no_responses")}</p>}
     </div>
   );
 }
@@ -379,6 +383,7 @@ function ResponsesTab({ responses }: { responses: unknown[] }) {
 function SignalsTab({ timing, help, interactions, events }: {
   timing: unknown[]; help: unknown[]; interactions: unknown[]; events: unknown[];
 }) {
+  const { t, locale } = useLocale();
   const ts = timing as { signal_type: string; value_ms: number; task_instance_id: string }[];
   const hs = help as { event_type: string }[];
   const is_ = interactions as { signal_type: string; occurred_at: string }[];
@@ -402,48 +407,48 @@ function SignalsTab({ timing, help, interactions, events }: {
     <div className="space-y-6">
       {/* What are signals? */}
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-        <p className="text-xs text-primary font-semibold mb-1">What are Behavioral Signals?</p>
+        <p className="text-xs text-primary font-semibold mb-1">{t("eval_detail.signals_banner_title")}</p>
         <p className="text-xs text-muted leading-relaxed">
-          Signals are behavioral data captured during the candidate&apos;s session. They show HOW the candidate approached the tasks — not just what they wrote. Use these alongside responses to understand engagement, pace, and help-seeking patterns.
+          {t("eval_detail.signals_banner_body")}
         </p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <SignalCard
-          label="Avg Time Per Task"
+          label={t("eval_detail.signals_avg_time_label")}
           value={`${avgDwell}s`}
-          description="Average time spent on each task. Very short times may indicate rushing. Very long times may indicate difficulty."
+          description={t("eval_detail.signals_avg_time_desc")}
           level={avgDwell < 30 ? "warning" : avgDwell > 300 ? "warning" : "normal"}
         />
         <SignalCard
-          label="Longest Task"
+          label={t("eval_detail.signals_longest_label")}
           value={`${maxDwell}s`}
-          description="The most time spent on a single task. Identifies which task type challenged this candidate most."
+          description={t("eval_detail.signals_longest_desc")}
           level="normal"
         />
         <SignalCard
-          label="Reading Time"
-          value={avgTextTime > 0 ? `${avgTextTime}s avg` : "N/A"}
-          description="Time spent reading passages before responding. Below 30 seconds may indicate the candidate didn't fully read the text."
+          label={t("eval_detail.signals_reading_label")}
+          value={avgTextTime > 0 ? `${avgTextTime}s ${t("eval_detail.avg_prefix")}` : "N/A"}
+          description={t("eval_detail.signals_reading_label")}
           level={avgTextTime > 0 && avgTextTime < 30 ? "warning" : "normal"}
         />
         <SignalCard
-          label="Hints Requested"
+          label={t("eval_detail.signals_hints_label")}
           value={`${hintCount}`}
-          description="Number of times the candidate asked for a hint. Some hint-seeking is healthy — it shows self-awareness. Excessive hints may indicate difficulty."
+          description={t("eval_detail.signals_hints_label")}
           level={hintCount > 6 ? "warning" : "normal"}
         />
         <SignalCard
-          label="Focus Lost"
+          label={t("eval_detail.signals_focus_lost_label")}
           value={`${focusLost}x`}
-          description="Times the candidate switched away from the session (changed tabs, opened another app). Frequent focus loss may indicate distraction or disengagement."
+          description={t("eval_detail.signals_focus_lost_label")}
           level={focusLost >= 4 ? "warning" : "normal"}
         />
         <SignalCard
-          label="Session Duration"
+          label={t("eval_detail.signals_duration_label")}
           value={sessionDuration > 0 ? `${sessionDuration} min` : "—"}
-          description="Total time from first task to last submission. Provides context for the overall pace of the session."
+          description={t("eval_detail.signals_duration_desc")}
           level="normal"
         />
       </div>
@@ -451,40 +456,37 @@ function SignalsTab({ timing, help, interactions, events }: {
       {/* Accessibility Features Used */}
       {(voiceUsed > 0 || passageRead > 0) && (
         <div className="rounded-lg border border-lift-border bg-surface p-4">
-          <h3 className="text-sm font-semibold mb-2">Accessibility Features Used</h3>
+          <h3 className="text-sm font-semibold mb-2">{t("eval_detail.signals_accessibility")}</h3>
           <div className="flex gap-4 text-xs text-muted">
             {voiceUsed > 0 && (
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-primary" />
-                Voice response: {voiceUsed} task{voiceUsed > 1 ? "s" : ""}
+                {voiceUsed} {t("session_page.summary_candidates").toLowerCase()}
               </span>
             )}
             {passageRead > 0 && (
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-primary" />
-                Passage read aloud: {passageRead} time{passageRead > 1 ? "s" : ""}
+                {passageRead}x
               </span>
             )}
           </div>
-          <p className="mt-2 text-[10px] text-muted">
-            Use of accessibility features does not affect scoring. These tools are provided to ensure equitable access.
-          </p>
         </div>
       )}
 
       {/* Time Per Task Bar Chart */}
       {dwellTimes.length > 0 && (
         <div className="rounded-lg border border-lift-border bg-surface p-4">
-          <h3 className="text-sm font-semibold mb-1">Time Per Task</h3>
-          <p className="text-[10px] text-muted mb-3">How long the candidate spent on each task. Longer bars indicate more time spent.</p>
+          <h3 className="text-sm font-semibold mb-1">{t("eval_detail.signals_time_per_task_title")}</h3>
+          <p className="text-[10px] text-muted mb-3">{t("eval_detail.signals_time_per_task_desc")}</p>
           <div className="space-y-2">
-            {dwellTimes.map((t, i) => {
-              const secs = Math.round(t / 1000);
+            {dwellTimes.map((tt, i) => {
+              const secs = Math.round(tt / 1000);
               const maxVal = Math.max(...dwellTimes);
-              const pct = maxVal > 0 ? (t / maxVal) * 100 : 0;
+              const pct = maxVal > 0 ? (tt / maxVal) * 100 : 0;
               return (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="text-[10px] text-muted w-14 shrink-0">Task {i + 1}</span>
+                  <span className="text-[10px] text-muted w-14 shrink-0">{t("session_ui.step_prefix")} {i + 1}</span>
                   <div className="flex-1 h-4 rounded-full bg-lift-border overflow-hidden">
                     <div
                       className="h-full rounded-full bg-primary/60"
@@ -501,23 +503,22 @@ function SignalsTab({ timing, help, interactions, events }: {
 
       {/* Session Timeline */}
       <div className="rounded-lg border border-lift-border bg-surface p-4">
-        <h3 className="text-sm font-semibold mb-1">Session Timeline</h3>
-        <p className="text-[10px] text-muted mb-3">Chronological log of everything that happened during the session. Helps you understand the candidate&apos;s workflow and engagement patterns.</p>
+        <h3 className="text-sm font-semibold mb-1">{t("eval_detail.signals_timeline_title")}</h3>
         <div className="max-h-64 overflow-y-auto space-y-1">
-          {es.length === 0 && <p className="text-xs text-muted">No session events recorded.</p>}
+          {es.length === 0 && <p className="text-xs text-muted">{t("eval_detail.signals_no_events")}</p>}
           {es.map((e, i) => {
             const labels: Record<string, { label: string; color: string }> = {
-              session_created: { label: "Session started", color: "text-success" },
-              task_complete: { label: "Task submitted", color: "text-primary" },
-              session_complete: { label: "Session completed", color: "text-success" },
-              heartbeat: { label: "Active", color: "text-muted" },
+              session_created: { label: t("eval_detail.signals_event_session_started"), color: "text-success" },
+              task_complete: { label: t("eval_detail.signals_event_task_submitted"), color: "text-primary" },
+              session_complete: { label: t("eval_detail.signals_event_session_completed"), color: "text-success" },
+              heartbeat: { label: "•", color: "text-muted" },
             };
             const info = labels[e.event_type] ?? { label: e.event_type.replace(/_/g, " "), color: "text-muted" };
 
             return (
               <div key={i} className="flex items-center gap-3 text-xs py-0.5">
                 <span className="w-20 shrink-0 text-muted font-mono text-[10px]">
-                  {new Date(e.occurred_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  {new Date(e.occurred_at).toLocaleTimeString(locale === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                 </span>
                 <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${info.color === "text-success" ? "bg-success" : info.color === "text-primary" ? "bg-primary" : "bg-muted/40"}`} />
                 <span className={info.color}>{info.label}</span>
@@ -552,6 +553,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
   rubricSubmissions: Record<string, unknown>[];
   profile: Record<string, unknown> | null;
 }) {
+  const { t } = useLocale();
   const [notes, setNotes] = useState((reviews[0]?.notes as string) ?? "");
   const [tier, setTier] = useState((reviews[0]?.recommendation_tier as string) ?? "");
   const [overrideReason, setOverrideReason] = useState("");
@@ -619,20 +621,20 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
   const hasScores = aiScores && Object.values(aiScores).some(v => v != null);
 
   const tierColors: Record<string, { bg: string; text: string; label: string }> = {
-    admit: { bg: "bg-success/10 border-success/20", text: "text-success", label: "Admit" },
-    waitlist: { bg: "bg-warning/10 border-warning/20", text: "text-warning", label: "Waitlist" },
-    decline: { bg: "bg-review/10 border-review/20", text: "text-review", label: "Decline" },
-    defer: { bg: "bg-primary/10 border-primary/20", text: "text-primary", label: "Defer" },
-    needs_more_info: { bg: "bg-muted/10 border-muted/20", text: "text-muted", label: "Needs More Info" },
+    admit: { bg: "bg-success/10 border-success/20", text: "text-success", label: t("decision.admit") },
+    waitlist: { bg: "bg-warning/10 border-warning/20", text: "text-warning", label: t("decision.waitlist") },
+    decline: { bg: "bg-review/10 border-review/20", text: "text-review", label: t("decision.decline") },
+    defer: { bg: "bg-primary/10 border-primary/20", text: "text-primary", label: t("decision.defer") },
+    needs_more_info: { bg: "bg-muted/10 border-muted/20", text: "text-muted", label: t("eval_detail.review_needs_more_info") },
   };
 
   if (!review) {
     return (
       <div className="py-8 text-center">
-        <p className="text-muted">No review started yet.</p>
+        <p className="text-muted">{t("eval_detail.review_no_review_yet")}</p>
         <button onClick={startReview} disabled={saving}
           className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
-          {saving ? "Starting..." : "Start Review"}
+          {saving ? t("eval_detail.review_starting") : t("eval_detail.review_start_btn")}
         </button>
       </div>
     );
@@ -651,7 +653,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
       {aiSnapshot && Object.keys(aiSnapshot).length > 0 && (
         <div className="rounded-xl border-l-4 border-l-primary border border-lift-border bg-surface overflow-hidden">
           <div className="px-5 pt-4 pb-2">
-            <p className="text-xs font-semibold text-primary uppercase tracking-wider">AI Recommendation</p>
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider">{t("eval_detail.review_ai_recommendation")}</p>
             <p className="mt-0.5 text-[10px] text-muted">Generated from the candidate&apos;s session data, responses, and behavioral signals.</p>
           </div>
 
@@ -682,7 +684,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
             {/* Dimension Scores from snapshot */}
             {hasScores && (
               <div>
-                <p className="text-xs font-semibold text-muted mb-2">Dimension Scores</p>
+                <p className="text-xs font-semibold text-muted mb-2">{t("eval_detail.review_dimension_scores")}</p>
                 <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
                   {Object.entries(aiScores!).filter(([,v]) => v != null).map(([dim, score]) => {
                     const s = score as number;
@@ -706,7 +708,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
             {/* AI rationale (structured format) */}
             {aiRationale && (
               <div className="rounded-lg bg-page-bg p-3">
-                <p className="text-xs font-semibold text-muted mb-1">Rationale</p>
+                <p className="text-xs font-semibold text-muted mb-1">{t("eval_detail.review_rationale")}</p>
                 <p className="text-sm text-lift-text leading-relaxed">{aiRationale}</p>
               </div>
             )}
@@ -714,7 +716,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
             {/* Placement Guidance (from pipeline) */}
             {aiPlacementGuidance && (
               <div className="rounded-lg bg-page-bg p-4">
-                <p className="text-xs font-semibold text-primary mb-2">Placement Guidance</p>
+                <p className="text-xs font-semibold text-primary mb-2">{t("eval_detail.review_placement_guidance")}</p>
                 <div className="text-sm text-lift-text leading-relaxed space-y-2">
                   {aiPlacementGuidance.split("\n\n").map((para, i) => {
                     if (para.startsWith("##")) {
@@ -739,7 +741,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
               <div className="grid grid-cols-2 gap-3">
                 {aiStrengths && aiStrengths.length > 0 && (
                   <div className="rounded-lg border border-success/20 bg-success/5 p-3">
-                    <p className="text-xs font-semibold text-success mb-1.5">Strengths</p>
+                    <p className="text-xs font-semibold text-success mb-1.5">{t("eval_detail.review_strengths")}</p>
                     <ul className="space-y-1">
                       {aiStrengths.map((s, i) => (
                         <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
@@ -752,7 +754,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
                 )}
                 {aiConcerns && aiConcerns.length > 0 && (
                   <div className="rounded-lg border border-warning/20 bg-warning/5 p-3">
-                    <p className="text-xs font-semibold text-warning mb-1.5">Areas of Concern</p>
+                    <p className="text-xs font-semibold text-warning mb-1.5">{t("eval_detail.review_areas_of_concern")}</p>
                     <ul className="space-y-1">
                       {aiConcerns.map((c, i) => (
                         <li key={i} className="flex items-start gap-1.5 text-xs text-lift-text">
@@ -772,7 +774,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
                 <span>TRI: <span className="font-semibold text-lift-text">{displayTriLabel(profile.tri_label as string)}</span> ({Number(profile.tri_score ?? 0).toFixed(0)}/100)</span>
                 <span className="text-[10px] text-muted/60">(Transition Readiness Index — composite of 6 readiness dimensions)</span>
                 {interviewRec && (
-                  <span className="pt-2">Interview: <span className="font-semibold text-lift-text capitalize">{interviewRec.replace("_", " ")}</span></span>
+                  <span className="pt-2">{t("eval_detail.review_interview_prefix")} <span className="font-semibold text-lift-text capitalize">{interviewRec.replace("_", " ")}</span></span>
                 )}
               </div>
             )}
@@ -783,16 +785,16 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
       {/* STEP 2: Evaluator's Own Review */}
       <div className="rounded-xl border border-lift-border bg-surface p-5 space-y-4">
         <div>
-          <p className="text-xs font-semibold text-lift-text uppercase tracking-wider">Your Evaluation</p>
+          <p className="text-xs font-semibold text-lift-text uppercase tracking-wider">{t("eval_detail.review_your_evaluation")}</p>
           <p className="mt-0.5 text-[10px] text-muted">
             {aiSnapshot && Object.keys(aiSnapshot).length > 0
-              ? "Review the AI recommendation above, then provide your own assessment."
-              : "Provide your assessment of this candidate."}
+              ? t("eval_detail.review_prompt_with_ai")
+              : t("eval_detail.review_prompt_no_ai")}
           </p>
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted">Evaluator Notes</label>
+          <label className="mb-1 block text-xs font-medium text-muted">{t("eval_detail.review_evaluator_notes")}</label>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
             onBlur={() => saveReview({ notes })} disabled={isFinalized}
             className="w-full min-h-[120px] rounded-lg border border-lift-border bg-page-bg p-3 text-sm text-lift-text outline-none focus:border-primary disabled:opacity-60 resize-y"
@@ -800,7 +802,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted">Your Recommendation</label>
+          <label className="mb-1 block text-xs font-medium text-muted">{t("eval_detail.review_your_recommendation")}</label>
           <div className="flex flex-wrap gap-2">
             {TIERS.map((t) => {
               const tc = tierColors[t] ?? { bg: "bg-muted/10 border-muted/20", text: "text-muted", label: t };
@@ -836,7 +838,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
           <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 space-y-3">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-warning" />
-              <p className="text-sm font-medium text-warning">Your recommendation differs from the AI</p>
+              <p className="text-sm font-medium text-warning">{t("eval_detail.review_differs_from_ai")}</p>
             </div>
             <p className="text-xs text-muted">
               AI recommended <strong className="capitalize">{tierColors[aiTier!]?.label ?? aiTier}</strong>,
@@ -866,7 +868,7 @@ function ReviewTab({ candidateId, tenantId, reviews, router, rubricSubmissions, 
             <span className="rounded-full bg-success/10 px-4 py-1.5 text-xs font-semibold text-success">
               Finalized {review.finalized_at ? new Date(review.finalized_at as string).toLocaleDateString() : ""}
             </span>
-            <button onClick={reopen} className="text-xs text-warning hover:underline">Reopen</button>
+            <button onClick={reopen} className="text-xs text-warning hover:underline">{t("eval_detail.review_reopen")}</button>
           </>
         )}
       </div>
