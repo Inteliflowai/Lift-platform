@@ -21,15 +21,21 @@ function daysBetween(a: string, b: string): number {
   return Math.floor((new Date(b).getTime() - new Date(a).getTime()) / MS_PER_DAY);
 }
 
-const ADMIT_STATUSES = new Set(["admitted", "offered", "waitlisted"]);
+// Decision values that signal an admit-side state (per final_recommendations
+// check constraint: 'admit','waitlist','decline','defer'). These three flag
+// functions derive admit-state from final_recommendations.decision rather
+// than candidate.status because the candidates table's status check
+// constraint doesn't include admit-like values — using status here would
+// mean the flags could never fire. See project_flag_schema_inconsistency.md.
+const ADMIT_LIKE_DECISIONS = new Set(["admit", "waitlist"]);
 
 // ---- 1. consent_not_captured ---------------------------------------------
-// Raised when candidate has been admitted (or offered/waitlisted) but we
-// haven't observed both expected consent types in consent_events.
+// Raised when candidate has an admit or waitlist final_recommendation but
+// we haven't observed both expected consent types in consent_events.
 // Severity: notable if >7 days since admit, advisory if ≤7 days.
 export function consentNotCaptured(s: CandidateSnapshot): FlagRaise | null {
-  if (!ADMIT_STATUSES.has(s.status)) return null;
   if (!s.latest_final_rec) return null;
+  if (!ADMIT_LIKE_DECISIONS.has(s.latest_final_rec.decision)) return null;
   const foundTypes = new Set(s.consent_events.map((e) => e.consent_type));
   const missingTypes = EXPECTED_CONSENT_TYPES.filter((t) => !foundTypes.has(t));
   if (missingTypes.length === 0) return null;
@@ -159,17 +165,20 @@ export function lateCycleAdmit(s: CandidateSnapshot): FlagRaise | null {
 }
 
 // ---- 6. post_admit_silence -----------------------------------------------
-// Raised when candidate was admitted and we've observed no activity for
-// more than `post_admit_silence_days` days. Activity counts:
+// Raised when candidate has an admit final_recommendation and we've
+// observed no activity for more than `post_admit_silence_days` days.
+// Activity counts:
 //   - consent_events
 //   - invites.opened_at updates
 //   - candidate_status_history rows
 //   - candidate_assignments rows (school-side activity)
 //   - application_data updates
 // Captured as `most_recent_activity_at` on the snapshot (caller computes).
+// Uses latest_final_rec.decision rather than candidate.status — the status
+// constraint doesn't allow 'admitted'. See consentNotCaptured note.
 export function postAdmitSilence(s: CandidateSnapshot): FlagRaise | null {
-  if (s.status !== "admitted") return null;
   if (!s.latest_final_rec) return null;
+  if (s.latest_final_rec.decision !== "admit") return null;
   const admitDate = s.latest_final_rec.decided_at;
   const daysSinceAdmit = daysBetween(admitDate, s.now);
   if (daysSinceAdmit <= s.post_admit_silence_days) return null;

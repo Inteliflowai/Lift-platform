@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { ClipboardList } from "lucide-react";
 
 interface ApplicationData {
@@ -56,6 +57,7 @@ export function ApplicationDataPanel({
   gradeBand,
 }: Props) {
   const TOOLTIPS = useTooltipContent();
+  const { t } = useLocale();
   const [data, setData] = useState<ApplicationData>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -88,9 +90,9 @@ export function ApplicationDataPanel({
         }),
       });
       setHasData(true);
-      toast("Application data saved");
+      toast(t("common.success"));
     } catch {
-      toast("Failed to save", "error");
+      toast(t("common.save_failed"), "error");
     } finally {
       setSaving(false);
     }

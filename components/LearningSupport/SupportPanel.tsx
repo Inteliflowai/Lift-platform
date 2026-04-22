@@ -2,6 +2,7 @@
 
 import { Info, Lightbulb } from "lucide-react";
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type EnrichedSignal = {
   id: string;
@@ -32,18 +33,17 @@ type Signal = {
   has_notable_signals?: boolean;
 };
 
-const FLAG_LABELS: Record<string, string> = {
-  high_revision_depth: "Extended revision and editing patterns in written responses",
-  low_reading_dwell: "Reading pace relative to passage length warrants follow-up",
-  short_written_output: "Written output is notably brief relative to task expectations",
-  high_response_latency: "Consistently extended response time across all task types",
-  task_abandonment_pattern: "Frequent task revisits and return patterns",
-  hint_seeking_high: "High frequency of hint and support requests",
-  planning_task_difficulty: "Difficulty structuring multi-step planning tasks",
-  reasoning_writing_gap: "Significant gap between reasoning signals and written expression",
-};
-
-const FLAG_KEYS = Object.keys(FLAG_LABELS) as (keyof typeof FLAG_LABELS)[];
+// Flag keys (labels resolve via t(`support_panel.flag.${key}`) at render time)
+const FLAG_KEYS = [
+  "high_revision_depth",
+  "low_reading_dwell",
+  "short_written_output",
+  "high_response_latency",
+  "task_abandonment_pattern",
+  "hint_seeking_high",
+  "planning_task_difficulty",
+  "reasoning_writing_gap",
+] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
   reading: "bg-[#6366f1]/10 text-[#6366f1]",
@@ -62,6 +62,7 @@ export function SupportPanel({
   onView?: () => void;
   schoolType?: string;
 }) {
+  const { t } = useLocale();
   const [showTooltip, setShowTooltip] = useState(false);
   const [viewed, setViewed] = useState(false);
 
@@ -93,19 +94,19 @@ export function SupportPanel({
       {/* Therapeutic school disclaimer */}
       {isTherapeutic && (
         <div className="rounded-md border border-[#6366f1]/30 bg-[#6366f1]/5 px-4 py-3 text-xs text-[#4338ca]">
-          <span className="font-semibold">Therapeutic School Notice:</span> This school serves students with existing clinical profiles. LIFT&apos;s behavioral signals are not clinical findings and must not be used in conjunction with IEP, 504, or treatment planning. For clinical decisions, rely on licensed professional evaluation only.
+          <span className="font-semibold">{t("support_panel.therapeutic_prefix")}</span> {t("support_panel.therapeutic_body")}
         </div>
       )}
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-[#1a1a2e]">Learning Support Signals</h3>
+          <h3 className="text-sm font-semibold text-[#1a1a2e]">{t("support_panel.title")}</h3>
           {totalSignalCount > 0 && (
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
               signal.has_notable_signals ? "bg-[#f59e0b]/10 text-[#f59e0b]" : "bg-[#6b7280]/10 text-[#6b7280]"
             }`}>
-              {totalSignalCount} signal{totalSignalCount !== 1 ? "s" : ""}
+              {totalSignalCount} {totalSignalCount !== 1 ? t("support_panel.signals_count_suffix_plural") : t("support_panel.signals_count_suffix")}
             </span>
           )}
           <div className="relative">
@@ -118,7 +119,7 @@ export function SupportPanel({
             </button>
             {showTooltip && (
               <div className="absolute left-6 top-0 z-10 w-80 rounded-lg border border-[#e5e5e5] bg-white p-3 text-xs text-[#6b7280] shadow-lg">
-                These are behavioral observations, not diagnostic findings. They indicate patterns that may warrant a professional learning support conversation — not a clinical evaluation.
+                {t("support_panel.tooltip")}
               </div>
             )}
           </div>
@@ -130,10 +131,10 @@ export function SupportPanel({
         <div className="rounded-md bg-[#10b981]/10 px-4 py-3">
           <div className="flex items-center gap-1.5 text-xs font-medium text-[#10b981]">
             <div className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
-            No signals detected
+            {t("support_panel.none_title")}
           </div>
           <p className="mt-1.5 text-[11px] text-[#6b7280] leading-relaxed">
-            No notable behavioral patterns were identified during this session. This does not mean the student has no support needs — it means none of the observed patterns crossed our signal thresholds.
+            {t("support_panel.none_body")}
           </p>
         </div>
       )}
@@ -144,7 +145,7 @@ export function SupportPanel({
           {activeFlags.map((key) => (
             <li key={key} className="flex items-start gap-2 text-sm text-[#1a1a2e]">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f59e0b]" />
-              {FLAG_LABELS[key]}
+              {t(`support_panel.flag.${key}`)}
             </li>
           ))}
         </ul>
@@ -181,14 +182,14 @@ export function SupportPanel({
       )}
       {signal.evaluator_note && level === "recommend_screening" && (
         <div className="rounded-md border border-[#f43f5e]/30 bg-[#f43f5e]/10 px-4 py-3 text-xs text-[#9f1239]">
-          <span className="font-semibold">Flagged for review: </span>
+          <span className="font-semibold">{t("support_panel.flagged_for_review")} </span>
           {signal.evaluator_note}
         </div>
       )}
 
       {/* Disclaimer footer */}
       <p className="text-[10px] leading-relaxed text-[#6b7280]">
-        LIFT does not diagnose learning disabilities or clinical conditions. These signals should be reviewed by a qualified learning support professional before any decisions are made. They are one input among many.
+        {t("support_panel.disclaimer")}
       </p>
     </div>
   );

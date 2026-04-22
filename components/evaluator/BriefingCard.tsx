@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, Copy, Check, Sparkles } from "lucide-react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Question = { question: string; rationale: string; dimension: string };
 
@@ -34,6 +35,7 @@ export function BriefingCard({
   variant?: "full" | "compact";
   candidateId?: string;
 }) {
+  const { t } = useLocale();
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
   const [copied, setCopied] = useState<number | null>(null);
   const [regenerating, setRegenrating] = useState(false);
@@ -46,14 +48,14 @@ export function BriefingCard({
     if (profileFinalized) {
       return (
         <div className="rounded-lg border-l-4 border-[#6366f1] bg-[#6366f1]/5 p-5">
-          <p className="text-sm text-muted">Interview briefing was not generated.</p>
+          <p className="text-sm text-muted">{t("briefing_card.not_generated")}</p>
           {onRegenerate && (
             <button
               onClick={() => { setRegenrating(true); onRegenerate(); }}
               disabled={regenerating}
               className="mt-2 rounded-md bg-[#6366f1] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
             >
-              {regenerating ? "Generating..." : "Generate Briefing"}
+              {regenerating ? t("briefing_card.generating") : t("briefing_card.generate_btn")}
             </button>
           )}
         </div>
@@ -64,7 +66,7 @@ export function BriefingCard({
       <div className="rounded-lg border-l-4 border-[#6366f1] bg-[#6366f1]/5 p-5">
         <div className="flex items-center gap-2">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#6366f1] border-t-transparent" />
-          <p className="text-sm text-muted">Preparing interview briefing...</p>
+          <p className="text-sm text-muted">{t("briefing_card.preparing")}</p>
         </div>
       </div>
     );
@@ -81,21 +83,21 @@ export function BriefingCard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold">Interview Preparation</h3>
+          <h3 className="text-sm font-semibold">{t("briefing_card.header")}</h3>
           <span className="flex items-center gap-1 rounded-full bg-[#6366f1]/10 px-2 py-0.5 text-[10px] text-[#6366f1]">
-            <Sparkles size={10} /> AI-generated
+            <Sparkles size={10} /> {t("briefing_card.ai_generated_pill")}
           </span>
         </div>
         {onRegenerate && (
           <button onClick={onRegenerate} className="text-[10px] text-[#6366f1] hover:underline">
-            Regenerate
+            {t("briefing_card.regenerate")}
           </button>
         )}
       </div>
 
       {/* Key Observations */}
       <div>
-        <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Key Observations</h4>
+        <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">{t("briefing_card.key_observations")}</h4>
         <ul className="space-y-1">
           {(isCompact && !compactExpanded
             ? briefing.key_observations.slice(0, COMPACT_OBSERVATIONS)
@@ -111,7 +113,7 @@ export function BriefingCard({
 
       {/* Interview Questions */}
       <div>
-        <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Suggested Interview Questions</h4>
+        <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">{t("briefing_card.suggested_questions")}</h4>
         <div className="space-y-1">
           {(isCompact && !compactExpanded
             ? (briefing.interview_questions as Question[]).slice(0, COMPACT_QUESTIONS)
@@ -135,8 +137,8 @@ export function BriefingCard({
               </button>
               {expandedQ === i && (
                 <div className="border-t border-[#e5e5e5] px-3 py-2 text-xs text-muted space-y-1">
-                  <p><span className="font-medium">Rationale:</span> {q.rationale}</p>
-                  <p><span className="font-medium">Dimension:</span> <span className="capitalize">{q.dimension?.replace(/_/g, " ")}</span></p>
+                  <p><span className="font-medium">{t("briefing_card.rationale_prefix")}</span> {q.rationale}</p>
+                  <p><span className="font-medium">{t("briefing_card.dimension_prefix")}</span> <span className="capitalize">{q.dimension?.replace(/_/g, " ")}</span></p>
                 </div>
               )}
             </div>
@@ -153,7 +155,7 @@ export function BriefingCard({
           aria-controls={disclosureId}
           className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-[#6366f1]/30 bg-white px-3 py-2 text-sm font-medium text-[#6366f1] hover:bg-[#6366f1]/5"
         >
-          {compactExpanded ? "Collapse full briefing" : "Expand full briefing"}
+          {compactExpanded ? t("briefing_card.collapse_full") : t("briefing_card.expand_full")}
           <ChevronDown
             size={14}
             className={`transition-transform ${compactExpanded ? "rotate-180" : ""}`}
@@ -166,27 +168,27 @@ export function BriefingCard({
         <div id={disclosureId} className="space-y-5">
           {/* Areas to Explore */}
           <div>
-            <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Areas to Explore</h4>
+            <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">{t("briefing_card.areas_to_explore")}</h4>
             <ul className="space-y-1">
               {briefing.areas_to_explore.map((area, i) => (
-                <li key={i} className="text-sm text-muted">Consider asking about: <span className="text-[#1a1a2e]">{area}</span></li>
+                <li key={i} className="text-sm text-muted">{t("briefing_card.consider_asking")} <span className="text-[#1a1a2e]">{area}</span></li>
               ))}
             </ul>
           </div>
 
           {/* Strengths to Confirm */}
           <div>
-            <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">Strengths to Confirm</h4>
+            <h4 className="mb-1.5 text-xs font-semibold text-muted uppercase tracking-wide">{t("briefing_card.strengths_to_confirm")}</h4>
             <ul className="space-y-1">
               {briefing.strengths_to_confirm.map((s, i) => (
-                <li key={i} className="text-sm text-muted">Look to validate: <span className="text-[#1a1a2e]">{s}</span></li>
+                <li key={i} className="text-sm text-muted">{t("briefing_card.look_to_validate")} <span className="text-[#1a1a2e]">{s}</span></li>
               ))}
             </ul>
           </div>
 
           {/* Confidence Explanation */}
           <div className="rounded-md bg-white border border-[#e5e5e5] px-3 py-2">
-            <h4 className="text-xs font-semibold text-muted mb-1">Why This Confidence Level</h4>
+            <h4 className="text-xs font-semibold text-muted mb-1">{t("briefing_card.confidence_title")}</h4>
             <p className="text-sm">{briefing.confidence_explanation}</p>
           </div>
         </div>
