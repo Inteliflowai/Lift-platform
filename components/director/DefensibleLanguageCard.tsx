@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Decision = "admit" | "waitlist" | "decline";
 
@@ -36,10 +37,11 @@ interface Payload {
   permissions: Permissions;
 }
 
-const DECISION_META: Record<Decision, { label: string; tone: string; pill: string }> = {
-  admit:    { label: "Admit",    tone: "border-emerald-500/40 bg-emerald-500/5", pill: "bg-emerald-500/10 text-emerald-400" },
-  waitlist: { label: "Waitlist", tone: "border-amber-500/40 bg-amber-500/5",     pill: "bg-amber-500/10 text-amber-400" },
-  decline:  { label: "Decline",  tone: "border-rose-500/40 bg-rose-500/5",       pill: "bg-rose-500/10 text-rose-400" },
+// Tone + pill styles are locale-independent; labels come from t() at render time.
+const DECISION_TONE: Record<Decision, { tone: string; pill: string }> = {
+  admit:    { tone: "border-emerald-500/40 bg-emerald-500/5", pill: "bg-emerald-500/10 text-emerald-400" },
+  waitlist: { tone: "border-amber-500/40 bg-amber-500/5",     pill: "bg-amber-500/10 text-amber-400" },
+  decline:  { tone: "border-rose-500/40 bg-rose-500/5",       pill: "bg-rose-500/10 text-rose-400" },
 };
 
 // Candidate statuses that indicate the committee has NOT yet reviewed the case.
@@ -49,6 +51,8 @@ const PRE_COMMITTEE_STATUSES = new Set([
 
 export function DefensibleLanguageCard({ candidateId }: { candidateId: string }) {
   const { toast } = useToast();
+  const { t } = useLocale();
+  const decisionLabel = (d: Decision) => t(`decision.${d}`);
   const [payload, setPayload] = useState<Payload | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeDecision, setActiveDecision] = useState<Decision>("admit");
@@ -98,7 +102,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
     if (!payload?.permissions.can_copy) return;
     try {
       await navigator.clipboard.writeText(currentText);
-      toast("Copied to clipboard", "success");
+      toast(t("dl.toast_copied"), "success");
       await fetch(`/api/candidates/${candidateId}/defensible-language/copy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,7 +112,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
         }),
       });
     } catch {
-      toast("Copy failed", "error");
+      toast(t("dl.toast_copy_failed"), "error");
     }
   }
 
@@ -133,11 +137,11 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
         method: "POST",
       });
       if (res.ok) {
-        toast("Language regenerated", "success");
+        toast(t("dl.toast_regenerated"), "success");
         await load();
       } else {
         const err = await res.json().catch(() => ({}));
-        toast(err.error ?? "Regeneration failed", "error");
+        toast(err.error ?? t("dl.toast_regen_failed"), "error");
       }
     } finally {
       setRegenerating(false);
@@ -154,7 +158,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
         body: JSON.stringify({ decision: editing, text: draft }),
       });
       if (res.ok) {
-        toast("Edit saved", "success");
+        toast(t("dl.toast_edit_saved"), "success");
         setEditing(null);
         setDraft("");
         await load();
@@ -163,7 +167,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
         if (err.rejected_phrase) {
           toast(`Edit rejected: "${err.rejected_phrase}" (${err.category})`, "error");
         } else {
-          toast(err.error ?? "Save failed", "error");
+          toast(err.error ?? t("dl.toast_save_failed"), "error");
         }
       }
     } finally {
@@ -174,7 +178,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
   if (loading) {
     return (
       <div className="rounded-lg border border-lift-border bg-surface p-6">
-        <p className="text-sm text-muted">Loading decision language…</p>
+        <p className="text-sm text-muted">{t("dl.loading")}</p>
       </div>
     );
   }
@@ -182,7 +186,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
   if (!payload) {
     return (
       <div className="rounded-lg border border-lift-border bg-surface p-6">
-        <p className="text-sm text-muted">Could not load decision language.</p>
+        <p className="text-sm text-muted">{t("dl.load_failed")}</p>
       </div>
     );
   }
@@ -195,18 +199,15 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
       : false;
     return (
       <div className="rounded-lg border border-lift-border bg-surface p-6 space-y-3">
-        <h3 className="text-sm font-semibold">Decision Language</h3>
+        <h3 className="text-sm font-semibold">{t("dl.title")}</h3>
         {preCompletion ? (
           <p className="text-sm text-muted">
-            This candidate hasn&apos;t completed their assessment yet. Decision language is
-            generated automatically once the assessment pipeline finishes. Current status:{" "}
+            {t("dl.empty_precompletion")}{" "}
             <span className="capitalize text-lift-text">{payload.status?.replace("_", " ")}</span>.
           </p>
         ) : (
           <p className="text-sm text-muted">
-            Decision language will be generated automatically after the assessment pipeline
-            completes. If the pipeline has already finished for this candidate, you can trigger
-            a manual generation below.
+            {t("dl.empty_postcompletion")}
           </p>
         )}
         {!preCompletion && payload.permissions.can_regenerate && (
@@ -215,7 +216,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
             disabled={regenerating}
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
-            {regenerating ? "Generating…" : "Generate Decision Language"}
+            {regenerating ? t("dl.generating") : t("dl.generate")}
           </button>
         )}
       </div>
@@ -227,33 +228,29 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
       {/* Pre-committee warning banner */}
       {preCommittee && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-          <strong>Not for external use until committee review is complete.</strong>{" "}
-          This language is pre-drafted for reference only — do not send to families until the
-          admissions committee has deliberated this case.
+          <strong>{t("dl.banner_pre_committee_title")}</strong>{" "}
+          {t("dl.banner_pre_committee_body")}
         </div>
       )}
 
       {/* Fallback-used indicator */}
       {payload.cache.fallback_used && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-          <strong>Safe template used. Review before sending.</strong>{" "}
-          AI generation did not pass the content guardrails on one or more versions; a
-          deterministic safe template was substituted. Review the text carefully before any
-          external use.
+          <strong>{t("dl.banner_fallback_title")}</strong>{" "}
+          {t("dl.banner_fallback_body")}
         </div>
       )}
 
       {/* Read-only notice for evaluators */}
       {payload.permissions.read_only_evaluator && (
         <div className="rounded-lg border border-lift-border bg-surface/60 px-4 py-2 text-[11px] text-muted">
-          Read-only view. Decision language is an admissions-authority output. Only school
-          administrators can copy, edit, download, or regenerate.
+          {t("dl.readonly_notice")}
         </div>
       )}
 
       {/* Tab header */}
       <div className="flex gap-1 border-b border-lift-border">
-        {(Object.keys(DECISION_META) as Decision[]).map((d) => (
+        {(["admit", "waitlist", "decline"] as Decision[]).map((d) => (
           <button
             key={d}
             onClick={() => {
@@ -266,15 +263,15 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
                 : "text-muted hover:text-lift-text"
             }`}
           >
-            <span className={`mr-2 rounded px-1.5 py-0.5 text-[10px] font-semibold ${DECISION_META[d].pill}`}>
-              {DECISION_META[d].label}
+            <span className={`mr-2 rounded px-1.5 py-0.5 text-[10px] font-semibold ${DECISION_TONE[d].pill}`}>
+              {decisionLabel(d)}
             </span>
           </button>
         ))}
       </div>
 
       {/* Body */}
-      <div className={`rounded-lg border-2 ${DECISION_META[activeDecision].tone} p-5`}>
+      <div className={`rounded-lg border-2 ${DECISION_TONE[activeDecision].tone} p-5`}>
         {editing === activeDecision ? (
           <div className="space-y-3">
             <textarea
@@ -289,7 +286,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
                 disabled={saving || draft.trim() === ""}
                 className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50"
               >
-                {saving ? "Saving…" : "Save edit"}
+                {saving ? t("common.saving") : t("dl.save_edit")}
               </button>
               <button
                 onClick={() => {
@@ -298,7 +295,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
                 }}
                 className="rounded-md border border-lift-border px-3 py-1.5 text-xs text-muted"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -309,7 +306,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
             </p>
             {usingEditedVersion && (
               <p className="mt-3 text-[10px] text-muted">
-                Using edited version · most recent edit shown
+                {t("dl.using_edited")}
               </p>
             )}
           </>
@@ -324,7 +321,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
               onClick={handleCopy}
               className="rounded-md border border-lift-border bg-surface px-3 py-1.5 text-xs font-medium text-lift-text hover:bg-primary/5 hover:text-primary"
             >
-              📋 Copy
+              📋 {t("dl.action_copy")}
             </button>
           )}
           {payload.permissions.can_download && (
@@ -332,7 +329,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
               onClick={handleDownload}
               className="rounded-md border border-lift-border bg-surface px-3 py-1.5 text-xs font-medium text-lift-text hover:bg-primary/5 hover:text-primary"
             >
-              ⬇ Download .txt
+              ⬇ {t("dl.action_download")}
             </button>
           )}
           {payload.permissions.can_edit && (
@@ -343,7 +340,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
               }}
               className="rounded-md border border-lift-border bg-surface px-3 py-1.5 text-xs font-medium text-lift-text hover:bg-primary/5 hover:text-primary"
             >
-              ✏️ Edit
+              ✏️ {t("dl.action_edit")}
             </button>
           )}
           {payload.permissions.can_regenerate && (
@@ -352,7 +349,7 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
               disabled={regenerating}
               className="rounded-md border border-lift-border bg-surface px-3 py-1.5 text-xs font-medium text-lift-text hover:bg-primary/5 hover:text-primary disabled:opacity-50"
             >
-              {regenerating ? "Regenerating…" : "🔄 Regenerate"}
+              {regenerating ? t("dl.regenerating") : `🔄 ${t("dl.action_regenerate")}`}
             </button>
           )}
         </div>
@@ -362,9 +359,9 @@ export function DefensibleLanguageCard({ candidateId }: { candidateId: string })
       <div className="flex items-center justify-between text-[10px] text-muted">
         <span>
           {payload.cache.generated_at ? (
-            <>Generated {new Date(payload.cache.generated_at).toLocaleString()}</>
+            <>{t("dl.generated_at_prefix")} {new Date(payload.cache.generated_at).toLocaleString()}</>
           ) : (
-            "Not yet generated"
+            t("dl.not_yet_generated")
           )}
         </span>
         <span className="font-mono">

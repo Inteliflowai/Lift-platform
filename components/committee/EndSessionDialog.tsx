@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { DecisionType } from "@/lib/committee/types";
 
 interface StagedVote {
@@ -51,6 +52,7 @@ export function EndSessionDialog({
   onCommitted,
 }: Props) {
   const { toast } = useToast();
+  const { t } = useLocale();
   const [heldIds, setHeldIds] = useState<Set<string>>(new Set());
   const [committing, setCommitting] = useState(false);
   const [summary, setSummary] = useState<CommitSummary | null>(null);
@@ -80,15 +82,25 @@ export function EndSessionDialog({
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        toast(err.error ?? "Commit failed", "error");
+        toast(err.error ?? t("end_session.toast_commit_failed"), "error");
         return;
       }
       const data = (await res.json()) as CommitSummary;
       setSummary(data);
       if (data.failed > 0) {
-        toast(`Committed ${data.committed}, ${data.failed} failed — review below`, "error");
+        toast(
+          t("end_session.toast_partial")
+            .replace("{committed}", String(data.committed))
+            .replace("{failed}", String(data.failed)),
+          "error",
+        );
       } else {
-        toast(`Committed ${data.committed} decision${data.committed === 1 ? "" : "s"}`, "success");
+        toast(
+          t("end_session.toast_success")
+            .replace("{committed}", String(data.committed))
+            .replace("{plural}", data.committed === 1 ? "" : "s"),
+          "success",
+        );
       }
       onCommitted();
     } finally {
@@ -98,7 +110,9 @@ export function EndSessionDialog({
 
   const showingSummary = summary !== null;
   const progressDuringCommit = committing && !showingSummary
-    ? `Processing — ${liveCommittedCount}/${toCommitCount} committed`
+    ? t("end_session.progress_during_commit")
+        .replace("{done}", String(liveCommittedCount))
+        .replace("{total}", String(toCommitCount))
     : null;
 
   return (
@@ -107,13 +121,15 @@ export function EndSessionDialog({
         {/* Header */}
         <div className="border-b border-lift-border px-6 py-4">
           <h2 className="text-lg font-bold">
-            {showingSummary ? "Commit complete" : `Commit ${toCommitCount} staged decision${toCommitCount === 1 ? "" : "s"}?`}
+            {showingSummary
+              ? t("end_session.commit_complete")
+              : t("end_session.commit_n_prompt")
+                  .replace("{count}", String(toCommitCount))
+                  .replace("{plural}", toCommitCount === 1 ? "" : "s")}
           </h2>
           {!showingSummary && (
             <p className="mt-1 text-xs text-muted">
-              Review each decision. Use &quot;Hold&quot; to keep a candidate staged for the next session.
-              On commit, final_recommendations writes per candidate. For admits, CORE handoff, support
-              plan generation, and SIS sync fire automatically.
+              {t("end_session.review_instructions")}
             </p>
           )}
         </div>
@@ -129,10 +145,10 @@ export function EndSessionDialog({
           {showingSummary ? (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-4 gap-2">
-                <StatCell label="Committed" value={summary!.committed} tone="emerald" />
-                <StatCell label="Held" value={summary!.held} tone="slate" />
-                <StatCell label="Failed" value={summary!.failed} tone="rose" />
-                <StatCell label="Already done" value={summary!.already_committed} tone="muted" />
+                <StatCell label={t("end_session.stat_committed")} value={summary!.committed} tone="emerald" />
+                <StatCell label={t("end_session.stat_held")} value={summary!.held} tone="slate" />
+                <StatCell label={t("end_session.stat_failed")} value={summary!.failed} tone="rose" />
+                <StatCell label={t("end_session.stat_already_done")} value={summary!.already_committed} tone="muted" />
               </div>
               <div className="divide-y divide-lift-border rounded-md border border-lift-border">
                 {summary!.items.map((item) => (
@@ -150,8 +166,8 @@ export function EndSessionDialog({
                     className={`flex items-center justify-between gap-3 px-3 py-2.5 text-sm ${held ? "opacity-60" : ""}`}
                   >
                     <span className="truncate font-medium">{v.candidate_name}</span>
-                    <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-medium capitalize ${DECISION_PILL[v.decision]}`}>
-                      {v.decision}
+                    <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-medium ${DECISION_PILL[v.decision]}`}>
+                      {t(`decision.${v.decision}`)}
                     </span>
                     <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] text-muted">
                       <input
@@ -161,21 +177,22 @@ export function EndSessionDialog({
                         disabled={committing}
                         className="h-4 w-4 accent-primary"
                       />
-                      Hold for next session
+                      {t("end_session.hold_checkbox")}
                     </label>
                   </div>
                 );
               })}
               {stagedVotes.length === 0 && (
-                <p className="px-3 py-4 text-center text-xs text-muted">No staged decisions to commit.</p>
+                <p className="px-3 py-4 text-center text-xs text-muted">{t("end_session.empty_staged")}</p>
               )}
             </div>
           )}
 
           {!showingSummary && admitCount > 0 && (
             <p className="mt-3 text-[11px] text-amber-300">
-              {admitCount} admit decision{admitCount === 1 ? "" : "s"} will fire CORE handoff, support
-              plan generation, and SIS sync for each candidate.
+              {t("end_session.admit_warning")
+                .replace("{count}", String(admitCount))
+                .replace("{plural}", admitCount === 1 ? "" : "s")}
             </p>
           )}
         </div>
@@ -187,7 +204,7 @@ export function EndSessionDialog({
               onClick={onClose}
               className="min-h-[44px] flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90"
             >
-              Close
+              {t("end_session.btn_close")}
             </button>
           ) : (
             <>
@@ -196,14 +213,14 @@ export function EndSessionDialog({
                 disabled={committing || toCommitCount === 0}
                 className="min-h-[44px] flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
               >
-                {committing ? "Committing…" : `Commit ${toCommitCount}`}
+                {committing ? t("end_session.btn_committing") : t("end_session.btn_commit").replace("{count}", String(toCommitCount))}
               </button>
               <button
                 onClick={onClose}
                 disabled={committing}
                 className="min-h-[44px] flex-1 rounded-md border border-lift-border bg-surface px-3 py-2 text-sm font-medium text-lift-text hover:bg-primary/5"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </>
           )}
