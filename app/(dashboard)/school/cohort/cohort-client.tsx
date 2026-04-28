@@ -7,6 +7,7 @@ import { useTooltipContent } from "@/lib/tooltips/useTooltipContent";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
 import { ClassBuilder } from "@/components/cohort/ClassBuilder";
+import { triScoreToLabel } from "@/lib/utils/triLabel";
 
 interface CohortRow {
   candidate_id: string;
@@ -45,9 +46,6 @@ interface Cycle {
 
 const triColor = (s: number) =>
   s >= 75 ? "#10b981" : s >= 50 ? "#14b8a6" : "#f59e0b";
-
-const triLabel = (s: number) =>
-  s >= 75 ? "Strong" : s >= 50 ? "Developing" : "Emerging";
 
 const DIMS = [
   { key: "reading_score", label: "Reading" },
@@ -435,7 +433,7 @@ export function CohortClient() {
                             className="font-body text-[10px] font-bold uppercase"
                             style={{ color }}
                           >
-                            {triLabel(r.tri_score)}
+                            {triScoreToLabel(r.tri_score)}
                           </span>
                         </div>
                       </td>
@@ -542,7 +540,7 @@ export function CohortClient() {
                     className="rounded-full px-2.5 py-0.5 font-body text-[11px] font-semibold"
                     style={{ background: `${color}15`, color }}
                   >
-                    {triLabel(r.tri_score)}
+                    {triScoreToLabel(r.tri_score)}
                   </span>
                   <span className="rounded-full bg-[rgba(20,184,166,0.1)] px-2.5 py-0.5 font-body text-[11px] font-semibold text-[#5eead4]">
                     ✦ {getTopStrength(r)}
