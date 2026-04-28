@@ -33,7 +33,7 @@ export async function sendCandidateInvite(
     // Get candidate
     const { data: candidate } = await supabaseAdmin
       .from("candidates")
-      .select("id, first_name, last_name, tenant_id")
+      .select("id, first_name, last_name, tenant_id, is_demo")
       .eq("id", opts.candidateId)
       .eq("tenant_id", opts.tenantId)
       .single();
@@ -160,6 +160,20 @@ export async function sendCandidateInvite(
         triggered_by_sis: opts.triggeredBySis,
       },
     });
+
+    // Soft-archive seeded sample candidates once a real (non-demo) invite
+    // goes out. Idempotent — once demos are hidden they stay hidden, and
+    // resends/imports/SIS pushes after that are no-ops here. The "Show
+    // sample candidates" toggle on /school/candidates surfaces them again
+    // if needed.
+    if (!candidate.is_demo) {
+      await supabaseAdmin
+        .from("candidates")
+        .update({ hidden_from_default_view: true })
+        .eq("tenant_id", opts.tenantId)
+        .eq("is_demo", true)
+        .eq("hidden_from_default_view", false);
+    }
 
     return { success: true, token: activeToken };
   } catch (err) {

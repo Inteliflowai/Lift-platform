@@ -99,12 +99,21 @@ export function TrialBanner() {
         <span className="hidden sm:inline">
           {license.sessionsUsed} of {license.sessionsLimit ?? 25} sessions used
         </span>
-        <a
-          href="/school/settings/subscription"
-          className={`rounded-md px-3 py-1 text-xs font-semibold ${style.btn} hover:opacity-90 transition-opacity`}
-        >
-          Upgrade Now
-        </a>
+        {days > 14 ? (
+          <a
+            href="/school/settings/subscription"
+            className="text-xs font-semibold underline-offset-4 hover:underline opacity-80 hover:opacity-100 transition-opacity"
+          >
+            See pricing
+          </a>
+        ) : (
+          <a
+            href="/school/settings/subscription"
+            className={`rounded-md px-3 py-1 text-xs font-semibold ${style.btn} hover:opacity-90 transition-opacity`}
+          >
+            Upgrade Now
+          </a>
+        )}
         <button
           onClick={toggleMinimize}
           className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity"

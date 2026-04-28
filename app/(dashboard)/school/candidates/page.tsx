@@ -13,23 +13,23 @@ export default async function CandidatesPage() {
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
-  const hasDemo = (candidates ?? []).some((c) =>
-    c.last_name?.includes("(Demo)")
+  const hasVisibleDemo = (candidates ?? []).some(
+    (c) => c.is_demo && !c.hidden_from_default_view
   );
 
   return (
     <>
-      {hasDemo && (
+      {hasVisibleDemo && (
         <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
           <p className="text-sm font-medium text-primary">
             Sample candidates included
           </p>
           <p className="mt-1 text-xs text-muted">
-            We&apos;ve added 3 demo candidates so you can explore the platform.
-            To get started with real candidates, use{" "}
-            <strong>Import Excel</strong> to upload a spreadsheet or{" "}
-            <strong>Invite Candidate</strong> to send individual invitations.
-            Demo candidates can be deleted at any time.
+            We&apos;ve added a few sample candidates so you can explore the
+            platform. They&apos;re marked with a <strong>Sample</strong> pill
+            and will be hidden automatically once you send your first real
+            invitation. Use <strong>Import Excel</strong> or{" "}
+            <strong>Invite Candidate</strong> when you&apos;re ready.
           </p>
         </div>
       )}

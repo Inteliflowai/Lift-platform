@@ -348,7 +348,7 @@ async function handleGuestPurchase(session: Stripe.Checkout.Session, tier: strin
       { first_name: "Amara", last_name: "Okafor (Demo)", grade_band: "9-11", status: "active" },
     ];
     for (const demo of demos) {
-      await supabaseAdmin.from("candidates").insert({ ...demo, tenant_id: tenant.id });
+      await supabaseAdmin.from("candidates").insert({ ...demo, tenant_id: tenant.id, is_demo: true });
     }
 
   } catch (err) {

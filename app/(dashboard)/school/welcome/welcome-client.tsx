@@ -3,19 +3,23 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, ArrowRight } from "lucide-react";
+import { useLicense } from "@/lib/licensing/context";
 
 export function WelcomeClient({
   firstName,
   schoolName,
   trialEndsAt,
   tenantId,
+  sampleCandidateId,
 }: {
   firstName: string;
   schoolName: string;
   trialEndsAt: string | null;
   tenantId: string;
+  sampleCandidateId: string | null;
 }) {
   const router = useRouter();
+  const { sessionsLimit } = useLicense();
   const [secondsLeft, setSecondsLeft] = useState(8);
 
   useEffect(() => {
@@ -49,10 +53,15 @@ export function WelcomeClient({
       title: "Invite your first candidate",
       href: "/school/candidates/invite",
     },
-    {
-      title: "Explore the evaluator workspace",
-      href: "/evaluator",
-    },
+    sampleCandidateId
+      ? {
+          title: "See a sample candidate's report",
+          href: `/evaluator/candidates/${sampleCandidateId}`,
+        }
+      : {
+          title: "Explore the evaluator workspace",
+          href: "/evaluator",
+        },
   ];
 
   return (
@@ -81,7 +90,7 @@ export function WelcomeClient({
         )}
         <div>
           <p className="text-xs text-muted">Sessions available</p>
-          <p className="font-medium text-lift-text">25</p>
+          <p className="font-medium text-lift-text">{sessionsLimit ?? 25}</p>
         </div>
       </div>
 

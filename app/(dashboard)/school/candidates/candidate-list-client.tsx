@@ -6,6 +6,7 @@ import Link from "next/link";
 import { EmptyState, EmptyCandidatesIcon } from "@/components/EmptyState";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { useToast } from "@/components/ui/Toast";
+import { SamplePill } from "@/components/ui/SamplePill";
 
 type Session = {
   status: string;
@@ -29,6 +30,8 @@ type Candidate = {
   grade_applying_to: string;
   status: string;
   created_at: string;
+  is_demo?: boolean;
+  hidden_from_default_view?: boolean;
   sessions: Session[];
   invites: Invite[];
 };
@@ -44,13 +47,19 @@ export function CandidateListClient({
   const [gradeFilter, setGradeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [showHiddenSamples, setShowHiddenSamples] = useState(false);
   const [groupByGrade, setGroupByGrade] = useState(true);
   const [resending, setResending] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkSending, setBulkSending] = useState(false);
   const { toast } = useToast();
 
+  const hiddenSampleCount = candidates.filter(
+    (c) => c.is_demo && c.hidden_from_default_view
+  ).length;
+
   const filtered = candidates.filter((c) => {
+    if (c.hidden_from_default_view && !showHiddenSamples) return false;
     if (
       search &&
       !`${c.first_name} ${c.last_name}`
@@ -201,6 +210,17 @@ export function CandidateListClient({
           />
           {t("candidates.flagged_only")}
         </label>
+        {hiddenSampleCount > 0 && (
+          <label className="flex items-center gap-2 text-sm text-muted">
+            <input
+              type="checkbox"
+              checked={showHiddenSamples}
+              onChange={(e) => setShowHiddenSamples(e.target.checked)}
+              className="rounded"
+            />
+            Show sample candidates ({hiddenSampleCount})
+          </label>
+        )}
         <label className="flex items-center gap-2 text-sm text-muted ml-auto">
           <input
             type="checkbox"
@@ -356,6 +376,7 @@ export function CandidateListClient({
                     >
                       {c.first_name} {c.last_name}
                     </Link>
+                    {c.is_demo && <SamplePill className="ml-2" />}
                   </td>
                   <td className="px-4 py-3 text-muted">Grade {c.grade_applying_to}</td>
                   <td className="px-4 py-3">

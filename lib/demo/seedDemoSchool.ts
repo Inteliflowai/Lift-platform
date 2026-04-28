@@ -216,6 +216,7 @@ export async function ensureDemoCandidates(tenantId: string): Promise<void> {
         grade_band: c.grade_band,
         grade_applying_to: c.grade_applying_to,
         status: "completed",
+        is_demo: true,
       })
       .select("id")
       .single();

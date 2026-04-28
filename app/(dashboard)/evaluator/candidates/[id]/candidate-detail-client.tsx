@@ -19,6 +19,7 @@ import { displayTriLabel } from "@/lib/utils/triLabel";
 import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
 import { DefensibleLanguageCard } from "@/components/director/DefensibleLanguageCard";
+import { SamplePill } from "@/components/ui/SamplePill";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "application" | "outcomes" | "support_plan" | "decision_language";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
@@ -96,8 +97,11 @@ export function CandidateDetailClient({
       <BackButton label={t("eval_detail.back_to_candidates")} />
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">
-            {candidate.first_name as string} {candidate.last_name as string}
+          <h1 className="flex items-center gap-2 text-2xl font-bold">
+            <span>
+              {candidate.first_name as string} {candidate.last_name as string}
+            </span>
+            {candidate.is_demo ? <SamplePill /> : null}
           </h1>
           <p className="text-sm text-muted">
             {t("eval_detail.grade_label")} {candidate.grade_applying_to as string}
