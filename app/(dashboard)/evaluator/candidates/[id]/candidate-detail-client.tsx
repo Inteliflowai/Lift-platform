@@ -20,6 +20,7 @@ import { useLicense } from "@/lib/licensing/context";
 import { FEATURES } from "@/lib/licensing/features";
 import { DefensibleLanguageCard } from "@/components/director/DefensibleLanguageCard";
 import { SamplePill } from "@/components/ui/SamplePill";
+import { HowLiftWorks } from "@/components/onboarding/HowLiftWorks";
 
 type Tab = "overview" | "responses" | "signals" | "review" | "interview" | "application" | "outcomes" | "support_plan" | "decision_language";
 const TIERS = ["strong_admit", "admit", "waitlist", "decline", "defer", "needs_more_info"] as const;
@@ -158,6 +159,7 @@ export function CandidateDetailClient({
               }).catch(() => {});
             }}
           />
+          <HowLiftWorks />
         </div>
       )}
       {tab === "responses" && <ResponsesTab responses={responses} />}

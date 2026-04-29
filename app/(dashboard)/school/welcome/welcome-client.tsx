@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import { useLicense } from "@/lib/licensing/context";
 import { MobileSoftWarn } from "@/components/onboarding/MobileSoftWarn";
+import { HowLiftWorks } from "@/components/onboarding/HowLiftWorks";
 
 export function WelcomeClient({
   firstName,
@@ -156,6 +157,10 @@ export function WelcomeClient({
             <ArrowRight size={16} className="text-muted" />
           </a>
         ))}
+      </div>
+
+      <div className="mt-8 text-left">
+        <HowLiftWorks defaultOpen />
       </div>
 
       {/* Get Started */}
