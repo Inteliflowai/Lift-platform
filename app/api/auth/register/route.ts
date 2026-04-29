@@ -5,6 +5,8 @@ import { seedTaskTemplatesForTenant } from "@/lib/seed-task-templates";
 import { syncLicenseEventToHL } from "@/lib/highlevel/events";
 import { rateLimit, rateLimitResponse } from "@/lib/rateLimit/middleware";
 import { ensureDemoCandidates } from "@/lib/demo/seedDemoSchool";
+import { inferExpectedTier } from "@/lib/licensing/expectedTier";
+import { markOnboardingStep } from "@/lib/onboarding";
 
 function slugify(name: string): string {
   return name
@@ -103,6 +105,10 @@ export async function POST(req: NextRequest) {
   try {
     // Create tenant
     const slug = await uniqueSlug(schoolName);
+    const expectedTier = inferExpectedTier({
+      schoolType,
+      estimatedApplicants,
+    });
     const { data: tenant, error: tenantErr } = await supabaseAdmin
       .from("tenants")
       .insert({
@@ -110,6 +116,7 @@ export async function POST(req: NextRequest) {
         slug,
         status: "active",
         school_type: schoolType,
+        expected_tier: expectedTier,
       })
       .select()
       .single();
@@ -153,6 +160,48 @@ export async function POST(req: NextRequest) {
 
     // Seed standard task templates for all grade bands
     await seedTaskTemplatesForTenant(tenant.id);
+
+    // Auto-create a default active cycle so the trial user can immediately
+    // invite a candidate (or self-invite from the welcome page) without first
+    // configuring a cycle. Status MUST be 'active' — the candidate invite
+    // route filters cycles on status='active' to attach a cycle_id.
+    {
+      const startYear = new Date().getFullYear();
+      const academicYear = `${startYear}-${startYear + 1}`;
+      const cycleName = `${academicYear} Full Year Admissions`;
+      const { data: cycle } = await supabaseAdmin
+        .from("application_cycles")
+        .insert({
+          tenant_id: tenant.id,
+          name: cycleName,
+          academic_year: academicYear,
+          status: "active",
+        })
+        .select("id")
+        .single();
+
+      if (cycle) {
+        const bands = ["6-7", "8", "9-11"] as const;
+        await supabaseAdmin.from("grade_band_templates").insert(
+          bands.map((gb) => ({
+            tenant_id: tenant.id,
+            cycle_id: cycle.id,
+            grade_band: gb,
+            name: `Default ${gb}`,
+            config: {
+              task_count: gb === "6-7" ? 4 : gb === "8" ? 5 : 6,
+              time_limit_minutes: gb === "6-7" ? 30 : gb === "8" ? 40 : 50,
+              hint_density: "medium",
+              ux_mode: gb === "6-7" ? "simple" : "standard",
+            },
+            is_default: true,
+          }))
+        );
+      }
+
+      // Mark onboarding step 1 done so the (now-quieted) banner doesn't nag.
+      markOnboardingStep(tenant.id, "cycle_created").catch(() => {});
+    }
 
     // Log registration metadata as license event
     await supabaseAdmin.from("license_events").insert({

@@ -1,19 +1,24 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Check, Circle, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Check, Circle, ChevronDown, ChevronUp, Sparkles, ArrowRight, X } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useLicense } from "@/lib/licensing/context";
 import { usePathname } from "next/navigation";
+
+const TRIAL_HINT_DISMISSED_KEY = "lift-trial-invite-hint-dismissed";
 
 export function OnboardingBanner() {
   const { t } = useLocale();
+  const license = useLicense();
   const pathname = usePathname();
   const [stepsCompleted, setStepsCompleted] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [minimized, setMinimized] = useState(false);
   const [allDone, setAllDone] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [trialHintDismissed, setTrialHintDismissed] = useState(false);
 
   const STEPS = [
     {
@@ -82,7 +87,52 @@ export function OnboardingBanner() {
     }
   }, [stepsCompleted, allDone, STEPS.length]);
 
+  // Read trial-hint dismissal once on mount (after `loading` is set).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setTrialHintDismissed(
+      localStorage.getItem(TRIAL_HINT_DISMISSED_KEY) === "true"
+    );
+  }, []);
+
   if (loading || allDone) return null;
+
+  // Trial users: senior B2B buyers don't want a 5-step activation rail (per
+  // feedback_b2b_buyer_nudge_channel — visible nudges go to HL email). Render
+  // a single discreet "Next: invite a candidate" hint. Auto-disappears once
+  // the candidate_invited step is recorded; also dismissible.
+  const isTrialing = license.status === "trialing";
+  if (isTrialing) {
+    if (stepsCompleted.includes("candidate_invited")) return null;
+    if (trialHintDismissed) return null;
+    return (
+      <div className="mb-6 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+        <Link
+          href="/school/candidates/invite"
+          className="flex items-center gap-2 text-sm text-lift-text hover:text-primary transition-colors"
+        >
+          <Sparkles size={14} className="text-primary" />
+          <span className="font-medium">Next: invite a candidate</span>
+          <span className="text-muted hidden sm:inline">
+            — see the assessment from a real applicant&apos;s side.
+          </span>
+          <ArrowRight size={14} className="text-primary" />
+        </Link>
+        <button
+          onClick={() => {
+            setTrialHintDismissed(true);
+            if (typeof window !== "undefined") {
+              localStorage.setItem(TRIAL_HINT_DISMISSED_KEY, "true");
+            }
+          }}
+          className="text-muted hover:text-lift-text"
+          aria-label="Dismiss"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
 
   const completedCount = stepsCompleted.length;
   const progress = (completedCount / STEPS.length) * 100;

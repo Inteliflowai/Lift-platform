@@ -113,5 +113,17 @@ export async function syncLicenseEventToHL(event: {
         await moveHLPipelineStage(contactId, getHLStages()["Negotiating"]);
       }
       break;
+
+    // Trial nurture — fired by /api/cron/trial-nurture once per tenant per
+    // milestone. Email content lives in HL workflows (per
+    // feedback_b2b_buyer_nudge_channel — visible in-app activation rails are
+    // patronizing for senior B2B buyers; nudges go to email).
+    case "trial_no_invite_day3":
+      await addHLTags(contactId, ["lift-trial-no-invite-day3"]);
+      break;
+
+    case "trial_walkthrough_offer_day7":
+      await addHLTags(contactId, ["lift-trial-walkthrough-offer-day7"]);
+      break;
   }
 }

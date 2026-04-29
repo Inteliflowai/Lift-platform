@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from "react";
 import { TIER_FEATURES, type Feature } from "./features";
+import type { ExpectedTier } from "./expectedTier";
 
 export interface LicenseContextValue {
   tier: string;
@@ -11,6 +12,7 @@ export interface LicenseContextValue {
   hasFeature: (feature: string) => boolean;
   sessionsUsed: number;
   sessionsLimit: number | null;
+  expectedTier: ExpectedTier;
 }
 
 export const LicenseContext = createContext<LicenseContextValue | null>(null);
@@ -39,6 +41,7 @@ export function LicenseProvider({
     featureBlocks: string[];
     sessionsUsed: number;
     sessionsLimit: number | null;
+    expectedTier: ExpectedTier;
   };
   children: React.ReactNode;
 }) {
@@ -63,6 +66,7 @@ export function LicenseProvider({
         hasFeature,
         sessionsUsed: license.sessionsUsed,
         sessionsLimit: license.sessionsLimit,
+        expectedTier: license.expectedTier,
       }}
     >
       {children}

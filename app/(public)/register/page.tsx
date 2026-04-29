@@ -4,6 +4,8 @@ import { useState, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { MobileSoftWarn } from "@/components/onboarding/MobileSoftWarn";
 
 const SCHOOL_TYPES = [
   "Independent Day",
@@ -102,11 +104,27 @@ function RegisterForm() {
         }).catch(() => {});
       }
 
-      // If a plan was pre-selected, redirect to checkout after login
       const redirect = selectedPlan
         ? `/school/settings/subscription?auto_checkout=${selectedPlan}`
         : "/school/welcome";
-      router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
+
+      // Auto-login with the password they just set so we land directly on the
+      // welcome page — no forced re-login. If sign-in fails (rare, since we
+      // just created the user), fall back to the /login redirect path so the
+      // user is never stranded.
+      const supabase = createClient();
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: form.email,
+        password: form.password,
+      });
+
+      if (signInErr) {
+        router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
+        return;
+      }
+
+      router.push(redirect);
+      router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -115,6 +133,7 @@ function RegisterForm() {
 
   return (
     <div className="relative z-10 w-full max-w-[460px] px-4 py-8 login-card-enter">
+      <MobileSoftWarn />
       {/* Logo */}
       <div className="mb-6 flex flex-col items-center">
         <Image

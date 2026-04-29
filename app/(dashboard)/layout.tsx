@@ -58,14 +58,17 @@ export default async function DashboardLayout({
     schoolName: "",
   };
 
+  let expectedTier: "professional" | "enterprise" = "professional";
+
   if (tenantId) {
     const { data: tenant } = await supabaseAdmin
       .from("tenants")
-      .select("is_demo, name")
+      .select("is_demo, name, expected_tier")
       .eq("id", tenantId)
       .single();
     isDemo = tenant?.is_demo ?? false;
     branding.schoolName = tenant?.name ?? "";
+    if (tenant?.expected_tier === "enterprise") expectedTier = "enterprise";
 
     const { data: wl } = await supabaseAdmin
       .from("tenant_settings")
@@ -96,6 +99,7 @@ export default async function DashboardLayout({
     featureBlocks: [] as string[],
     sessionsUsed: 0,
     sessionsLimit: 25 as number | null,
+    expectedTier,
   };
 
   if (tenantId) {
@@ -111,6 +115,7 @@ export default async function DashboardLayout({
         featureBlocks: license.feature_blocks,
         sessionsUsed: sessionInfo.used,
         sessionsLimit: sessionInfo.limit,
+        expectedTier,
       };
     } catch {
       // License not found — use defaults (trial)

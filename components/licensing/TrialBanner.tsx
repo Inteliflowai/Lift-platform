@@ -75,6 +75,15 @@ export function TrialBanner() {
   const days = license.trialDaysRemaining ?? 0;
   const style = getBannerStyle(days);
   const trialProgressPct = Math.min(100, ((30 - days) / 30) * 100);
+  const isEnterprise = license.expectedTier === "enterprise";
+  // Enterprise routes to a sales conversation, not Stripe self-serve.
+  // Professional keeps Stripe self-serve + an "invoice" escape hatch for
+  // schools whose finance ops can't process a card payment.
+  const ctaHref = isEnterprise
+    ? "mailto:sales@inteliflowai.com?subject=LIFT%20Enterprise"
+    : "/school/settings/subscription";
+  const ctaLabel = isEnterprise ? "Schedule a call" : "Upgrade Now";
+  const softLabel = isEnterprise ? "Talk to sales" : "See pricing";
 
   if (minimized) {
     return (
@@ -101,18 +110,28 @@ export function TrialBanner() {
         </span>
         {days > 14 ? (
           <a
-            href="/school/settings/subscription"
+            href={ctaHref}
             className="text-xs font-semibold underline-offset-4 hover:underline opacity-80 hover:opacity-100 transition-opacity"
           >
-            See pricing
+            {softLabel}
           </a>
         ) : (
-          <a
-            href="/school/settings/subscription"
-            className={`rounded-md px-3 py-1 text-xs font-semibold ${style.btn} hover:opacity-90 transition-opacity`}
-          >
-            Upgrade Now
-          </a>
+          <>
+            <a
+              href={ctaHref}
+              className={`rounded-md px-3 py-1 text-xs font-semibold ${style.btn} hover:opacity-90 transition-opacity`}
+            >
+              {ctaLabel}
+            </a>
+            {!isEnterprise && (
+              <a
+                href="mailto:sales@inteliflowai.com?subject=LIFT%20invoice%20billing"
+                className="hidden md:inline text-[11px] font-medium underline-offset-4 hover:underline opacity-70 hover:opacity-100 transition-opacity"
+              >
+                Need an invoice?
+              </a>
+            )}
+          </>
         )}
         <button
           onClick={toggleMinimize}
