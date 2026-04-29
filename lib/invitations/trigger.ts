@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendInviteEmail } from "@/lib/email";
 import { writeAuditLog } from "@/lib/audit";
+import { softArchiveDemoCandidates } from "./softArchiveDemos";
 import crypto from "crypto";
 
 export type TriggerType = "manual" | "bulk_send" | "import" | "sis_webhook" | "resend";
@@ -162,17 +163,10 @@ export async function sendCandidateInvite(
     });
 
     // Soft-archive seeded sample candidates once a real (non-demo) invite
-    // goes out. Idempotent — once demos are hidden they stay hidden, and
-    // resends/imports/SIS pushes after that are no-ops here. The "Show
-    // sample candidates" toggle on /school/candidates surfaces them again
-    // if needed.
+    // goes out. Resends of demo candidates (e.g. self-invite) must NOT
+    // archive themselves — guard on candidate.is_demo.
     if (!candidate.is_demo) {
-      await supabaseAdmin
-        .from("candidates")
-        .update({ hidden_from_default_view: true })
-        .eq("tenant_id", opts.tenantId)
-        .eq("is_demo", true)
-        .eq("hidden_from_default_view", false);
+      await softArchiveDemoCandidates(opts.tenantId);
     }
 
     return { success: true, token: activeToken };

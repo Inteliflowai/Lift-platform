@@ -5,36 +5,11 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
 import { sendInviteEmail } from "@/lib/email";
 import { markOnboardingStep } from "@/lib/onboarding";
+import { softArchiveDemoCandidates } from "@/lib/invitations/softArchiveDemos";
 import crypto from "crypto";
-
-async function cleanupDemoCandidates(tenantId: string) {
-  try {
-    // Check if any real (non-demo) candidates exist
-    const { count } = await supabaseAdmin
-      .from("candidates")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", tenantId)
-      .not("last_name", "like", "%(Demo)%");
-
-    // If no real candidates yet, this is the first real invite — clean up demos
-    if (count === 0) {
-      await supabaseAdmin
-        .from("candidates")
-        .delete()
-        .eq("tenant_id", tenantId)
-        .like("last_name", "%(Demo)%");
-      console.log(`[demo] Cleaned up demo candidates for tenant ${tenantId}`);
-    }
-  } catch {
-    // Never fail on demo cleanup
-  }
-}
 
 export async function POST(req: NextRequest) {
   const { tenantId, tenant, user } = await getTenantContext();
-
-  // Auto-remove demo candidates on first real invite (non-blocking)
-  cleanupDemoCandidates(tenantId).catch(() => {});
 
   const body = await req.json();
   const {
@@ -170,6 +145,14 @@ export async function POST(req: NextRequest) {
   });
 
   markOnboardingStep(tenantId, "candidate_invited").catch(() => {});
+
+  // Soft-archive seeded demos once a real applicant invite goes out.
+  // Idempotent — repeated calls are no-ops once demos are already hidden.
+  // The candidate created here is always real (this route does not create
+  // is_demo rows), so no guard needed at this call site.
+  softArchiveDemoCandidates(tenantId).catch((err) =>
+    console.error("[invite] soft-archive failed:", err)
+  );
 
   // Track trial event (non-blocking)
   import("@/lib/trial/trackEvent").then(({ trackTrialEvent }) =>
