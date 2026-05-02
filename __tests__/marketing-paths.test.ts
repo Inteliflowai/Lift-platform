@@ -5,6 +5,7 @@ describe("isPublicMarketingPath", () => {
   describe("allow-listed paths", () => {
     it.each([
       "/lift",
+      "/admissions",
       "/pricing",
       "/register",
       "/buy",
@@ -85,6 +86,7 @@ describe("isPublicMarketingPath", () => {
       expect(isPublicMarketingPath("/lifted-up")).toBe(false);
       expect(isPublicMarketingPath("/registers")).toBe(false);
       expect(isPublicMarketingPath("/buying")).toBe(false);
+      expect(isPublicMarketingPath("/admissionss")).toBe(false);
     });
   });
 });

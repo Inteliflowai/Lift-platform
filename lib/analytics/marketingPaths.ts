@@ -17,6 +17,7 @@
 
 const MARKETING_PATHS_EXACT = new Set<string>([
   "/lift",
+  "/admissions",
   "/pricing",
   "/register",
   "/buy",
