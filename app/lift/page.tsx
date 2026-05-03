@@ -30,7 +30,7 @@ const BRAND = {
   bg3: "#122a30",
   white: "#ffffff",
   text: "#ecfdf5",
-  muted: "#99f6e4",
+  muted: "#cbd5e1",
   line: "rgba(255,255,255,0.12)",
   card: "rgba(255,255,255,0.06)",
   cardStrong: "rgba(255,255,255,0.12)",
@@ -1066,7 +1066,7 @@ function PricingSection() {
               {tier.features.map((f) => {
                 const isHeader = f.endsWith(":");
                 return (
-                  <li key={f} style={{ fontSize: 14, color: isHeader ? BRAND.white : BRAND.muted, padding: "6px 0", display: "flex", gap: 8, alignItems: "flex-start", fontWeight: isHeader ? 600 : 400, marginTop: isHeader ? 4 : 0 }}>
+                  <li key={f} style={{ fontSize: 14, color: isHeader ? BRAND.white : BRAND.text, padding: "6px 0", display: "flex", gap: 8, alignItems: "flex-start", fontWeight: isHeader ? 600 : 400, marginTop: isHeader ? 4 : 0 }}>
                     {!isHeader && <span style={{ color: BRAND.liftEmerald, fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>&#10003;</span>}
                     <span>{f}</span>
                   </li>
