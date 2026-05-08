@@ -89,7 +89,7 @@ export function TrialHealthClient({ trials }: { trials: TrialHealth[] }) {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-lg border border-lift-border bg-surface p-4">
           <div className="flex items-center gap-2 text-muted"><Users size={16} /><span className="text-xs font-medium">Total Trials</span></div>
           <p className="mt-1 text-2xl font-bold text-lift-text">{trials.length}</p>

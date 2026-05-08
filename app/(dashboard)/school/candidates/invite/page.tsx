@@ -67,7 +67,7 @@ export default function InviteCandidatePage() {
       <h1 className="text-2xl font-bold">Invite Candidate</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs text-muted">First Name</label>
             <input
@@ -103,7 +103,7 @@ export default function InviteCandidatePage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs text-muted">
               Grade Applying To
