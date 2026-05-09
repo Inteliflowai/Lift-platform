@@ -140,10 +140,13 @@ EVIDÊNCIAS DA AVALIAÇÃO:
 - Áreas ainda em desenvolvimento: ${inputs.developingAreas.join(", ") || "(nenhuma identificada)"}
 - Observações comportamentais: ${inputs.behavioralEvidence.length > 0 ? inputs.behavioralEvidence.join("; ") : "(sem sinais comportamentais notáveis)"}
 
+CONTEXTO BNCC:
+A justificativa deve dialogar com as competências gerais da Base Nacional Comum Curricular (BNCC) quando isso ajudar a explicar o ajuste ou os pontos fortes — por exemplo, "Pensamento Crítico", "Comunicação", "Argumentação", "Autoconhecimento", "Empatia e Cooperação" ou "Responsabilidade e Cidadania". Use a linguagem da BNCC com naturalidade, sem citar códigos ou habilidades específicas.
+
 RESTRIÇÕES (estritas):
 1. Total de 3 a 5 frases. Sem listas, títulos ou despedida.
 2. Referencie evidências ESPECÍFICAS da avaliação acima — nunca traços genéricos.
-3. A redação deve, quando possível, conectar-se à missão da escola ou ao ajuste ao grupo.
+3. A redação deve, quando possível, conectar-se à missão da escola, ao ajuste ao grupo, ou às competências gerais da BNCC.
 4. Linguagem segura para os responsáveis: NÃO inclua nada do seguinte:
    - Comparações com outros candidatos ou colegas (nada de "comparado a/com", "melhor/pior que", "acima/abaixo da média", linguagem de percentil ou quartil)
    - Referências a classe protegida (raça, etnia, religião, origem nacional, orientação sexual, identidade de gênero)

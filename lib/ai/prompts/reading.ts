@@ -1,4 +1,4 @@
-import { PromptInput, PromptPair, langNote, SCORE_FORMAT } from "./types";
+import { PromptInput, PromptPair, langNote, bnccNote, SCORE_FORMAT } from "./types";
 
 export function buildPrompt(input: PromptInput): PromptPair {
   const readingResponses = input.responses.filter(
@@ -17,7 +17,8 @@ Score the student's READING dimension (0-100) based on:
 Consider the grade band expectations: grade 6-7 = foundational, grade 8 = developing, grade 9-11 = advanced.
 
 ${SCORE_FORMAT}
-${langNote(input.language)}`,
+${langNote(input.language)}
+${bnccNote(input.language, "reading")}`,
 
     user: `Student responses to reading tasks:
 

@@ -1,4 +1,4 @@
-import { PromptInput, PromptPair, langNote, SCORE_FORMAT } from "./types";
+import { PromptInput, PromptPair, langNote, bnccNote, SCORE_FORMAT } from "./types";
 
 export function buildPrompt(input: PromptInput): PromptPair {
   return {
@@ -12,7 +12,8 @@ Score the student's PERSISTENCE dimension (0-100) based on:
 - Hint usage patterns (using hints appropriately shows problem-solving persistence, not weakness)
 
 ${SCORE_FORMAT}
-${langNote(input.language)}`,
+${langNote(input.language)}
+${bnccNote(input.language, "persistence")}`,
 
     user: `Student responses (in order):
 

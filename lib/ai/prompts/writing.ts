@@ -1,4 +1,4 @@
-import { PromptInput, PromptPair, langNote, SCORE_FORMAT } from "./types";
+import { PromptInput, PromptPair, langNote, bnccNote, SCORE_FORMAT } from "./types";
 
 export function buildPrompt(input: PromptInput): PromptPair {
   const writingResponses = input.responses.filter((r) =>
@@ -16,7 +16,8 @@ Score the student's WRITING dimension (0-100) based on:
 - Sentence construction variety
 
 ${SCORE_FORMAT}
-${langNote(input.language)}`,
+${langNote(input.language)}
+${bnccNote(input.language, "writing")}`,
 
     user: `Student writing responses:
 
