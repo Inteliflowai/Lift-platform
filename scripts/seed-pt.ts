@@ -167,6 +167,57 @@ async function seed() {
     console.log(`Grade band template ${gb} created`);
   }
 
+  // 6. Demo candidate with predictable invite token (for the student-side demo)
+  const { data: existingCand } = await supabase
+    .from("candidates")
+    .select("id")
+    .eq("tenant_id", tenant.id)
+    .eq("first_name", "Lucas")
+    .eq("last_name", "Demonstração")
+    .maybeSingle();
+
+  let candidateId: string;
+  if (existingCand) {
+    candidateId = existingCand.id;
+    console.log(`Demo candidate Lucas Demonstração already exists (${candidateId})`);
+  } else {
+    const { data: candidate, error: candErr } = await supabase
+      .from("candidates")
+      .insert({
+        tenant_id: tenant.id,
+        cycle_id: cycle.id,
+        first_name: "Lucas",
+        last_name: "Demonstração",
+        grade_applying_to: "8",
+        grade_band: "8",
+        status: "invited",
+      })
+      .select()
+      .single();
+    if (candErr) throw candErr;
+    candidateId = candidate.id;
+    console.log("Demo candidate:", candidate.first_name, candidate.last_name, candidateId);
+  }
+
+  // 7. Invite with a known token
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  const { error: inviteErr } = await supabase.from("invites").upsert(
+    {
+      candidate_id: candidateId,
+      tenant_id: tenant.id,
+      token: "demo-pt-lucas",
+      sent_to_email: "lucas@demo.eduinsights.datanex.ai",
+      sent_at: new Date().toISOString(),
+      expires_at: expiresAt.toISOString(),
+      status: "pending",
+    },
+    { onConflict: "token" }
+  );
+  if (inviteErr) throw inviteErr;
+  console.log("Invite created (token: demo-pt-lucas)");
+
   console.log("\nSeed complete!\n");
   console.log("─".repeat(60));
   console.log("Login credentials (eduinsights.datanex.ai/login):");
@@ -174,6 +225,11 @@ async function seed() {
   for (const u of USERS) {
     console.log(`  ${u.role.padEnd(15)}  ${u.email}  ::  ${u.password}`);
   }
+  console.log("─".repeat(60));
+  console.log("Student-side demo (no login — open the URL directly):");
+  console.log("─".repeat(60));
+  console.log("  https://eduinsights.datanex.ai/invite/demo-pt-lucas");
+  console.log("  (or http://localhost:3000/invite/demo-pt-lucas in dev)");
   console.log("─".repeat(60));
   console.log("\nNext steps:");
   console.log("  npx tsx scripts/seed-pt-tasks.ts   # PT task templates");
