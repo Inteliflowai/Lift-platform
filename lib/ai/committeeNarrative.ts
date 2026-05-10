@@ -30,7 +30,7 @@ function buildPromptPt(data: CommitteeReportData): string {
 
   return `Você está redigindo um resumo conciso para o comitê de admissões sobre ${data.candidateName}, candidato(a) ao ${data.gradeApplyingFor}º ano em ${data.schoolName}.
 
-Este resumo será lido pelo comitê de admissões durante uma reunião de decisão. Escreva como um informe de recomendação neutro e baseado em evidências.
+Este resumo será lido pelo comitê de admissões durante uma reunião de decisão. Escreva como um informe de recomendação neutro e baseado em evidências, ancorado nas competências gerais da BNCC (Base Nacional Comum Curricular).
 
 DADOS DA SESSÃO LIFT:
 - Pontuação TRI: ${data.triScore}/100
@@ -60,6 +60,7 @@ REGRAS IMPORTANTES:
 - Escreva em terceira pessoa ("o(a) candidato(a)", "${data.candidateFirstName}", "ele(a)")
 - Não use linguagem diagnóstica
 - Não mencione pontuações numéricas específicas no texto — descreva padrões, não números
+- Quando relevante, mencione brevemente competências gerais da BNCC (ex.: "Pensamento Científico, Crítico e Criativo", "Argumentação", "Autoconhecimento e Autocuidado") em vez de jargão pedagógico genérico
 - Mantenha o comprimento total entre 150 e 180 palavras
 - Escreva para um(a) Diretor(a) que tem 90 segundos para ler isto
 - Não inclua título nem despedida — apenas os 3 parágrafos`;

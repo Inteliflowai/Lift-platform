@@ -1,4 +1,4 @@
-import { PromptInput, PromptPair, langNote, SCORE_FORMAT } from "./types";
+import { PromptInput, PromptPair, langNote, bnccNote, SCORE_FORMAT } from "./types";
 
 export function buildPrompt(input: PromptInput): PromptPair {
   const mathResponses = input.responses.filter((r) =>
@@ -21,7 +21,8 @@ Score the student's MATHEMATICAL REASONING dimension (0-100) based on:
 Important: Score based on the student's grade level. A Grade 7 student solving problems correctly at their level should score equivalently to a Grade 10 student solving age-appropriate problems correctly at theirs.
 
 ${SCORE_FORMAT}
-${langNote(input.language)}`,
+${langNote(input.language)}
+${bnccNote(input.language, "math")}`,
 
     user: `Student mathematical reasoning responses:
 

@@ -1008,7 +1008,7 @@ function InterviewTabV2({ candidateId, tenantId, candidateName, rubricSubmission
               <span>{interviewer?.full_name ?? "Interviewer"}</span>
               <span>{sub.interview_date as string}</span>
             </div>
-            <div className="grid grid-cols-5 gap-2 text-center text-xs">
+            <div className="grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-3 md:grid-cols-5">
               {["verbal_reasoning", "communication", "self_awareness", "curiosity", "resilience"].map((d) => (
                 <div key={d}>
                   <p className="text-muted capitalize">{d.replace("_", " ")}</p>

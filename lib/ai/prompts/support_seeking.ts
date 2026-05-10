@@ -1,4 +1,4 @@
-import { PromptInput, PromptPair, langNote, SCORE_FORMAT } from "./types";
+import { PromptInput, PromptPair, langNote, bnccNote, SCORE_FORMAT } from "./types";
 
 export function buildPrompt(input: PromptInput): PromptPair {
   return {
@@ -13,7 +13,8 @@ Score the student's SUPPORT SEEKING dimension (0-100) based on:
 A high score means the student shows healthy, adaptive support-seeking behavior — not that they needed more help.
 
 ${SCORE_FORMAT}
-${langNote(input.language)}`,
+${langNote(input.language)}
+${bnccNote(input.language, "support_seeking")}`,
 
     user: `Student responses to collaborative/scenario tasks:
 

@@ -1,3 +1,5 @@
+import { LIFT_DIMENSION_TO_BNCC, describeBnccList } from "@/lib/bncc/competencias";
+
 export type PromptInput = {
   features: {
     sentence_count?: number;
@@ -28,6 +30,20 @@ const LANG_INSTRUCTION = {
 
 export function langNote(language: "en" | "pt"): string {
   return LANG_INSTRUCTION[language];
+}
+
+/**
+ * Returns a BNCC framing addendum for PT prompts; empty string for EN.
+ *
+ * Cites the BNCC competências gerais this LIFT dimension most directly
+ * exercises so Claude judges PT responses against the Brazilian curriculum
+ * framework, not US/generic norms. Mapping in lib/bncc/competencias.ts.
+ */
+export function bnccNote(language: "en" | "pt", liftDimension: string): string {
+  if (language !== "pt") return "";
+  const ids = LIFT_DIMENSION_TO_BNCC[liftDimension];
+  if (!ids || ids.length === 0) return "";
+  return `Contexto BNCC: esta dimensão está alinhada às competências gerais ${describeBnccList(ids)} da Base Nacional Comum Curricular. Avalie a resposta considerando se evidencia desenvolvimento dessas competências no nível esperado para a série.`;
 }
 
 export const SCORE_FORMAT = `

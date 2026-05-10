@@ -1,4 +1,4 @@
-import { PromptInput, PromptPair, langNote, SCORE_FORMAT } from "./types";
+import { PromptInput, PromptPair, langNote, bnccNote, SCORE_FORMAT } from "./types";
 
 export function buildPrompt(input: PromptInput): PromptPair {
   const reflectionResponses = input.responses.filter(
@@ -17,7 +17,8 @@ Score the student's REFLECTION dimension (0-100) based on:
 - Growth mindset indicators (viewing challenges as opportunities)
 
 ${SCORE_FORMAT}
-${langNote(input.language)}`,
+${langNote(input.language)}
+${bnccNote(input.language, "reflection")}`,
 
     user: `Student reflection responses:
 

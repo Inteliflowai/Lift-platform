@@ -4,6 +4,8 @@
 
 import { useState, useEffect } from "react";
 import { AnalyticsHealthCard } from "@/components/analytics/AnalyticsHealthCard";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { LiftLandingPagePt } from "./page-pt";
 
 /* ════════════════════════════════════════════════════════════
    LIFT Marketing Landing Page
@@ -1332,6 +1334,12 @@ function Footer() {
 /* ─── Main App ─── */
 
 export default function LiftLandingPage() {
+  const { locale } = useLocale();
+  if (locale === "pt") return <LiftLandingPagePt />;
+  return <LiftLandingPageEn />;
+}
+
+function LiftLandingPageEn() {
   usePageStyles();
   const [mobileOpen, setMobileOpen] = useState(false);
 

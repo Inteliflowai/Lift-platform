@@ -68,7 +68,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Business Overview */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <Link
             key={s.label}
@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Quick links */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Link
           href="/admin/tenants"
           className="rounded-lg border border-lift-border bg-surface p-4 text-sm font-medium text-lift-text hover:border-primary/30 transition-colors"

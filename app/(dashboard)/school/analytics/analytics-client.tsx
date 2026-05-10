@@ -69,7 +69,7 @@ export function AnalyticsClient({
     return (
       <div className="space-y-4">
         <div className="h-8 w-48 animate-pulse rounded bg-lift-border" />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="h-24 animate-pulse rounded-lg bg-lift-border" />
           ))}
@@ -215,7 +215,7 @@ export function AnalyticsClient({
         <p className="mb-4 rounded-lg border border-lift-border bg-page-bg p-3 text-xs leading-relaxed text-muted">
           LIFT detects 9 behavioral patterns observed during the session — including reading pace, revision depth, and task abandonment. When patterns appear, LIFT flags them for professional follow-up. These are observations, not diagnoses.
         </p>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="card-hover rounded-lg border border-success/20 bg-success/5 p-4 text-center accent-left-green">
             <p className="stat-hero text-success">{data.support_signals.none}</p>
             <p className="mt-1.5 text-xs font-medium text-muted">No Indicators</p>
