@@ -18,7 +18,8 @@ LIFT (Learning Insight for Transitions) is a non-diagnostic admissions insight p
 - `npm run seed` — Seed database (`tsx scripts/seed.ts`)
 - `npm run seed:tasks` — Seed task templates (`tsx scripts/seed-tasks.ts`)
 - `npx tsx scripts/seed-existing-tenants.ts` — Seed tasks for tenants missing them
-- `npx tsx scripts/seed-pt-tasks.ts` — Seed Portuguese task templates (uses `.env.pt`)
+- `npx tsx scripts/seed-pt-tasks.ts` — Seed Portuguese task templates (uses `.env.pt`; includes 9 math_problem variants and BNCC competências tags on every task)
+- `npx tsx scripts/seed-pt.ts` — Bootstrap EduInsights tenant + 3 admin users (admin@/escola@/avaliador@eduinsights.datanex.ai) + active "Processo Seletivo" cycle + Lucas Demonstração invite (token `demo-pt-lucas`). Loads `.env.pt`. Idempotent.
 - `npx tsx scripts/get-hl-stages.ts` — Fetch HighLevel pipeline/stage IDs
 - `npx tsx scripts/generate-hl-snapshot.ts` — Regenerate HL snapshot JSON
 
@@ -260,6 +261,7 @@ SQL files in `supabase/migrations/` numbered sequentially (001-028). Key additio
 - 043: tenant_delete_cascade_sweep (DO-block dynamic sweep of every NO ACTION FK in public schema where the target table has a tenant_id column — converts to CASCADE if NOT NULL, SET NULL if nullable; required because 042 only fixed direct children of tenants but the cascade then 23503'd on grandchildren)
 - 044: candidates_is_demo (is_demo + hidden_from_default_view boolean columns on candidates; backfill marks the legacy "(Demo)"-suffixed Stripe placeholders. Powers the SamplePill and the soft-archive-on-first-real-invite flow.)
 - 045: expected_tier (tenants.expected_tier text + tenant_settings.nurture_tags_fired text[]. Drives tier-aware TrialBanner CTA and the daily /api/cron/trial-nurture idempotency ledger.)
+- 046: bncc_alignment (task_templates.bncc_competencias int[] with CHECK constraint restricting to 1-10. Tags every PT task with the BNCC competências gerais it exercises. EN tasks leave the column empty by convention but the column must exist on both Supabases — see "BNCC Alignment (PT)" section.)
 `FULL_MIGRATION_PT.sql` is the concatenated bootstrap bundle for **fresh** Supabase instances **only** — do NOT run on an existing populated DB. The 001-018 portion uses bare `CREATE TABLE` and will fail with `42P07: relation already exists` on re-run, leaving the DB in an unknown partial state. For catch-up on an existing instance, identify missing migrations via a schema-readiness probe and apply individual migration files (in numeric order), not the bundle.
 
 ### Demo Mode
@@ -272,7 +274,19 @@ New trial registrations get 3 demo candidates and task templates auto-seeded. De
 
 **Standalone PT seeder:** `npx tsx scripts/seed-pt-demo.ts` runs `ensureDemoCandidatesPt()` against `.env.pt` credentials. Useful when the dashboard auto-load hasn't fired, or for re-seeding after manual cleanup. Loads `.env.pt` with `override: true` BEFORE importing any module that reads `process.env` at import time (since `lib/supabase/admin.ts` creates the client at module-load).
 
-**Migration catch-up for existing PT instances:** `supabase/migrations/FULL_MIGRATION_PT.sql` is **fresh-bootstrap only** — do not run on a populated DB (001-018 uses bare `CREATE TABLE` and fails with `42P07`). For catch-up on an existing instance, use `supabase/migrations/CATCH_UP_PT_022_040.sql` which wraps each migration 022-040 in `BEGIN; ... COMMIT;` for atomic safety. Identify the starting point via a schema-readiness probe (check `to_regclass()` for distinctive tables per migration) before deciding which catch-up to use. Note: Supabase SQL editor surfaces the first error as red but continues executing subsequent BEGIN/COMMIT blocks — trust the post-run probe over the editor's error display.
+**PT bootstrap (tenant + admin credentials):** `npx tsx scripts/seed-pt.ts` mirrors `scripts/seed.ts` for the EduInsights Supabase. Creates the `eduinsights-demo` tenant (name "Colégio Demonstração"), `tenant_settings.default_language = "pt"`, three roles with PT-localized emails:
+- `admin@eduinsights.datanex.ai` / `Admin2026!` — `platform_admin`
+- `escola@eduinsights.datanex.ai` / `Admin2026!` — `school_admin`
+- `avaliador@eduinsights.datanex.ai` / `Eval2026!` — `evaluator`
+
+Plus an active "Processo Seletivo {year}-{year+1}" cycle (status=active so candidate invites attach), 3 default grade-band templates, and a demo candidate **Lucas Demonstração** (8º ano, status=invited) with predictable invite token `demo-pt-lucas` for student-side demos at `eduinsights.datanex.ai/invite/demo-pt-lucas`. Idempotent — detects existing tenant/users by slug/email and reuses. Emails are auth-only and the EduInsights Supabase Auth must allow them (no domain restriction). Lucas is `is_demo=false` (real candidate path) so the soft-archive on first real invite doesn't touch him.
+
+**Migration catch-up for existing PT instances:** `supabase/migrations/FULL_MIGRATION_PT.sql` is **fresh-bootstrap only** — do not run on a populated DB (001-018 uses bare `CREATE TABLE` and fails with `42P07`). For catch-up on an existing instance, three bundles are available, each wrapping its migrations in `BEGIN; ... COMMIT;` for atomic safety with a header probe + post-run verification SELECT:
+- `supabase/migrations/CATCH_UP_PT_022_040.sql` — 19 migrations from 022 (assignments) through 040 (enrollment_readiness_flags)
+- `supabase/migrations/CATCH_UP_PT_041_045.sql` — 5 migrations: security hardening, tenant delete cascades + sweep, is_demo flag, expected_tier
+- `supabase/migrations/CATCH_UP_PT_046.sql` — single-migration BNCC alignment column
+
+Identify the starting point via a schema-readiness probe (check `to_regclass()` for distinctive tables per migration, or `information_schema.columns` for column-add migrations) before deciding which catch-up to apply. Note: Supabase SQL editor surfaces the first error as red but continues executing subsequent BEGIN/COMMIT blocks — trust the post-run probe over the editor's error display.
 
 ### Support Plan Generator
 
@@ -403,6 +417,17 @@ Generates three parent-safe rationale versions (admit/waitlist/decline) per deci
 - **Mission statement**: `tenant_settings.mission_statement` + `mission_statement_updated_at` (DB trigger — single source of truth, catches direct DB/migration updates too). `MissionStatementBanner` on school dashboard nudges empty-mission tenants, dismissible, re-nudges every 14 days.
 - **Audit**: every generate/reject/fallback/copy/edit/regenerate writes to `audit_logs` with `defensible_language.*` action types. Auto-regen on pipeline run when hash drifts; manual regen via admin button.
 - **API**: `GET/POST /api/school/candidates/[id]/defensible-language`, `POST /api/school/candidates/[id]/defensible-language/edit`, `POST /api/school/candidates/[id]/defensible-language/copy`.
+
+### BNCC Alignment (PT)
+
+Every PT-facing surface is anchored in the BNCC (Base Nacional Comum Curricular) — Brazil's national curriculum framework — at the **competências gerais** level (10 high-level items, not habilidades específicas). Decision per audit: per-grade habilidade tagging would lock tasks to a single year and require curated curriculum mapping per discipline; competências gerais are portable across grades and defensible to both private and public Brazilian schools.
+
+- **Single source of truth**: `lib/bncc/competencias.ts` — exports `BNCC_COMPETENCIAS_GERAIS` (typed array of 10 with id/short/name/description), `getBncc(id)`, `describeBnccList(ids)` for prompt rendering, and `LIFT_DIMENSION_TO_BNCC` mapping each LIFT scoring dimension to 1-2 competências (e.g. reading → [2, 4] = Pensamento Crítico + Comunicação).
+- **DB**: `task_templates.bncc_competencias int[]` (migration 046) with CHECK constraint restricting values to 1-10. EN tasks leave the column empty by convention. Column must exist on **both** Supabases — the 042-style "PT seeder fails on US Supabase" 42703 trap applies here.
+- **Task content**: `scripts/seed-pt-tasks.ts` tags all 24 PT tasks with the relevant 1-2 competências based on what each task actually exercises. Examples: Rio Verde gentrification reading → [2, 7]; A Escola Ideal extended_writing → [4, 6]; all 9 math problems → [2, 7].
+- **AI scoring prompts** (`lib/ai/prompts/types.ts`): new `bnccNote(language, dimension)` helper returns a BNCC framing addendum for PT prompts; empty string for EN. All 7 dimension prompts (reading/writing/reasoning/math/reflection/persistence/support_seeking) wire it in after `langNote()`. PT scoring tells Claude to evaluate against the BNCC competências gerais relevant to the dimension at the grade level.
+- **AI narratives**: `committeeNarrative.ts:buildPromptPt()` instructs Claude to anchor briefs in BNCC and reference competência names (Pensamento Crítico, Argumentação, etc.) instead of generic pedagogical jargon. `defensibleLanguage.ts` PT branch adds a BNCC context block. **Verified against `forbiddenPhrases.ts`** — competência names don't overlap with parent-safe guardrail vocabulary, so this won't trigger fallback regenerations.
+- **Migrations**: `046_bncc_alignment.sql` (canonical) + `CATCH_UP_PT_046.sql` (BEGIN/COMMIT-wrapped catch-up bundle in the established style for the EduInsights Supabase SQL editor).
 
 ### Morning Briefing & Interviewer Prep
 
@@ -553,6 +578,7 @@ UI always shows individual grades (Grade 6, Grade 7, Grade 8, etc.), never grade
 - **Animation**: 4-screen animated demo, 7s per slide, auto-loops
 - **Mobile**: Responsive at 1024px and 720px breakpoints. Grids → single column, nav → hamburger, animation visible below hero text
 - **Legacy**: `marketing/` CRA folder still exists but is no longer the primary deployment path
+- **PT version (`app/lift/page-pt.tsx`)**: ~1100-line sibling exporting `LiftLandingPagePt` for the EduInsights deployment. `app/lift/page.tsx` does locale dispatch at the top — `if (locale === "pt") return <LiftLandingPagePt />` — and the EN body lives inside an inner `LiftLandingPageEn` component so all hooks are inside the leaf (avoids `react-hooks/rules-of-hooks` errors that break Vercel build). PT version replaces the `Pricing` section with `#contact` CTAs (since `LIFT_HIDE_PRICING=true`), uses EduInsights branding, demo candidate Pedro Oliveira / Colégio Vale Verde, BR-academic-calendar year-round seasons, LGPD/FERPA/COPPA compliance copy, and PT-localized inquiry-form labels.
 
 ### Legal Pages
 
@@ -682,6 +708,11 @@ The `ai_recommendation_snapshot` on `evaluator_reviews` contains dimension score
 - **OnboardingBanner is quiet for trial users**: `components/onboarding/OnboardingBanner.tsx` reads `useLicense().status`. If `'trialing'`, renders a single one-line "Next: invite a candidate" hint that auto-disappears once `candidate_invited` is in `onboarding_steps_completed` (also dismissible via `lift-trial-invite-hint-dismissed` localStorage). Paid tenants still see the full 5-step rail. Per `feedback_b2b_buyer_nudge_channel` — visible activation rails patronize senior B2B buyers; nurture goes through HL email instead.
 - **HL trial nurture**: `/api/cron/trial-nurture` runs daily at 11:00 UTC. Finds trial tenants 3-7 days old that have NOT fired `first_candidate_invited` in `trial_events`, fires `lift-trial-no-invite-day3` (day 3) or `lift-trial-walkthrough-offer-day7` (day 7) HL tags. Idempotent via `tenant_settings.nurture_tags_fired` text[]. Email content lives in HL workflows wired to those tags, NOT in LIFT.
 - **Mobile soft-warn**: `components/onboarding/MobileSoftWarn.tsx` renders a one-line dismissible "LIFT works best on desktop or tablet" banner on viewports <768px. Mounted on `/register` and `/school/welcome`. Soft-warn only — never blocks the flow. Dismissal persists in localStorage (`lift-mobile-warn-dismissed`).
+- **Candidate viewport must allow pinch-zoom**: `app/(candidate)/layout.tsx` viewport export does NOT set `maximumScale: 1` — that was an a11y violation that disabled pinch-zoom for kids on phones (assessment runs on student devices, often phones). `globals.css @media (max-width: 768px)` already enforces 16px font on inputs (prevents iOS auto-zoom on focus) and 44px min tap targets on `button/a/[role="button"]`, so most "mobile zoom" mitigations are already global — don't reintroduce per-page viewport caps.
+- **`app/lift/page.tsx` locale dispatch must use a wrapper component**: the EN body lives inside `LiftLandingPageEn` (leaf), and the default export is a 4-line wrapper that calls `useLocale()` and returns either `<LiftLandingPagePt />` or `<LiftLandingPageEn />`. First attempt put the early return after `usePageStyles()`/`useState`/`useEffect` and lint failed with `react-hooks/rules-of-hooks` (Vercel treats this as an error, breaks the build). Same pattern works in the help pages because nothing follows the early return except const declarations — no hooks. For any future i18n-dispatched page that has hooks in the EN body, mirror the wrapper pattern.
+- **BNCC alignment is competências gerais only, not habilidades específicas**: `lib/bncc/competencias.ts` exports the 10 competências gerais. Tagging at this level is portable across grades and disciplines and matches both private and public BR schools without per-curriculum curation. Don't add habilidade codes (EF06LP01, EM13MA02, etc.) to `task_templates` — that locks tasks to a single grade and makes the column hostile to seed-script reuse. The CHECK constraint on `bncc_competencias` enforces 1-10 only.
+- **`task_templates.bncc_competencias` must exist on BOTH Supabases**: even though only the PT seeder populates it, the column must be present on the LIFT (US) Supabase too, otherwise any future shared insert path will 42703. Migration 046 + CATCH_UP_PT_046.sql apply it to both. EN tasks leave it as the empty default `'{}'`.
+- **BNCC vocabulary doesn't trip `forbiddenPhrases.ts`**: verified — competência names ("Pensamento Crítico", "Comunicação", "Argumentação", "Autoconhecimento", "Empatia e Cooperação", "Responsabilidade e Cidadania") have no overlap with the parent-safe guardrail patterns. PT defensible-language can reference these freely without triggering the 3-attempt regen + safe-template fallback. If you ever extend forbiddenPhrases, grep against the BNCC vocab in `lib/bncc/competencias.ts` first.
 
 ## Design Tokens
 
