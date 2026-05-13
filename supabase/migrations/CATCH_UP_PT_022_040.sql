@@ -308,6 +308,11 @@ INNER JOIN tenant_licenses l ON l.tenant_id = t.id
 WHERE l.status = 'trialing'
   AND l.trial_ends_at > now();
 
+-- Re-apply migration 041's hardening: CREATE OR REPLACE VIEW resets reloptions,
+-- so without this the Supabase linter flags trial_health as security_definer_view
+-- on any catch-up re-run after 041 has been applied.
+ALTER VIEW trial_health SET (security_invoker = true);
+
 COMMIT;
 
 
